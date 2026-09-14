@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Analytics - KatokKalinis</title>
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Leaflet.js — lightweight OSM tile map, no framework change -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV/XN/WLs=" crossorigin=""></script>
+    <style>
+        .clenro-overview-banner {
+            background: linear-gradient(135deg, var(--green-800) 0%, var(--green-600) 100%);
+            color: #ffffff;
+            border-radius: var(--radius-lg);
+            padding: 22px 26px;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow-md);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            position: relative;
+            overflow: hidden;
+        }
+        .clenro-overview-banner::after {
+            content: '';
+            position: absolute;
+            right: -20px;
+            bottom: -30px;
+            width: 160px;
+            height: 160px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        .clenro-banner-content h3 {
+            color: #ffffff;
+            margin: 4px 0 6px;
+            font-size: 20px;
+            font-weight: 700;
+        }
+        .clenro-banner-content p {
+            margin: 0;
+            font-size: 13.5px;
+            opacity: 0.95;
+            max-width: 650px;
+            line-height: 1.5;
+        }
+        .cdo-badge-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+        }
+        .clenro-kpi-strip {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .clenro-kpi-item {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 16px 18px;
+            box-shadow: var(--shadow-sm);
+            border-left: 4px solid var(--green-600);
+            transition: transform var(--transition);
+        }
+        .clenro-kpi-item:hover {
+            transform: translateY(-2px);
+        }
+        .clenro-kpi-item.warning { border-left-color: #f59e0b; }
+        .clenro-kpi-item.info { border-left-color: #0284c7; }
+        .clenro-kpi-item.danger { border-left-color: #ef4444; }
+        .kpi-metric-label {
+            font-size: 11.5px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .kpi-metric-val {
+            font-size: 26px;
+            font-weight: 800;
+            color: var(--text);
+            margin: 4px 0 2px;
+            line-height: 1.2;
+        }
+        .kpi-metric-sub {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+        .directives-mini-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 18px 20px;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow-sm);
+        }
+        .directives-mini-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border);
+        }
+        .directives-mini-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 14px;
+        }
+        .directive-mini-box {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 12px 14px;
+            font-size: 13px;
+        }
+        .directive-mini-title {
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .directive-mini-desc {
+            color: var(--text-muted);
+            font-size: 12.5px;
+            line-height: 1.4;
+        }
+        /* ── Zone Drill-Down Panel ─────────────────────────────── */
+        .zone-drilldown-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 0;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow-md);
+            overflow: hidden;
+        }
+        .zone-drilldown-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .zone-drilldown-header h3 {
+            font-size: 15px;
+            font-weight: 700;
+            margin: 0;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .zone-selector-wrap {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .zone-selector-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        #zone-select {
+            padding: 7px 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--bg);
+            color: var(--text);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            min-width: 220px;
+        }
+        .zone-body {
+            display: block;
+        }
+        /* Barangay list */
+        .brgy-list-panel {
+            padding: 16px 20px;
+            border-right: none;
+            max-height: 520px;
+            overflow-y: auto;
+        }
+        .brgy-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 12px;
+        }
+        .zone-total-row {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 14px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border);
+        }
+        .zone-total-chip {
+            font-size: 12px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 20px;
+            background: var(--green-50);
+            color: var(--green-800);
+            border: 1px solid var(--green-200);
+        }
+        .zone-total-chip.orange {
+            background: #fff7ed;
+            color: #9a3412;
+            border-color: #fed7aa;
+        }
+        .brgy-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 9px 10px;
+            margin-bottom: 4px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.15s, box-shadow 0.15s;
+            border: 1px solid transparent;
+            gap: 8px;
+        }
+        .brgy-item:hover {
+            background: var(--green-50);
+            border-color: var(--green-200);
+        }
+        .brgy-item.selected {
+            background: linear-gradient(135deg, var(--green-50), #ecfdf5);
+            border-color: var(--green-400);
+            box-shadow: 0 2px 6px rgba(34, 197, 94, 0.12);
+        }
+        .brgy-item-left {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            min-width: 0;
+        }
+        .brgy-item-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .brgy-item-meta {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+        .brgy-item-pills {
+            display: flex;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+        .brgy-pill {
+            font-size: 10.5px;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 10px;
+        }
+        .brgy-pill-v { background: #dcfce7; color: #166534; }
+        .brgy-pill-r { background: #fee2e2; color: #991b1b; }
+        /* Right: Map + detail panel */
+        .brgy-detail-panel {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .brgy-detail-empty {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            min-height: 220px;
+            color: var(--text-muted);
+            font-size: 13px;
+            gap: 10px;
+            text-align: center;
+        }
+        .brgy-detail-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 2px;
+        }
+        .brgy-detail-stats {
+            display: flex;
+            gap: 12px;
+        }
+        .brgy-detail-stat {
+            flex: 1;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px 12px;
+            text-align: center;
+        }
+        .brgy-detail-stat .val {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--text);
+        }
+        .brgy-detail-stat .lbl {
+            font-size: 10.5px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            font-weight: 600;
+        }
+        /* Leaflet map container height */
+        #brgy-map-div {
+            width: 100%;
+            height: 230px;
+            border-radius: 10px;
+        }
+        /* Override Leaflet attribution font to match dashboard */
+        .leaflet-control-attribution {
+            font-size: 9px !important;
+        }
+        .map-badge {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(0,0,0,0.55);
+            color: #fff;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 12px;
+            letter-spacing: 0.4px;
+            pointer-events: none;
+        }
+        .brgy-overview-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            background: linear-gradient(135deg, var(--green-600), var(--green-800));
+            color: #fff;
+            font-weight: 700;
+            font-size: 13px;
+            padding: 10px 18px;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: opacity 0.15s;
+            box-shadow: 0 3px 10px rgba(22, 163, 74, 0.25);
+        }
+        .brgy-overview-link:hover { opacity: 0.88; }
+        .data-src-badge {
+            font-size: 10.5px;
+            font-weight: 700;
+            padding: 3px 9px;
+            border-radius: 12px;
+            letter-spacing: 0.4px;
+        }
+        .data-src-live { background: #dcfce7; color: #15803d; border: 1px solid #86efac; }
+        .data-src-local { background: #fef9c3; color: #854d0e; border: 1px solid #fde047; }
+    </style>
+</head>
+<body>
+    <div class="dashboard-layout">
+        <aside class="sidebar">
+            <div class="sidebar-header">KatokKalinis</div>
+            <div class="sidebar-role" id="sidebar-role"></div>
+            <nav class="sidebar-nav" id="sidebar-nav"></nav>
+            <div class="sidebar-footer">
+                <!-- Profile widget rendered automatically by app.js -->
+            </div>
+        </aside>
+        <main class="main-content">
+            <header class="topbar">
+                <h2>Dashboard Analytics</h2>
+                <div id="topbar-user"></div>
+            </header>
+            <section class="content">
+                <!-- Top System Stats Grid -->
+                <div class="stats-grid">
+                    <div class="stat-card"><h3>Drivers &amp; Sweepers</h3><div class="value" id="total-employees">18</div><div class="stat-meta">Active CLENRO Roster</div></div>
+                    <div class="stat-card"><h3>Contractors</h3><div class="value" id="total-contractors">4</div><div class="stat-meta">Hauling Operators</div></div>
+                    <div class="stat-card"><h3>Market Vendors</h3><div class="value" id="total-vendors">1,240</div><div class="stat-meta">Cogon &amp; Carmen</div></div>
+                    <div class="stat-card"><h3>Total Incident Reports</h3><div class="value" id="total-reports">74</div><div class="stat-meta">2024–2026 Archive</div></div>
+                    <div class="stat-card"><h3>Fleet Vehicles</h3><div class="value" id="total-trucks">14</div><div class="stat-meta">City &amp; Contractor</div></div>
+                </div>
+
+                <!-- CLENRO Decision Support Callout Banner -->
+                <div class="clenro-overview-banner">
+                    <div class="clenro-banner-content">
+                        <span class="cdo-badge-pill">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                            CLENRO Department · City Government of Cagayan de Oro
+                        </span>
+                        <h3>Historical Garbage Pile-Up &amp; Decision Directives</h3>
+                        <p>Comprehensive 2024–2026 municipal solid waste dataset covering Barangay 1 to 40 (Urban Core Poblacion), Cogon Commercial Market Zone, and Carmen Public Market Zone for executive route planning and contractor SLA enforcement.</p>
+                    </div>
+                    <a href="clenro-reports.html" class="btn btn-primary" style="background: #ffffff; color: var(--green-800); font-weight: 700; border: none; padding: 10px 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: inline-flex; align-items: center; gap: 8px;">
+                        Open CLENRO Analytics
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                    </a>
+                </div>
+
+                <!-- CLENRO Executive KPI Strip -->
+                <div class="clenro-kpi-strip">
+                    <div class="clenro-kpi-item">
+                        <div class="kpi-metric-label">Poblacion Barangay Coverage</div>
+                        <div class="kpi-metric-val">100%</div>
+                        <div class="kpi-metric-sub">All 40 Poblacion Barangays Represented</div>
+                    </div>
+                    <div class="clenro-kpi-item warning">
+                        <div class="kpi-metric-label">Market Share of Total Volume</div>
+                        <div class="kpi-metric-val">52.8%</div>
+                        <div class="kpi-metric-sub">Cogon &amp; Carmen Wholesale Night Stalls</div>
+                    </div>
+                    <div class="clenro-kpi-item info">
+                        <div class="kpi-metric-label">Avg. Resolution Turnaround</div>
+                        <div class="kpi-metric-val">11.6h</div>
+                        <div class="kpi-metric-sub">81.1% Cleared within SLA Guidelines</div>
+                    </div>
+                    <div class="clenro-kpi-item danger">
+                        <div class="kpi-metric-label">Contractor SLA Breaches</div>
+                        <div class="kpi-metric-val">14</div>
+                        <div class="kpi-metric-sub">₱160,000 Liquidated Damages Assessed</div>
+                    </div>
+                </div>
+
+                <!-- Zone Drill-Down Section (Dynamic from API) -->
+                <div class="zone-drilldown-card" id="zone-drilldown">
+                    <div class="zone-drilldown-header">
+                        <h3>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--green-600)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                            Barangay &amp; Zone Analytics
+                            <span id="brgy-data-badge" class="data-src-badge data-src-local">⏳ Loading</span>
+                        </h3>
+                        <div class="zone-selector-wrap">
+                            <span class="zone-selector-label">Zone</span>
+                            <select id="zone-select" onchange="onZoneChange()">
+                                <option value="">— Select a Zone —</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="zone-body">
+                        <!-- Barangay list panel -->
+                        <div class="brgy-list-panel">
+                            <div id="zone-totals" class="zone-total-row" style="display:none"></div>
+                            <div id="brgy-list"><p style="color:var(--text-muted);font-size:13px;">Select a zone above to view barangays.</p></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Existing Standard Analytics Grid -->
+                <div class="analytics-grid">
+                    <div class="card">
+                        <div class="card-header"><h3>Market Compliance</h3></div>
+                        <div id="market-compliance" class="analytics-list">Loading...</div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header"><h3>Reports by Status</h3></div>
+                        <div id="report-stats" class="analytics-list">Loading...</div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header"><h3>Driver Attendance</h3></div>
+                        <div id="driver-stats" class="analytics-list">Loading...</div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script src="js/app.js"></script>
+    <script>
+        const row = (label, value) => `<div class="analytics-row"><span>${label}</span><strong>${value}</strong></div>`;
+
+        /* ── Fallback data when backend is unreachable ──────────────── */
+        const fallbackAnalytics = {
+            totals: { employees: 18, contractors: 4, vendors: 1240, reports: 74, trucks: 14 },
+            market_compliance: { total_inspections: 148, flagged_markets: 3, threshold: 85 },
+            reports_by_status: { 'Resolved within SLA': 60, 'Chronic Hotspot Monitoring': 9, 'Pending / Under Inspection': 5 },
+            employee_attendance: [
+                { name: 'Danilo P. Fernandez', present: 22, late: 1, absent: 0 },
+                { name: 'Rodrigo M. Alvarez', present: 21, late: 2, absent: 0 },
+                { name: 'Nestor C. Macapagal', present: 23, late: 0, absent: 0 },
+                { name: 'Crisanto B. Ocampos', present: 20, late: 2, absent: 1 }
+            ]
+        };
+
+        // Fallback zone/barangay data when API is offline
+        const fallbackZones = [
+            {
+                zone: 'Cogon Market Zone',
+                total_vendors: 680, total_reports: 24,
+                barangays: [
+                    { id: 101, name: 'Cogon Market Zone (Brgy 33)', vendors: 340, reports: 12, latitude: 8.4821, longitude: 124.6470, description: 'Main Cogon wholesale and retail market area.' },
+                    { id: 102, name: 'Cogon Market Zone (Brgy 34)', vendors: 220, reports: 8, latitude: 8.4835, longitude: 124.6488, description: 'Night market and produce section.' },
+                    { id: 103, name: 'Cogon Market Zone (Brgy 39)', vendors: 80, reports: 3, latitude: 8.4808, longitude: 124.6462, description: 'Fish and seafood section.' },
+                    { id: 104, name: 'Cogon Market Zone (Brgy 40)', vendors: 40, reports: 1, latitude: 8.4800, longitude: 124.6450, description: 'Dry goods corridor.' },
+                ]
+            },
+            {
+                zone: 'Carmen Market Zone',
+                total_vendors: 420, total_reports: 18,
+                barangays: [
+                    { id: 201, name: 'Carmen Public Market (Vamenta)', vendors: 240, reports: 10, latitude: 8.5012, longitude: 124.6373, description: 'Carmen market north wing.' },
+                    { id: 202, name: 'Carmen Public Market (Seriña)', vendors: 180, reports: 8, latitude: 8.5023, longitude: 124.6385, description: 'Carmen market south wing.' },
+                ]
+            },
+            {
+                zone: 'Sector North (Barangay 1-10)',
+                total_vendors: 140, total_reports: 12,
+                barangays: [
+                    { id: 1, name: 'Barangay 1', vendors: 18, reports: 2, latitude: 8.4750, longitude: 124.6441, description: 'Divisoria commercial district.' },
+                    { id: 2, name: 'Barangay 2', vendors: 15, reports: 1, latitude: 8.4762, longitude: 124.6430, description: 'Near Cagayan River bank.' },
+                    { id: 3, name: 'Barangay 3', vendors: 12, reports: 1, latitude: 8.4770, longitude: 124.6445, description: null },
+                    { id: 4, name: 'Barangay 4', vendors: 10, reports: 2, latitude: 8.4741, longitude: 124.6453, description: null },
+                    { id: 5, name: 'Barangay 5', vendors: 16, reports: 1, latitude: 8.4735, longitude: 124.6461, description: null },
+                    { id: 6, name: 'Barangay 6', vendors: 14, reports: 2, latitude: 8.4728, longitude: 124.6470, description: null },
+                    { id: 7, name: 'Barangay 7', vendors: 20, reports: 1, latitude: 8.4722, longitude: 124.6478, description: null },
+                    { id: 8, name: 'Barangay 8', vendors: 12, reports: 0, latitude: 8.4715, longitude: 124.6486, description: null },
+                    { id: 9, name: 'Barangay 9', vendors: 14, reports: 1, latitude: 8.4708, longitude: 124.6494, description: null },
+                    { id: 10, name: 'Barangay 10', vendors: 9, reports: 1, latitude: 8.4700, longitude: 124.6502, description: null },
+                ]
+            },
+            {
+                zone: 'Sector Central (Barangay 11-20)',
+                total_vendors: 95, total_reports: 9,
+                barangays: [
+                    { id: 11, name: 'Barangay 11', vendors: 10, reports: 1, latitude: 8.4792, longitude: 124.6512, description: null },
+                    { id: 12, name: 'Barangay 12', vendors: 9, reports: 1, latitude: 8.4800, longitude: 124.6520, description: null },
+                    { id: 13, name: 'Barangay 13', vendors: 8, reports: 0, latitude: 8.4808, longitude: 124.6528, description: null },
+                    { id: 14, name: 'Barangay 14', vendors: 9, reports: 1, latitude: 8.4816, longitude: 124.6536, description: null },
+                    { id: 15, name: 'Barangay 15', vendors: 10, reports: 1, latitude: 8.4824, longitude: 124.6544, description: null },
+                    { id: 16, name: 'Barangay 16', vendors: 9, reports: 1, latitude: 8.4832, longitude: 124.6552, description: null },
+                    { id: 17, name: 'Barangay 17', vendors: 10, reports: 1, latitude: 8.4840, longitude: 124.6560, description: null },
+                    { id: 18, name: 'Barangay 18', vendors: 9, reports: 1, latitude: 8.4848, longitude: 124.6568, description: null },
+                    { id: 19, name: 'Barangay 19', vendors: 12, reports: 1, latitude: 8.4856, longitude: 124.6576, description: null },
+                    { id: 20, name: 'Barangay 20', vendors: 9, reports: 1, latitude: 8.4864, longitude: 124.6584, description: null },
+                ]
+            },
+            {
+                zone: 'Sector East (Barangay 21-30)',
+                total_vendors: 60, total_reports: 8,
+                barangays: [
+                    { id: 21, name: 'Barangay 21', vendors: 6, reports: 1, latitude: 8.4872, longitude: 124.6592, description: null },
+                    { id: 22, name: 'Barangay 22 (Bitan-ag)', vendors: 7, reports: 2, latitude: 8.4880, longitude: 124.6600, description: 'Near Bitan-ag Creek flood corridor.' },
+                    { id: 23, name: 'Barangay 23', vendors: 5, reports: 1, latitude: 8.4888, longitude: 124.6608, description: null },
+                    { id: 24, name: 'Barangay 24', vendors: 6, reports: 0, latitude: 8.4896, longitude: 124.6616, description: null },
+                    { id: 25, name: 'Barangay 25', vendors: 7, reports: 1, latitude: 8.4904, longitude: 124.6624, description: 'Limketkai Drive culvert area.' },
+                    { id: 26, name: 'Barangay 26', vendors: 5, reports: 1, latitude: 8.4912, longitude: 124.6632, description: null },
+                    { id: 27, name: 'Barangay 27', vendors: 6, reports: 0, latitude: 8.4920, longitude: 124.6640, description: null },
+                    { id: 28, name: 'Barangay 28', vendors: 7, reports: 1, latitude: 8.4928, longitude: 124.6648, description: null },
+                    { id: 29, name: 'Barangay 29', vendors: 5, reports: 1, latitude: 8.4936, longitude: 124.6656, description: null },
+                    { id: 30, name: 'Barangay 30', vendors: 6, reports: 0, latitude: 8.4944, longitude: 124.6664, description: null },
+                ]
+            },
+            {
+                zone: 'Sector Commercial (Barangay 31-40)',
+                total_vendors: 85, total_reports: 7,
+                barangays: [
+                    { id: 31, name: 'Barangay 31', vendors: 9, reports: 1, latitude: 8.4952, longitude: 124.6672, description: null },
+                    { id: 32, name: 'Barangay 32', vendors: 8, reports: 0, latitude: 8.4960, longitude: 124.6680, description: null },
+                    { id: 33, name: 'Barangay 33', vendors: 10, reports: 1, latitude: 8.4968, longitude: 124.6688, description: null },
+                    { id: 34, name: 'Barangay 34 (Agora)', vendors: 12, reports: 2, latitude: 8.4976, longitude: 124.6696, description: 'Near Agora public market.' },
+                    { id: 35, name: 'Barangay 35', vendors: 8, reports: 1, latitude: 8.4984, longitude: 124.6704, description: null },
+                    { id: 36, name: 'Barangay 36', vendors: 7, reports: 0, latitude: 8.4992, longitude: 124.6712, description: null },
+                    { id: 37, name: 'Barangay 37', vendors: 9, reports: 1, latitude: 8.5000, longitude: 124.6720, description: null },
+                    { id: 38, name: 'Barangay 38', vendors: 8, reports: 0, latitude: 8.5008, longitude: 124.6728, description: null },
+                    { id: 39, name: 'Barangay 39', vendors: 7, reports: 1, latitude: 8.5016, longitude: 124.6736, description: null },
+                    { id: 40, name: 'Barangay 40', vendors: 7, reports: 0, latitude: 8.5024, longitude: 124.6744, description: null },
+                ]
+            }
+        ];
+
+        /* ── State ───────────────────────────────────────────────── */
+        let allZones = [];
+        let selectedZone = null;
+        let selectedBrgy = null;
+
+        /* ── API Loaders ─────────────────────────────────────────── */
+        async function loadAnalytics() {
+            try {
+                const data = await apiRequest('/analytics/overview');
+                populateSummary(data);
+            } catch {
+                console.warn('Overview API unavailable — using fallback.');
+                populateSummary(fallbackAnalytics);
+            }
+        }
+
+        async function loadZoneAnalytics() {
+            const badge = document.getElementById('brgy-data-badge');
+            try {
+                const data = await apiRequest('/analytics/barangay-stats');
+                if (data && data.zones && data.zones.length > 0) {
+                    allZones = data.zones;
+                    badge.textContent = '🟢 Live Data';
+                    badge.className = 'data-src-badge data-src-live';
+                } else {
+                    throw new Error('empty');
+                }
+            } catch {
+                console.warn('Barangay analytics API unavailable — using fallback.');
+                allZones = fallbackZones;
+                badge.textContent = '📦 Local Dataset';
+                badge.className = 'data-src-badge data-src-local';
+            }
+            populateZoneSelector();
+        }
+
+        /* ── Zone selector ───────────────────────────────────────── */
+        function populateZoneSelector() {
+            const sel = document.getElementById('zone-select');
+            sel.innerHTML = '<option value="">— Select a Zone —</option>';
+            allZones.forEach((z, i) => {
+                const opt = document.createElement('option');
+                opt.value = i;
+                opt.textContent = z.zone;
+                sel.appendChild(opt);
+            });
+        }
+
+        function onZoneChange() {
+            const idx = document.getElementById('zone-select').value;
+            if (idx === '') {
+                selectedZone = null;
+                document.getElementById('zone-totals').style.display = 'none';
+                document.getElementById('brgy-list').innerHTML = '<p style="color:var(--text-muted);font-size:13px;">Select a zone above to view barangays.</p>';
+                return;
+            }
+            selectedZone = allZones[parseInt(idx)];
+            renderBrgyList(selectedZone);
+        }
+
+        function renderBrgyList(zone) {
+            // Zone totals
+            const totalsEl = document.getElementById('zone-totals');
+            totalsEl.style.display = 'flex';
+            totalsEl.innerHTML = `
+                <span class="zone-total-chip">${zone.barangays.length} Barangays</span>
+                <span class="zone-total-chip">${zone.total_vendors} Vendors</span>
+                <span class="zone-total-chip orange">${zone.total_reports} Reports</span>
+            `;
+
+            document.getElementById('brgy-list').innerHTML = `
+                <div class="brgy-grid">
+                    ${zone.barangays.map(b => `
+                        <div class="brgy-item" id="brgy-item-${b.id}" onclick="openBrgyOverview(${b.id}, '${escapeHtml(b.name).replace(/'/g, "\\'")}')" title="Click to open Barangay Overview">
+                            <div class="brgy-item-left">
+                                <div class="brgy-item-name">${escapeHtml(b.name)}</div>
+                                <div class="brgy-item-meta">${b.description ? escapeHtml(b.description.substring(0, 55)) + (b.description.length > 55 ? '…' : '') : 'Poblacion Solid Waste Corridor'}</div>
+                            </div>
+                            <div style="display:flex;align-items:center;gap:10px;">
+                                <div class="brgy-item-pills">
+                                    <span class="brgy-pill brgy-pill-v">${b.vendors} V</span>
+                                    <span class="brgy-pill brgy-pill-r">${b.reports} R</span>
+                                </div>
+                                <span style="font-size:12px;color:var(--green-700);font-weight:700;white-space:nowrap;">View &rarr;</span>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function openBrgyOverview(id, name) {
+            window.location.href = `barangay-overview.html?barangay=${id}&name=${encodeURIComponent(name)}`;
+        }
+
+        function selectBrgy(brgy) {
+            if (brgy && brgy.id) {
+                openBrgyOverview(brgy.id, brgy.name);
+            }
+        }
+
+        function clearBrgyDetail() {
+            selectedBrgy = null;
+        }
+
+        /* ── Summary panel populators ────────────────────────────── */
+        function populateSummary(data) {
+            const totals = data.totals || fallbackAnalytics.totals;
+            Object.entries({
+                employees: 'total-employees',
+                contractors: 'total-contractors',
+                vendors: 'total-vendors',
+                reports: 'total-reports',
+                trucks: 'total-trucks'
+            }).forEach(([key, id]) => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = totals[key] ?? 0;
+            });
+
+            const compliance = data.market_compliance || fallbackAnalytics.market_compliance;
+            document.getElementById('market-compliance').innerHTML =
+                row('Total inspections conducted', compliance.total_inspections ?? 148) +
+                row('Flagged market corridors', compliance.flagged_markets ?? 3) +
+                row('SLA compliance threshold', `${compliance.threshold ?? 85}%`);
+
+            const reports = data.reports_by_status || fallbackAnalytics.reports_by_status;
+            document.getElementById('report-stats').innerHTML = Object.entries(reports).map(
+                ([label, value]) => row(label, value)
+            ).join('');
+
+            const attendance = data.employee_attendance || fallbackAnalytics.employee_attendance;
+            document.getElementById('driver-stats').innerHTML = attendance.map(item =>
+                row(item.name, `${item.present} present · ${item.late} late · ${item.absent} absent`)
+            ).join('');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadAnalytics();
+            loadZoneAnalytics();
+        });
+    </script>
+</body>
+</html>

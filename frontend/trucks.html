@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CLENRO Fleet Monitoring &amp; Trucks - KatokKalinis</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .status-pill {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            color: #fff;
+            font-size: 11.5px;
+            font-weight: 600;
+        }
+        .status-available { background: #2ecc71; }
+        .status-on_route { background: #3498db; }
+        .status-maintenance { background: #f39c12; }
+        .status-inactive { background: #95a5a6; }
+        .live-note { color: var(--text-muted); font-size: 12.5px; margin-bottom: 12px; }
+        .truck-code-tag {
+            font-family: 'Consolas', monospace;
+            font-weight: 700;
+            color: var(--green-900);
+            background: var(--green-50);
+            padding: 3px 7px;
+            border-radius: 4px;
+            border: 1px solid var(--green-200);
+            display: inline-block;
+            font-size: 11.5px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="dashboard-layout">
+        <aside class="sidebar">
+            <div class="sidebar-header">KatokKalinis</div>
+            <div class="sidebar-role" id="sidebar-role"></div>
+            <nav class="sidebar-nav" id="sidebar-nav"></nav>
+            <div class="sidebar-footer">
+                
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="topbar">
+                <h2>CLENRO Fleet &amp; Collection Trucks</h2>
+                <div id="topbar-user"></div>
+            </header>
+
+            <section class="content">
+                <!-- CLENRO Fleet Banner -->
+                <div class="card" style="background: linear-gradient(135deg, #15803d 0%, #1e4a29 100%); color: #fff; padding: 18px 22px; margin-bottom: 22px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+                    <div>
+                        <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; opacity: 0.85;">CLENRO Solid Waste Operations · Cagayan de Oro City</div>
+                        <h3 style="color: #fff; margin: 4px 0; font-size: 18px;">Municipal Collection Fleet &amp; Equipment Monitoring</h3>
+                        <p style="margin: 0; font-size: 13px; opacity: 0.9;">GPS tracking, official vehicle classifications, payload tonnage, and designated collection sectors for Barangay 1–40 and City Markets.</p>
+                    </div>
+                    <button class="btn" onclick="openModal()" style="background: #ffffff; color: #15803d; font-weight: 700; border: none; padding: 9px 20px; border-radius: 8px; width: auto; box-shadow: 0 4px 10px rgba(0,0,0,0.15); cursor: pointer;">
+                        + Register New Truck
+                    </button>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Total Active Fleet</h3>
+                        <div class="value" id="stat-total-trucks">8 Units</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Active on Route</h3>
+                        <div class="value" id="stat-active-routes" style="color: #2563eb;">3 Units</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Market Sweeps Today</h3>
+                        <div class="value" id="stat-collections-today">14 Trips</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Avg. Turnaround Time</h3>
+                        <div class="value" id="stat-avg-time">6.8 hrs</div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Fleet Operational Status &amp; Last Reported GPS Location</h3>
+                        <button class="btn" onclick="openModal()" style="width: auto; padding: 7px 16px;">Add Truck</button>
+                    </div>
+                    <p class="live-note">⚡ Real-time updates for municipal solid waste vehicles across Cogon, Carmen, and Poblacion Barangays 1 to 40.</p>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Truck Code</th>
+                                <th>Vehicle Type</th>
+                                <th>Plate #</th>
+                                <th>Assigned Driver</th>
+                                <th>Fleet Partner</th>
+                                <th>Operating Zone</th>
+                                <th>Status</th>
+                                <th>Last Known Location</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-body">
+                            <tr><td colspan="9">Loading fleet equipment data...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Add/Edit Government Truck Modal (Picture 2 CLENRO Spec) -->
+    <div id="form-modal" class="modal">
+        <div class="modal-content modal-xl" style="max-width: 780px;">
+            <div class="modal-top-bar">
+                <h3 id="modal-title">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+                    Register Municipal Solid Waste Truck
+                </h3>
+                <span class="close-btn" onclick="closeModal()">&times;</span>
+            </div>
+
+            <form id="data-form" style="padding: 22px 24px;">
+                <input type="hidden" id="item-id">
+                
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                    <!-- Auto-generated Truck Code -->
+                    <div class="form-group">
+                        <label>Truck Code / Unit ID (Auto-Generated)</label>
+                        <div class="auto-code-wrapper">
+                            <input type="text" id="truck_number" class="form-control auto-code-input" readonly>
+                            <span class="auto-code-badge">AUTO-ADDED</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Vehicle Plate Number</label>
+                        <input type="text" id="plate_number" class="form-control" placeholder="e.g. ABC-4102 or LGU-9014" required>
+                    </div>
+                </div>
+
+                <!-- Official Government Truck Types Dropdown (CLENRO Standard) -->
+                <div class="form-group">
+                    <label>Official CLENRO Truck Classification</label>
+                    <select id="truck_type" class="form-control" required onchange="updateCapacityHint()">
+                        <option value="Compactor Truck (10–12 cu.m / Heavy Duty - 16T)">🚛 Compactor Truck (10–12 cu.m / Heavy Duty - 16 Tons)</option>
+                        <option value="Compactor Truck (6–8 cu.m / Medium - 8T)">🚛 Compactor Truck (6–8 cu.m / Medium - 8 Tons)</option>
+                        <option value="Mini Dump Truck (3–4 cu.m / Narrow Alley Collector)">🛻 Mini Dump Truck (3–4 cu.m / Narrow Alleys &amp; Interior Sitios)</option>
+                        <option value="Arm-Roll / Hook Lift Truck (Market Bulk Bin Carrier)">🚜 Arm-Roll / Hook Lift Truck (Market Bulk Steel Bin Carrier)</option>
+                        <option value="Open Dump Truck (10-Wheeler / 20T Landfill Transfer)">🚚 Open Dump Truck (10-Wheeler / 20 Tons Landfill Hauler)</option>
+                        <option value="Street Sweeper Vacuum Truck (Arterial Road Cleaner)">🧹 Street Sweeper Vacuum Truck (Arterial Night Cleaner)</option>
+                        <option value="Segregated Biodegradable Organic Waste Truck">🌱 Segregated Biodegradable Organic Waste Truck</option>
+                        <option value="Hazardous &amp; Healthcare Closed Waste Carrier">☣️ Hazardous &amp; Healthcare Closed Waste Carrier</option>
+                    </select>
+                </div>
+
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                    <div class="form-group">
+                        <label>Payload Volume &amp; Tonnage Capacity</label>
+                        <input type="text" id="capacity_spec" class="form-control" value="12 m³ (Approx. 6.5 Metric Tons)" placeholder="e.g. 12 m³ (6.5 Tons)">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Operating Status</label>
+                        <select id="status" class="form-control">
+                            <option value="available">Available (In Depot Standby)</option>
+                            <option value="on_route">On Collection Route</option>
+                            <option value="maintenance">Under Maintenance</option>
+                            <option value="inactive">Inactive / Decommissioned</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                    <div class="form-group">
+                        <label>Assigned Fleet Driver</label>
+                        <select id="driver_id" class="form-control">
+                            <option value="">-- Select Accredited Driver --</option>
+                            <option value="1">Danilo Ramos (Compactor Heavy Operator)</option>
+                            <option value="2">Rodrigo Villanueva (Arm-Roll Hooklift Operator)</option>
+                            <option value="3">Nestor Cabunoc (Mini Dump Driver)</option>
+                            <option value="4">Engr. Michael Tan (Field Inspector)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Fleet Partner / Hauler Contractor</label>
+                        <select id="contractor_id" class="form-control">
+                            <option value="1">CLENRO In-House City Fleet</option>
+                            <option value="2">IPM CDO Urban Waste Haulers Inc.</option>
+                            <option value="3">City Engineer's Motorpool &amp; Heavy Equipment</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                    <div class="form-group">
+                        <label>Designated Collection Zone</label>
+                        <select id="operating_zone" class="form-control">
+                            <option value="Cogon Market Commercial Zone">📍 Cogon Market Commercial Zone</option>
+                            <option value="Carmen Market Commercial Zone">📍 Carmen Market Commercial Zone</option>
+                            <option value="Sector North: Barangay 1–10">🏘️ Sector North (Barangay 1 to 10)</option>
+                            <option value="Sector Central: Barangay 11–20">🏘️ Sector Central (Barangay 11 to 20)</option>
+                            <option value="Sector East: Barangay 21–30">🏘️ Sector East (Barangay 21 to 30)</option>
+                            <option value="Sector Commercial: Barangay 31–40">🏘️ Sector Commercial (Barangay 31 to 40)</option>
+                            <option value="Emergency Flood &amp; Riverbank Corridor">🌊 Emergency Flood &amp; Riverbank Sweep</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>GPS Transponder / Tracker Code</label>
+                        <input type="text" id="gps_code" class="form-control" placeholder="e.g. GPS-CDO-092">
+                    </div>
+                </div>
+
+                <div style="display:flex; justify-content:flex-end; gap:10px; margin-top: 14px; border-top: 1px solid var(--border); padding-top: 16px;">
+                    <button type="button" class="btn" onclick="closeModal()" style="background:var(--surface); color:var(--text); border:1px solid var(--border); width:auto; padding:9px 18px;">Cancel</button>
+                    <button type="submit" class="btn" style="background:linear-gradient(135deg, #16a34a, #15803d); color:#fff; width:auto; padding:9px 24px; font-weight:700;">Save Truck Record</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Quick Status Modal -->
+    <div id="status-modal" class="modal">
+        <div class="modal-content" style="max-width: 420px;">
+            <div class="modal-header">
+                <h3>Update Truck Status</h3>
+                <span class="close-btn" onclick="closeStatusModal()">&times;</span>
+            </div>
+            <form id="status-form">
+                <input type="hidden" id="status-truck-id">
+                <div class="form-group">
+                    <label>Status</label>
+                    <select id="status-select" class="form-control">
+                        <option value="available">Available (Depot Standby)</option>
+                        <option value="on_route">On Route (Collecting)</option>
+                        <option value="maintenance">Maintenance</option>
+                        <option value="inactive">Inactive</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn" style="background:var(--green-600);">Update Status</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+    <script>
+        const endpoint = '/trucks';
+
+        // Local Resilient CDO CLENRO Trucks Dataset
+        const DEFAULT_TRUCKS = [
+            {
+                id: 1, truck_number: 'CLENRO-TRK-2026-004', plate_number: 'ABC-4102',
+                truck_type: 'Compactor Truck (10–12 cu.m / Heavy Duty - 16T)',
+                driver_name: 'Danilo Ramos', contractor_name: 'IPM CDO Urban Haulers',
+                operating_zone: 'Cogon Market Commercial Zone', status: 'available',
+                capacity: '12 m³ (6.5 MT)', lat: 8.477610, lon: 124.648210, last_update: '2026-09-06 15:45:00'
+            },
+            {
+                id: 2, truck_number: 'CLENRO-TRK-2026-008', plate_number: 'KDG-8821',
+                truck_type: 'Compactor Truck (10–12 cu.m / Heavy Duty - 16T)',
+                driver_name: 'Nestor Cabunoc', contractor_name: 'IPM CDO Urban Haulers',
+                operating_zone: 'Sector East: Barangay 21–30', status: 'on_route',
+                capacity: '10 m³ (5.2 MT)', lat: 8.478150, lon: 124.647650, last_update: '2026-09-06 16:10:22'
+            },
+            {
+                id: 3, truck_number: 'CLENRO-TRK-2026-011', plate_number: 'LGU-9014',
+                truck_type: 'Mini Dump Truck (3–4 cu.m / Narrow Alley Collector)',
+                driver_name: 'City Sweep Team #2', contractor_name: 'CLENRO In-House Fleet',
+                operating_zone: 'Sector North: Barangay 1–10', status: 'on_route',
+                capacity: '4 m³ (2.0 MT)', lat: 8.474500, lon: 124.643200, last_update: '2026-09-06 16:20:00'
+            },
+            {
+                id: 4, truck_number: 'CLENRO-TRK-2026-015', plate_number: 'ABC-4105',
+                truck_type: 'Arm-Roll / Hook Lift Truck (Market Bulk Bin Carrier)',
+                driver_name: 'Rodrigo Villanueva', contractor_name: 'IPM CDO Urban Haulers',
+                operating_zone: 'Carmen Market Commercial Zone', status: 'available',
+                capacity: '14 m³ (7.2 MT)', lat: 8.483100, lon: 124.636400, last_update: '2026-09-06 14:30:15'
+            },
+            {
+                id: 5, truck_number: 'CLENRO-TRK-2026-019', plate_number: 'LGU-9015',
+                truck_type: 'Street Sweeper Vacuum Truck (Arterial Road Cleaner)',
+                driver_name: 'Arlene Macasero', contractor_name: 'CLENRO In-House Fleet',
+                operating_zone: 'Sector Commercial: Barangay 31–40', status: 'on_route',
+                capacity: '6 m³ (3.0 MT)', lat: 8.476890, lon: 124.648950, last_update: '2026-09-06 16:35:10'
+            },
+            {
+                id: 6, truck_number: 'CLENRO-TRK-2026-022', plate_number: 'SJC-7734',
+                truck_type: 'Open Dump Truck (10-Wheeler / 20T Landfill Transfer)',
+                driver_name: 'Standby Operator', contractor_name: 'City Engineers Office',
+                operating_zone: 'Emergency Flood & Riverbank Corridor', status: 'maintenance',
+                capacity: '18 m³ (10.0 MT)', lat: 8.483900, lon: 124.639100, last_update: '2026-09-05 18:00:00'
+            }
+        ];
+
+        let trucksList = JSON.parse(localStorage.getItem('clenro_trucks_roster')) || DEFAULT_TRUCKS;
+
+        function saveLocalTrucks() {
+            localStorage.setItem('clenro_trucks_roster', JSON.stringify(trucksList));
+        }
+
+        function updateCapacityHint() {
+            const type = document.getElementById('truck_type').value;
+            const capInput = document.getElementById('capacity_spec');
+            if (type.includes('10–12')) capInput.value = '12 m³ (Approx. 6.5 Metric Tons)';
+            else if (type.includes('6–8')) capInput.value = '8 m³ (Approx. 4.2 Metric Tons)';
+            else if (type.includes('Mini Dump')) capInput.value = '4 m³ (Approx. 2.0 Metric Tons)';
+            else if (type.includes('Arm-Roll')) capInput.value = '14 m³ (Approx. 7.5 Metric Tons)';
+            else if (type.includes('Open Dump')) capInput.value = '18 m³ (Approx. 10.0 Metric Tons)';
+            else if (type.includes('Sweeper')) capInput.value = '6 m³ (Vacuum Debris Hopper)';
+            else if (type.includes('Segregated')) capInput.value = '8 m³ (Dedicated Organics)';
+            else capInput.value = '5 m³ (Hazardous Containment)';
+        }
+
+        function getTruckTypeBadge(typeStr) {
+            if (!typeStr) return '<span class="truck-type-badge type-compactor">Compactor</span>';
+            if (typeStr.includes('Mini Dump')) return '<span class="truck-type-badge type-minidump">Mini Dump (Alley)</span>';
+            if (typeStr.includes('Arm-Roll')) return '<span class="truck-type-badge type-armroll">Arm-Roll Hooklift</span>';
+            if (typeStr.includes('Open Dump')) return '<span class="truck-type-badge type-open">10-W Open Hauler</span>';
+            if (typeStr.includes('Sweeper')) return '<span class="truck-type-badge type-sweeper">Sweeper Vacuum</span>';
+            if (typeStr.includes('Segregated')) return '<span class="truck-type-badge type-bio">Bio Organic</span>';
+            if (typeStr.includes('Hazardous')) return '<span class="truck-type-badge type-haz">Hazardous Unit</span>';
+            return '<span class="truck-type-badge type-compactor">Compactor Truck</span>';
+        }
+
+        async function loadData() {
+            const tbody = document.getElementById('table-body');
+            try {
+                const res = await apiRequest(endpoint);
+                if (res && res.trucks && res.trucks.length > 0) {
+                    trucksList = res.trucks.map(t => ({
+                        id: t.id,
+                        truck_number: t.truck_number,
+                        plate_number: t.plate_number,
+                        truck_type: t.truck_type || 'Compactor Truck (10–12 cu.m / Heavy Duty - 16T)',
+                        driver_name: (t.driver && t.driver.name) || 'CLENRO Operator',
+                        contractor_name: (t.contractor && t.contractor.company_name) || 'IPM CDO Urban Haulers',
+                        operating_zone: t.operating_zone || 'Cogon Market Commercial Zone',
+                        status: t.status || 'available',
+                        capacity: '12 m³',
+                        lat: t.latest_location ? t.latest_location.latitude : 8.477610,
+                        lon: t.latest_location ? t.latest_location.longitude : 124.648210,
+                        last_update: t.latest_location ? t.latest_location.recorded_at : 'Recent'
+                    }));
+                }
+            } catch (error) {
+                console.log('Using local CDO CLENRO truck fleet data.');
+            }
+
+            renderTable(trucksList);
+            updateStats();
+        }
+
+        function renderTable(data) {
+            const tbody = document.getElementById('table-body');
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" class="empty-state">No fleet equipment found.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = data.map(item => {
+                const locText = item.lat ? `${Number(item.lat).toFixed(5)}, ${Number(item.lon).toFixed(5)}` : 'In Depot';
+                const statusPill = `<span class="status-pill status-${item.status}">${item.status.replace('_', ' ')}</span>`;
+                const typeBadge = getTruckTypeBadge(item.truck_type);
+
+                return `
+                    <tr>
+                        <td><span class="truck-code-tag">${item.truck_number}</span></td>
+                        <td>${typeBadge}</td>
+                        <td><strong>${item.plate_number}</strong></td>
+                        <td>${item.driver_name || '-'}</td>
+                        <td><span style="font-size:12px; color:var(--text-muted);">${item.contractor_name || 'CLENRO In-House'}</span></td>
+                        <td><span style="font-size:12px;">${item.operating_zone || 'Poblacion Core'}</span></td>
+                        <td>${statusPill}</td>
+                        <td><span style="font-size:11.5px; font-family:monospace; color:var(--text-muted);">${locText}</span></td>
+                        <td style="white-space:nowrap;">
+                            <button class="btn" style="padding: 5px 10px; width: auto; background: #16a34a; font-size:11px; display:inline-block;" onclick="openStatusModal(${item.id}, '${item.status}')">Status</button>
+                            <button class="btn" style="padding: 5px 10px; width: auto; background: var(--surface-alt); color:var(--green-800); border:1px solid var(--border); font-size:11px; display:inline-block;" onclick='editItem(${JSON.stringify(item).replace(/'/g, "&#39;")})'>Edit</button>
+                            <button class="btn" style="padding: 5px 10px; width: auto; background: #fee2e2; color:#dc2626; border:1px solid #fecaca; font-size:11px; display:inline-block;" onclick="deleteItem(${item.id})">Delete</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function updateStats() {
+            document.getElementById('stat-total-trucks').textContent = `${trucksList.length} Units`;
+            document.getElementById('stat-active-routes').textContent = `${trucksList.filter(t => t.status === 'on_route').length} Units`;
+        }
+
+        function openModal() {
+            document.getElementById('form-modal').classList.add('active');
+            document.getElementById('modal-title').textContent = 'Register Municipal Solid Waste Truck';
+            document.getElementById('data-form').reset();
+            document.getElementById('item-id').value = '';
+
+            // Auto-generate truck code
+            const autoCode = generateAutoCode('TRK');
+            document.getElementById('truck_number').value = autoCode;
+            updateCapacityHint();
+        }
+
+        function closeModal() {
+            document.getElementById('form-modal').classList.remove('active');
+        }
+
+        function editItem(item) {
+            openModal();
+            document.getElementById('modal-title').textContent = `Edit Truck: ${item.truck_number}`;
+            document.getElementById('item-id').value = item.id;
+            document.getElementById('truck_number').value = item.truck_number || generateAutoCode('TRK');
+            document.getElementById('plate_number').value = item.plate_number || '';
+            document.getElementById('truck_type').value = item.truck_type || 'Compactor Truck (10–12 cu.m / Heavy Duty - 16T)';
+            document.getElementById('status').value = item.status || 'available';
+            document.getElementById('capacity_spec').value = item.capacity || '12 m³';
+            document.getElementById('operating_zone').value = item.operating_zone || 'Cogon Market Commercial Zone';
+        }
+
+        function openStatusModal(id, currentStatus) {
+            document.getElementById('status-modal').classList.add('active');
+            document.getElementById('status-truck-id').value = id;
+            document.getElementById('status-select').value = currentStatus;
+        }
+
+        function closeStatusModal() {
+            document.getElementById('status-modal').classList.remove('active');
+        }
+
+        async function deleteItem(id) {
+            if (!confirm('Are you sure you want to decommission / delete this truck unit?')) return;
+            try {
+                await apiRequest(`${endpoint}/${id}`, 'DELETE');
+            } catch(e) {
+                console.log('Local delete applied.');
+            }
+            trucksList = trucksList.filter(t => t.id != id);
+            saveLocalTrucks();
+            renderTable(trucksList);
+            updateStats();
+        }
+
+        document.getElementById('data-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('item-id').value;
+            const truckNumber = document.getElementById('truck_number').value;
+            const plateNumber = document.getElementById('plate_number').value.trim();
+            const truckType = document.getElementById('truck_type').value;
+            const capacity = document.getElementById('capacity_spec').value;
+            const status = document.getElementById('status').value;
+            const zone = document.getElementById('operating_zone').value;
+
+            const driverSelect = document.getElementById('driver_id');
+            const driverName = driverSelect.selectedIndex > 0 ? driverSelect.options[driverSelect.selectedIndex].text.split(' (')[0] : 'CLENRO Operator';
+
+            const contractorSelect = document.getElementById('contractor_id');
+            const contractorName = contractorSelect.options[contractorSelect.selectedIndex].text;
+
+            const payload = {
+                truck_number: truckNumber,
+                plate_number: plateNumber,
+                truck_type: truckType,
+                capacity: capacity,
+                driver_name: driverName,
+                contractor_name: contractorName,
+                operating_zone: zone,
+                status: status,
+                lat: 8.477610,
+                lon: 124.648210,
+                last_update: new Date().toISOString().substring(0, 19).replace('T', ' ')
+            };
+
+            try {
+                if (id) {
+                    await apiRequest(`${endpoint}/${id}`, 'PUT', payload);
+                } else {
+                    await apiRequest(endpoint, 'POST', payload);
+                }
+            } catch (err) {
+                console.log('API sync skipped, updating local trucks roster state.');
+            }
+
+            if (id) {
+                const idx = trucksList.findIndex(t => t.id == id);
+                if (idx !== -1) trucksList[idx] = { ...trucksList[idx], ...payload };
+            } else {
+                payload.id = Date.now();
+                trucksList.unshift(payload);
+            }
+
+            saveLocalTrucks();
+            closeModal();
+            renderTable(trucksList);
+            updateStats();
+            alert(`Truck ${truckNumber} successfully registered!`);
+        });
+
+        document.getElementById('status-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('status-truck-id').value;
+            const newStatus = document.getElementById('status-select').value;
+
+            try {
+                await apiRequest(`${endpoint}/${id}/status`, 'PUT', { status: newStatus });
+            } catch(e) {
+                console.log('Status updated locally.');
+            }
+
+            const truck = trucksList.find(t => t.id == id);
+            if (truck) truck.status = newStatus;
+            saveLocalTrucks();
+            closeStatusModal();
+            renderTable(trucksList);
+            updateStats();
+        });
+
+        document.addEventListener('DOMContentLoaded', loadData);
+    </script>
+</body>
+</html>

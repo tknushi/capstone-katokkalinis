@@ -1,0 +1,14 @@
+{
+  "name": "katokkalinis-frontend",
+  "version": "1.0.0",
+  "description": "Katok Kalinis Web Admin Dashboard",
+  "main": "login.html",
+  "scripts": {
+    "start": "npx -y serve -l 3000 -c serve.json .",
+    "dev": "npx -y serve -l 3000 -c serve.json ."
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "serve": "^14.2.4"
+  }
+}

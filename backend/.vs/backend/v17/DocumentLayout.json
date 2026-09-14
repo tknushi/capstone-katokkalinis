@@ -1,0 +1,197 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\xampp2\\htdocs\\KatokKalinis\\backend\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\xampp2\\htdocs\\KatokKalinis\\backend\\database\\migrations\\2026_08_17_110630_create_user_roles_table.php||{3B902123-F8A7-4915-9F01-361F908088D0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:database\\migrations\\2026_08_17_110630_create_user_roles_table.php||{3B902123-F8A7-4915-9F01-361F908088D0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\xampp2\\htdocs\\KatokKalinis\\backend\\database\\migrations\\2026_08_17_110526_create_roles_table.php||{3B902123-F8A7-4915-9F01-361F908088D0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:database\\migrations\\2026_08_17_110526_create_roles_table.php||{3B902123-F8A7-4915-9F01-361F908088D0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\xampp2\\htdocs\\KatokKalinis\\backend\\routes\\api.php||{3B902123-F8A7-4915-9F01-361F908088D0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:routes\\api.php||{3B902123-F8A7-4915-9F01-361F908088D0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\xampp2\\htdocs\\KatokKalinis\\backend\\app\\Http\\Controllers\\Api\\AuthController.php||{3B902123-F8A7-4915-9F01-361F908088D0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:app\\Http\\Controllers\\Api\\AuthController.php||{3B902123-F8A7-4915-9F01-361F908088D0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\xampp2\\htdocs\\KatokKalinis\\backend\\app\\Models\\User.php||{3B902123-F8A7-4915-9F01-361F908088D0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:app\\Models\\User.php||{3B902123-F8A7-4915-9F01-361F908088D0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\xampp2\\htdocs\\KatokKalinis\\backend\\database\\seeders\\DatabaseSeeder.php||{3B902123-F8A7-4915-9F01-361F908088D0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:database\\seeders\\DatabaseSeeder.php||{3B902123-F8A7-4915-9F01-361F908088D0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\xampp2\\htdocs\\KatokKalinis\\backend\\database\\seeders\\UserSeeder.php||{3B902123-F8A7-4915-9F01-361F908088D0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:database\\seeders\\UserSeeder.php||{3B902123-F8A7-4915-9F01-361F908088D0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\xampp2\\htdocs\\KatokKalinis\\backend\\app\\Models\\Role.php||{3B902123-F8A7-4915-9F01-361F908088D0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:app\\Models\\Role.php||{3B902123-F8A7-4915-9F01-361F908088D0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\xampp2\\htdocs\\KatokKalinis\\backend\\database\\seeders\\RoleSeeder.php||{3B902123-F8A7-4915-9F01-361F908088D0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:database\\seeders\\RoleSeeder.php||{3B902123-F8A7-4915-9F01-361F908088D0}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 1238,
+          "SelectedChildIndex": 0,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "2026_08_17_110630_create_user_roles_table.php",
+              "DocumentMoniker": "C:\\xampp2\\htdocs\\KatokKalinis\\backend\\database\\migrations\\2026_08_17_110630_create_user_roles_table.php",
+              "RelativeDocumentMoniker": "database\\migrations\\2026_08_17_110630_create_user_roles_table.php",
+              "ToolTip": "C:\\xampp2\\htdocs\\KatokKalinis\\backend\\database\\migrations\\2026_08_17_110630_create_user_roles_table.php",
+              "RelativeToolTip": "database\\migrations\\2026_08_17_110630_create_user_roles_table.php",
+              "ViewState": "AgIAAAwAAAAAAAAAAAAAACAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
+              "WhenOpened": "2026-08-17T11:06:46.03Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "DatabaseSeeder.php",
+              "DocumentMoniker": "C:\\xampp2\\htdocs\\KatokKalinis\\backend\\database\\seeders\\DatabaseSeeder.php",
+              "RelativeDocumentMoniker": "database\\seeders\\DatabaseSeeder.php",
+              "ToolTip": "C:\\xampp2\\htdocs\\KatokKalinis\\backend\\database\\seeders\\DatabaseSeeder.php",
+              "RelativeToolTip": "database\\seeders\\DatabaseSeeder.php",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
+              "WhenOpened": "2026-08-17T11:16:41.212Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "RoleSeeder.php",
+              "DocumentMoniker": "C:\\xampp2\\htdocs\\KatokKalinis\\backend\\database\\seeders\\RoleSeeder.php",
+              "RelativeDocumentMoniker": "database\\seeders\\RoleSeeder.php",
+              "ToolTip": "C:\\xampp2\\htdocs\\KatokKalinis\\backend\\database\\seeders\\RoleSeeder.php",
+              "RelativeToolTip": "database\\seeders\\RoleSeeder.php",
+              "ViewState": "AgIAAA4AAAAAAAAAAAAYwDoAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
+              "WhenOpened": "2026-08-17T11:16:20.454Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "UserSeeder.php",
+              "DocumentMoniker": "C:\\xampp2\\htdocs\\KatokKalinis\\backend\\database\\seeders\\UserSeeder.php",
+              "RelativeDocumentMoniker": "database\\seeders\\UserSeeder.php",
+              "ToolTip": "C:\\xampp2\\htdocs\\KatokKalinis\\backend\\database\\seeders\\UserSeeder.php",
+              "RelativeToolTip": "database\\seeders\\UserSeeder.php",
+              "ViewState": "AgIAACEAAAAAAAAAAAAYwE0AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
+              "WhenOpened": "2026-08-17T11:29:03.002Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "api.php",
+              "DocumentMoniker": "C:\\xampp2\\htdocs\\KatokKalinis\\backend\\routes\\api.php",
+              "RelativeDocumentMoniker": "routes\\api.php",
+              "ToolTip": "C:\\xampp2\\htdocs\\KatokKalinis\\backend\\routes\\api.php",
+              "RelativeToolTip": "routes\\api.php",
+              "ViewState": "AgIAAAYAAAAAAAAAAAAAAA0AAAAaAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
+              "WhenOpened": "2026-08-17T11:26:51.412Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "AuthController.php",
+              "DocumentMoniker": "C:\\xampp2\\htdocs\\KatokKalinis\\backend\\app\\Http\\Controllers\\Api\\AuthController.php",
+              "RelativeDocumentMoniker": "app\\Http\\Controllers\\Api\\AuthController.php",
+              "ToolTip": "C:\\xampp2\\htdocs\\KatokKalinis\\backend\\app\\Http\\Controllers\\Api\\AuthController.php",
+              "RelativeToolTip": "app\\Http\\Controllers\\Api\\AuthController.php",
+              "ViewState": "AgIAALEAAAAAAAAAAAAgwNsAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
+              "WhenOpened": "2026-08-17T11:24:03.33Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "User.php",
+              "DocumentMoniker": "C:\\xampp2\\htdocs\\KatokKalinis\\backend\\app\\Models\\User.php",
+              "RelativeDocumentMoniker": "app\\Models\\User.php",
+              "ToolTip": "C:\\xampp2\\htdocs\\KatokKalinis\\backend\\app\\Models\\User.php",
+              "RelativeToolTip": "app\\Models\\User.php",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAgwCkAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
+              "WhenOpened": "2026-08-17T11:21:34.071Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "Role.php",
+              "DocumentMoniker": "C:\\xampp2\\htdocs\\KatokKalinis\\backend\\app\\Models\\Role.php",
+              "RelativeDocumentMoniker": "app\\Models\\Role.php",
+              "ToolTip": "C:\\xampp2\\htdocs\\KatokKalinis\\backend\\app\\Models\\Role.php",
+              "RelativeToolTip": "app\\Models\\Role.php",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABYAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
+              "WhenOpened": "2026-08-17T11:20:03.516Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "2026_08_17_110526_create_roles_table.php",
+              "DocumentMoniker": "C:\\xampp2\\htdocs\\KatokKalinis\\backend\\database\\migrations\\2026_08_17_110526_create_roles_table.php",
+              "RelativeDocumentMoniker": "database\\migrations\\2026_08_17_110526_create_roles_table.php",
+              "ToolTip": "C:\\xampp2\\htdocs\\KatokKalinis\\backend\\database\\migrations\\2026_08_17_110526_create_roles_table.php",
+              "RelativeToolTip": "database\\migrations\\2026_08_17_110526_create_roles_table.php",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABcAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
+              "WhenOpened": "2026-08-17T11:06:10.752Z",
+              "EditorCaption": ""
+            }
+          ]
+        },
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": -1,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:1:0:{d212f56b-c48a-434c-a121-1c5d80b59b9f}"
+            }
+          ]
+        },
+        {
+          "DockedWidth": 546,
+          "SelectedChildIndex": -1,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:4:0:{d212f56b-c48a-434c-a121-1c5d80b59b9f}"
+            }
+          ]
+        },
+        {
+          "DockedWidth": 529,
+          "SelectedChildIndex": -1,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:3:0:{d212f56b-c48a-434c-a121-1c5d80b59b9f}"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

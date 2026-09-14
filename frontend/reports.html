@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports - KatokKalinis</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <div class="dashboard-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">KatokKalinis</div>
+            <div class="sidebar-role" id="sidebar-role"></div>
+            <nav class="sidebar-nav" id="sidebar-nav"></nav>
+            <div class="sidebar-footer">
+                
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="topbar">
+                <h2>Reports</h2>
+                <div id="topbar-user"></div>
+            </header>
+            
+            <section class="content">
+                <div class="stats-grid report-stats">
+                    <div class="stat-card"><h3>Reports This Month</h3><div class="value" id="stat-total">...</div></div>
+                    <div class="stat-card"><h3>Pending Review</h3><div class="value" id="stat-pending">...</div></div>
+                    <div class="stat-card"><h3>Completed</h3><div class="value" id="stat-completed">...</div></div>
+                    <div class="stat-card"><h3>Avg Response Time</h3><div class="value" id="stat-response">...</div></div>
+                </div>
+
+                <!-- CLENRO Decision Support Callout Banner -->
+                <div class="card" style="background: linear-gradient(135deg, #1b5e20 0%, #388e3c 100%); color: #fff; margin-bottom: 20px; padding: 18px 22px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; border-radius: 10px;">
+                    <div>
+                        <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; opacity: 0.85;">CLENRO Department · Cagayan de Oro City</div>
+                        <h3 style="color: #fff; margin: 4px 0 2px; font-size: 17px;">Historical Garbage Pile-Up Reports &amp; Decision Directives</h3>
+                        <p style="margin: 0; font-size: 13px; opacity: 0.95;">Decision support system covering Barangay 1 to 40, Cogon Market, and Carmen Market.</p>
+                    </div>
+                    <a href="clenro-reports.html" class="btn" style="background: #fff; color: #1b5e20; font-weight: 700; text-decoration: none; border: none; padding: 9px 18px; border-radius: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.15);">Open CLENRO Analytics &rarr;</a>
+                </div>
+
+                <div class="card recent-reports-card">
+                    <div class="card-header">
+                        <h3>Recent Reports</h3>
+                    </div>
+                    <div id="table-body" class="report-list"><p>Loading reports...</p></div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Update Status Modal -->
+    <div id="status-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Update Report Status</h3>
+                <span class="close-btn" onclick="closeModal()">&times;</span>
+            </div>
+            <form id="status-form">
+                <input type="hidden" id="report-id">
+                <div class="form-group">
+                    <label>Status</label>
+                    <select id="status-select" class="form-control">
+                        <option value="pending">Pending</option>
+                        <option value="reviewed">Reviewed</option>
+                        <option value="resolved">Resolved</option>
+                        <option value="rejected">Rejected</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn">Update Status</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="details-modal" class="modal">
+        <div class="modal-content report-details-modal">
+            <div class="modal-header">
+                <h3 id="details-title">Report Details</h3>
+                <span class="close-btn" onclick="closeDetailsModal()">&times;</span>
+            </div>
+            <div id="report-details" class="report-details"></div>
+        </div>
+    </div>
+
+    <!-- Full-Screen Lightbox Modal for Photo Evidence Preview -->
+    <div id="image-lightbox-modal" class="image-lightbox-modal" onclick="closeLightbox(event)">
+        <div class="lightbox-dialog" onclick="event.stopPropagation()">
+            <div class="lightbox-header">
+                <h4 id="lightbox-title">Photo Attachment</h4>
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <a id="lightbox-open-link" href="#" target="_blank" rel="noopener noreferrer" class="btn report-outline" style="font-size:11px;padding:4px 10px;text-decoration:none;">Open Original ↗</a>
+                    <button class="lightbox-close-btn" onclick="closeLightbox()" title="Close">&times;</button>
+                </div>
+            </div>
+            <div class="lightbox-body">
+                <img id="lightbox-img" src="" alt="Report Attachment Full Size">
+            </div>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+    <script>
+        const endpoint = '/reports';
+
+        async function loadData() {
+            const container = document.getElementById('table-body');
+            try {
+                const res = await apiRequest(endpoint);
+                const data = res.reports || [];
+                const pending = data.filter(item => item.status === 'pending' || item.status === 'reviewed').length;
+                const completed = data.filter(item => item.status === 'resolved').length;
+                const responseTimes = data.map(item => (item.created_at && item.updated_at) ? (new Date(item.updated_at) - new Date(item.created_at)) / 3600000 : null).filter(value => value !== null && value >= 0);
+                const avgResponse = responseTimes.length ? `${(responseTimes.reduce((sum, value) => sum + value, 0) / responseTimes.length).toFixed(1)} hrs` : 'N/A';
+                document.getElementById('stat-total').textContent = data.length;
+                document.getElementById('stat-pending').textContent = pending;
+                document.getElementById('stat-completed').textContent = completed;
+                document.getElementById('stat-response').textContent = avgResponse;
+
+                if (data.length === 0) {
+                    container.innerHTML = '<p class="empty-state">No reports found.</p>';
+                    return;
+                }
+
+                container.innerHTML = data.slice(0, 8).map(item => {
+                    const imgUrl = resolveMediaUrl(item.image_url || item.image);
+                    const safeTitle = escapeHtml(item.title || 'Untitled report');
+                    const safeAuthor = (item.user && escapeHtml(item.user.name)) || 'Anonymous';
+                    const safeLocation = item.location ? escapeHtml(item.location) : '';
+                    const safeType = escapeHtml(item.type || 'Daily');
+                    const safeStatus = escapeHtml(item.status || 'pending');
+
+                    return `
+                    <article class="report-card">
+                        <div class="report-card-main">
+                            ${imgUrl ? `
+                                <div class="report-card-thumb-wrap" onclick="openLightbox('${imgUrl}', '${safeTitle}')" title="Click to view photo evidence">
+                                    <img src="${imgUrl}" alt="Photo attachment" class="report-card-thumb" onerror="this.closest('.report-card-thumb-wrap').style.display='none'">
+                                    <div class="report-card-thumb-icon">
+                                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+                                    </div>
+                                </div>
+                            ` : ''}
+                            <div class="report-card-info">
+                                <strong>${safeTitle}</strong>
+                                <span>${item.created_at ? item.created_at.substring(0, 10) : '-'} · ${safeAuthor}</span>
+                                ${safeLocation ? `<span class="report-loc"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg> ${safeLocation}</span>` : ''}
+                            </div>
+                        </div>
+                        <div class="report-card-tags">
+                            ${imgUrl ? `<span class="pill pill-green" style="background:rgba(46,125,50,0.12);color:#2e7d32;display:inline-flex;align-items:center;gap:4px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>Photo Attached</span>` : ''}
+                            <span class="pill pill-green">${safeType}</span>
+                            <span class="pill ${item.status === 'resolved' ? 'pill-green' : 'pill-orange'}">${safeStatus}</span>
+                        </div>
+                        <div class="report-card-actions">
+                            <button class="btn report-outline" onclick="viewReport(${item.id})">View Details</button>
+                            <button class="btn report-outline" onclick="downloadReport(${item.id})">Download</button>
+                            <button class="btn" onclick="openStatusModal(${item.id}, '${safeStatus}')">Update Status</button>
+                            <button class="btn report-delete" onclick="deleteItem(${item.id})">Delete</button>
+                        </div>
+                    </article>
+                    `;
+                }).join('');
+            } catch (error) {
+                container.innerHTML = `<p class="empty-state">Error loading data: ${error.message}</p>`;
+            }
+        }
+
+        async function viewReport(id) {
+            try {
+                const res = await apiRequest(`${endpoint}/${id}`);
+                const report = res.report;
+                const imgUrl = resolveMediaUrl(report.image_url || report.image);
+                const safeTitle = escapeHtml(report.title || 'Report Details');
+                const safeAuthor = escapeHtml(report.user?.name || 'Anonymous');
+                const safeLocation = escapeHtml(report.location || report.barangay?.name || 'Not recorded');
+                const safeDesc = escapeHtml(report.description || 'No description recorded.');
+                const safeNotes = escapeHtml(report.admin_notes || 'No admin notes recorded.');
+                const safeStatus = escapeHtml(report.status || 'Pending');
+
+                document.getElementById('details-title').textContent = report.title || 'Report Details';
+                document.getElementById('report-details').innerHTML = `
+                    <div class="report-detail-status">
+                        <span class="pill ${report.status === 'resolved' ? 'pill-green' : 'pill-orange'}">${safeStatus}</span>
+                        ${imgUrl ? `<span class="pill pill-green" style="margin-left:8px;background:rgba(46,125,50,0.12);color:#2e7d32;display:inline-flex;align-items:center;gap:4px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg> Photo Attached</span>` : ''}
+                    </div>
+                    <dl>
+                        <dt>Reported by</dt><dd>${safeAuthor}</dd>
+                        <dt>Date submitted</dt><dd>${report.created_at ? report.created_at.substring(0, 10) : 'Not recorded'}</dd>
+                        <dt>Location</dt><dd>${safeLocation}</dd>
+                        <dt>Description</dt><dd>${safeDesc}</dd>
+                        <dt>Admin notes</dt><dd>${safeNotes}</dd>
+                    </dl>
+                    ${imgUrl ? `
+                        <div class="report-evidence-box">
+                            <div class="report-evidence-header">
+                                <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg> Attached Photo Evidence</span>
+                                <a href="${imgUrl}" target="_blank" rel="noopener noreferrer" class="btn report-outline" style="font-size:11px;padding:3px 8px;text-decoration:none;">Open Full Size ↗</a>
+                            </div>
+                            <div class="report-evidence-frame" onclick="openLightbox('${imgUrl}', '${safeTitle}')" title="Click to enlarge image">
+                                <img src="${imgUrl}" alt="Photo Evidence for ${safeTitle}" onerror="this.closest('.report-evidence-box').style.display='none'">
+                                <div class="report-evidence-overlay">
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg>
+                                    Click to Zoom
+                                </div>
+                            </div>
+                        </div>
+                    ` : ''}
+                `;
+                document.getElementById('details-modal').classList.add('active');
+            } catch (error) { alert(`Unable to load report: ${error.message}`); }
+        }
+
+        function closeDetailsModal() {
+            document.getElementById('details-modal').classList.remove('active');
+        }
+
+        function openLightbox(imageUrl, title) {
+            const modal = document.getElementById('image-lightbox-modal');
+            const img = document.getElementById('lightbox-img');
+            const titleEl = document.getElementById('lightbox-title');
+            const link = document.getElementById('lightbox-open-link');
+            if (!modal || !img) return;
+
+            img.src = imageUrl;
+            titleEl.textContent = title ? `Photo Evidence: ${title}` : 'Photo Attachment';
+            link.href = imageUrl;
+            modal.classList.add('active');
+        }
+
+        function closeLightbox(event) {
+            if (event && event.target !== event.currentTarget && !event.target.classList.contains('lightbox-close-btn')) {
+                return;
+            }
+            const modal = document.getElementById('image-lightbox-modal');
+            if (modal) modal.classList.remove('active');
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeLightbox();
+            }
+        });
+
+        async function downloadReport(id) {
+            try {
+                const res = await apiRequest(`${endpoint}/${id}`);
+                const blob = new Blob([JSON.stringify(res.report, null, 2)], { type: 'application/json' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `report-${id}.json`;
+                link.click();
+                URL.revokeObjectURL(link.href);
+            } catch (error) { alert(`Unable to download report: ${error.message}`); }
+        }
+
+        function openStatusModal(id, currentStatus) {
+            document.getElementById('status-modal').classList.add('active');
+            document.getElementById('report-id').value = id;
+            document.getElementById('status-select').value = currentStatus.toLowerCase();
+        }
+
+        function closeModal() {
+            document.getElementById('status-modal').classList.remove('active');
+        }
+
+        async function deleteItem(id) {
+            if(!confirm('Are you sure you want to delete this report?')) return;
+            try {
+                await apiRequest(`${endpoint}/${id}`, 'DELETE');
+                loadData();
+            } catch(e) {
+                alert('Error deleting: ' + e.message);
+            }
+        }
+
+        document.getElementById('status-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('report-id').value;
+            const status = document.getElementById('status-select').value;
+
+            try {
+                await apiRequest(`${endpoint}/${id}/status`, 'PUT', { status });
+                closeModal();
+                loadData();
+            } catch(e) {
+                alert('Error updating: ' + e.message);
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', loadData);
+    </script>
+</body>
+</html>

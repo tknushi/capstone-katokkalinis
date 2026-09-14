@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Market Compliance - KatokKalinis</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .flagged-row { background-color: #fdecea; }
+        .filter-bar { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
+        .filter-bar select, .filter-bar label { padding: 8px 0; }
+        .score-pill {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 12px;
+            color: #fff;
+            font-weight: bold;
+        }
+        .score-good { background: #2ecc71; }
+        .score-bad { background: #e74c3c; }
+    </style>
+</head>
+<body>
+
+    <div class="dashboard-layout">
+        <aside class="sidebar">
+            <div class="sidebar-header">KatokKalinis</div>
+            <div class="sidebar-role" id="sidebar-role"></div>
+            <nav class="sidebar-nav" id="sidebar-nav"></nav>
+            <div class="sidebar-footer">
+                
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="topbar">
+                <h2>Market Compliance</h2>
+                <div id="topbar-user"></div>
+            </header>
+
+            <section class="content">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Vendor Inspection History</h3>
+                        <button class="btn" onclick="openModal()" style="width: auto;">Add Inspection</button>
+                    </div>
+                    <div class="filter-bar">
+                        <label><input type="checkbox" id="flagged-only" style="width:auto;" onchange="loadData()"> Show flagged markets only (score &le; <span id="threshold">60</span>)</label>
+                    </div>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Vendor</th>
+                                <th>Barangay</th>
+                                <th>Inspector</th>
+                                <th>Score</th>
+                                <th>Status</th>
+                                <th>Inspected At</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-body">
+                            <tr><td colspan="8">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Add/Edit Modal -->
+    <div id="form-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">Add Inspection</h3>
+                <span class="close-btn" onclick="closeModal()">&times;</span>
+            </div>
+            <form id="data-form">
+                <input type="hidden" id="item-id">
+                <div class="form-group">
+                    <label>Vendor</label>
+                    <select id="vendor_id" class="form-control" required>
+                        <option value="">-- Select Vendor --</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Inspector</label>
+                    <select id="inspector_id" class="form-control" required>
+                        <option value="">-- Select Inspector --</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Hygiene System Score (0-100)</label>
+                    <input type="number" id="hygiene_system" class="form-control" min="0" max="100" required>
+                </div>
+                <div class="form-group">
+                    <label>Condition of Premises Score (0-100)</label>
+                    <input type="number" id="condition_of_premises" class="form-control" min="0" max="100" required>
+                </div>
+                <div class="form-group">
+                    <label>Status</label>
+                    <select id="status" class="form-control">
+                        <option value="completed">Completed</option>
+                        <option value="pending">Pending</option>
+                        <option value="reviewed">Reviewed</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Notes</label>
+                    <textarea id="notes" class="form-control"></textarea>
+                </div>
+                <button type="submit" class="btn">Save</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+    <script>
+        const endpoint = '/inspections';
+        let vendors = [];
+        let inspectors = [];
+
+        async function loadDropdowns() {
+            try {
+                const vRes = await apiRequest('/vendors');
+                vendors = vRes.vendors || [];
+                const vSelect = document.getElementById('vendor_id');
+                vendors.forEach(v => {
+                    const opt = document.createElement('option');
+                    opt.value = v.id;
+                    opt.textContent = `${v.business_name} (${v.vendor_code})`;
+                    vSelect.appendChild(opt);
+                });
+
+                const iRes = await apiRequest('/users?role=inspector');
+                inspectors = iRes.users || [];
+                const iSelect = document.getElementById('inspector_id');
+                inspectors.forEach(i => {
+                    const opt = document.createElement('option');
+                    opt.value = i.id;
+                    opt.textContent = `${i.name} (${i.email})`;
+                    iSelect.appendChild(opt);
+                });
+            } catch (error) {
+                console.error('Failed to load dropdowns', error);
+            }
+        }
+
+        async function loadData() {
+            const tbody = document.getElementById('table-body');
+            const flaggedOnly = document.getElementById('flagged-only').checked;
+            const qs = flaggedOnly ? '?flagged=1' : '';
+
+            try {
+                const res = await apiRequest(endpoint + qs);
+                const data = res.inspections || [];
+                document.getElementById('threshold').textContent = res.flag_threshold ?? 60;
+
+                if (data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="8">No inspections found.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = data.map(item => {
+                    const flagged = item.total_score <= (res.flag_threshold ?? 60);
+                    const scoreClass = flagged ? 'score-bad' : 'score-good';
+                    const vendorName = (item.vendor && item.vendor.business_name) || '-';
+                    const barangayName = (item.vendor && item.vendor.barangay && item.vendor.barangay.name) || '-';
+                    const inspectorName = (item.inspector && item.inspector.name) || '-';
+                    const inspectedAt = item.inspected_at ? item.inspected_at.substring(0, 10) : '-';
+                    return `
+                    <tr class="${flagged ? 'flagged-row' : ''}">
+                        <td>${item.id}</td>
+                        <td>${vendorName}${flagged ? ' &#9888;' : ''}</td>
+                        <td>${barangayName}</td>
+                        <td>${inspectorName}</td>
+                        <td><span class="score-pill ${scoreClass}">${item.total_score}</span></td>
+                        <td>${item.status}</td>
+                        <td>${inspectedAt}</td>
+                        <td>
+                            <button class="btn" style="padding: 5px 10px; width: auto; background: #f39c12;" onclick='editItem(${JSON.stringify(item).replace(/'/g, "&#39;")})'>Edit</button>
+                            <button class="btn" style="padding: 5px 10px; width: auto; background: #e74c3c;" onclick="deleteItem(${item.id})">Delete</button>
+                        </td>
+                    </tr>
+                `;}).join('');
+            } catch (error) {
+                tbody.innerHTML = `<tr><td colspan="8">Error loading data: ${error.message}</td></tr>`;
+            }
+        }
+
+        function openModal() {
+            document.getElementById('form-modal').classList.add('active');
+            document.getElementById('modal-title').textContent = 'Add Inspection';
+            document.getElementById('data-form').reset();
+            document.getElementById('item-id').value = '';
+        }
+
+        function closeModal() {
+            document.getElementById('form-modal').classList.remove('active');
+        }
+
+        function editItem(item) {
+            openModal();
+            document.getElementById('modal-title').textContent = 'Edit Inspection';
+            document.getElementById('item-id').value = item.id;
+            document.getElementById('vendor_id').value = item.vendor_id;
+            document.getElementById('inspector_id').value = item.inspector_id;
+            document.getElementById('hygiene_system').value = item.hygiene_system;
+            document.getElementById('condition_of_premises').value = item.condition_of_premises;
+            document.getElementById('status').value = item.status || 'completed';
+            document.getElementById('notes').value = item.notes || '';
+        }
+
+        async function deleteItem(id) {
+            if(!confirm('Are you sure you want to delete this inspection?')) return;
+            try {
+                await apiRequest(`${endpoint}/${id}`, 'DELETE');
+                loadData();
+            } catch(e) {
+                alert('Error deleting: ' + e.message);
+            }
+        }
+
+        document.getElementById('data-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('item-id').value;
+            const payload = {
+                vendor_id: document.getElementById('vendor_id').value,
+                inspector_id: document.getElementById('inspector_id').value,
+                hygiene_system: document.getElementById('hygiene_system').value,
+                condition_of_premises: document.getElementById('condition_of_premises').value,
+                status: document.getElementById('status').value,
+                notes: document.getElementById('notes').value,
+            };
+
+            try {
+                if (id) {
+                    await apiRequest(`${endpoint}/${id}`, 'PUT', payload);
+                } else {
+                    await apiRequest(endpoint, 'POST', payload);
+                }
+                closeModal();
+                loadData();
+            } catch(e) {
+                alert('Error saving: ' + e.message);
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadDropdowns();
+            loadData();
+        });
+    </script>
+</body>
+</html>

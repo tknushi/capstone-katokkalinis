@@ -1,0 +1,1685 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CLENRO Historical Decision Reports - KatokKalinis</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* Specific Styles for CLENRO Decision Support System */
+        .clenro-header-card {
+            background: linear-gradient(135deg, #1b5e20 0%, #2e7d32 55%, #43a047 100%);
+            color: #ffffff;
+            border-radius: 12px;
+            padding: 24px 28px;
+            margin-bottom: 22px;
+            box-shadow: 0 4px 14px rgba(27, 94, 32, 0.25);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .clenro-title-block h2 {
+            font-size: 22px;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Loading skeleton */
+        .skeleton-row td {
+            background: linear-gradient(90deg, #e8eaf0 25%, #f4f5f8 50%, #e8eaf0 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.4s infinite;
+            border-radius: 4px;
+            color: transparent !important;
+        }
+
+        @keyframes shimmer {
+            0% {
+                background-position: 200% 0;
+            }
+
+            100% {
+                background-position: -200% 0;
+            }
+        }
+
+        /* Data-source badge */
+        .data-source-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 11.5px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+
+        .data-source-badge.live {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border: 1px solid #a5d6a7;
+        }
+
+        .data-source-badge.local {
+            background: #fff8e1;
+            color: #f57f17;
+            border: 1px solid #ffe082;
+        }
+
+        /* Pagination */
+        .pagination-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 18px;
+            border-top: 1px solid var(--border);
+            gap: 12px;
+            flex-wrap: wrap;
+            background: var(--surface);
+        }
+
+        .pagination-info {
+            font-size: 12.5px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .pagination-controls {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+        }
+
+        .page-btn {
+            padding: 5px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--surface);
+            color: var(--text);
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            min-width: 32px;
+            text-align: center;
+        }
+
+        .page-btn:hover:not(:disabled) {
+            background: var(--green-50);
+            border-color: var(--green-400);
+            color: var(--green-800);
+        }
+
+        .page-btn:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+        }
+
+        .page-btn.active {
+            background: var(--green-600);
+            color: #fff;
+            border-color: var(--green-600);
+            font-weight: 700;
+            box-shadow: 0 1px 3px rgba(46, 125, 50, 0.3);
+        }
+
+        [data-theme="dark"] .page-btn:hover:not(:disabled) {
+            background: rgba(34, 197, 94, 0.15);
+            border-color: rgba(34, 197, 94, 0.4);
+            color: #4ade80;
+        }
+
+        .clenro-badge {
+            background: rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            padding: 3px 9px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.35);
+        }
+
+        .clenro-title-block p {
+            font-size: 13.5px;
+            color: #e8f5e9;
+            margin: 0;
+            max-width: 680px;
+            line-height: 1.4;
+        }
+
+        .clenro-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn-export {
+            background: #ffffff;
+            color: #1b5e20;
+            border: 1px solid #ffffff;
+            font-weight: 600;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-export:hover {
+            background: #e8f5e9;
+            transform: translateY(-1px);
+        }
+
+        .btn-print {
+            background: rgba(255, 255, 255, 0.15);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            font-weight: 600;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-print:hover {
+            background: rgba(255, 255, 255, 0.28);
+        }
+
+        /* Filter Controls */
+        .filter-panel {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 18px 20px;
+            margin-bottom: 22px;
+            box-shadow: var(--shadow);
+        }
+
+        .filter-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 14px;
+            align-items: flex-end;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .filter-group label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .filter-select,
+        .filter-input {
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 13.5px;
+            background: var(--bg);
+            color: var(--text);
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .filter-select:focus,
+        .filter-input:focus {
+            border-color: var(--green-600);
+        }
+
+        .filter-btn-reset {
+            padding: 8px 14px;
+            background: var(--surface-alt);
+            color: var(--text);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            height: 38px;
+        }
+
+        .filter-btn-reset:hover {
+            background: var(--border);
+        }
+
+        /* Executive Decision KPI Ribbon */
+        .kpi-ribbon {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+            gap: 16px;
+            margin-bottom: 22px;
+        }
+
+        .kpi-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 16px 18px;
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .kpi-card::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--green-600);
+        }
+
+        .kpi-card.warning::before {
+            background: #f57c00;
+        }
+
+        .kpi-card.danger::before {
+            background: #d32f2f;
+        }
+
+        .kpi-card.info::before {
+            background: #1976d2;
+        }
+
+        .kpi-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+        }
+
+        .kpi-value {
+            font-size: 26px;
+            font-weight: 700;
+            color: var(--text);
+            line-height: 1.2;
+        }
+
+        .kpi-sub {
+            font-size: 11.5px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .market-split-bar {
+            height: 6px;
+            background: #e0e0e0;
+            border-radius: 3px;
+            margin: 6px 0 4px;
+            overflow: hidden;
+            display: flex;
+        }
+
+        .market-split-fill {
+            background: #2e7d32;
+            height: 100%;
+        }
+
+        /* Prescriptive Decision Directives Matrix */
+        .directives-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 22px;
+            box-shadow: var(--shadow);
+        }
+
+        .directives-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 12px;
+        }
+
+        .directives-header h3 {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .directive-pill {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 12px;
+            text-transform: uppercase;
+        }
+
+        .directive-pill.critical {
+            background: #ffebee;
+            color: #c62828;
+            border: 1px solid #ffcdd2;
+        }
+
+        .directive-pill.high {
+            background: #fff3e0;
+            color: #e65100;
+            border: 1px solid #ffe0b2;
+        }
+
+        .directive-pill.moderate {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border: 1px solid #c8e6c9;
+        }
+
+        .directives-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 16px;
+        }
+
+        .directive-item {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 14px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            transition: transform 0.15s ease;
+        }
+
+        .directive-item:hover {
+            transform: translateY(-2px);
+            border-color: var(--green-400);
+        }
+
+        .directive-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .directive-category {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .directive-action {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .directive-details {
+            font-size: 12.5px;
+            color: var(--text);
+            line-height: 1.4;
+        }
+
+        .directive-legal {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-style: italic;
+            border-top: 1px dashed var(--border);
+            padding-top: 5px;
+            margin-top: 4px;
+        }
+
+        /* Analytics Visualizations Grid */
+        .analytics-viz-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 22px;
+        }
+
+        @media (max-width: 990px) {
+            .analytics-viz-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .viz-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .viz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+        }
+
+        .viz-header h4 {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .chart-container {
+            width: 100%;
+            height: 260px;
+            position: relative;
+        }
+
+        /* Table & Data Views */
+        .table-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 22px;
+            box-shadow: var(--shadow);
+        }
+
+        .table-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .search-box {
+            position: relative;
+            min-width: 260px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 8px 12px 8px 32px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 13.5px;
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        .clenro-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .clenro-table th {
+            text-align: left;
+            padding: 10px 12px;
+            background: var(--surface-alt);
+            color: var(--text);
+            font-weight: 600;
+            border-bottom: 2px solid var(--border);
+            white-space: nowrap;
+        }
+
+        .clenro-table td {
+            padding: 11px 12px;
+            border-bottom: 1px solid var(--border);
+            color: var(--text);
+            vertical-align: middle;
+        }
+
+        .clenro-table tr:hover {
+            background: rgba(0, 0, 0, 0.02);
+        }
+
+        [data-theme="dark"] .clenro-table tr:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        /* Status & Severity Badges */
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: capitalize;
+            white-space: nowrap;
+        }
+
+        .badge-critical {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .badge-high {
+            background: #fff3e0;
+            color: #ef6c00;
+        }
+
+        .badge-moderate {
+            background: #fffde7;
+            color: #f57f17;
+        }
+
+        .badge-low {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .badge-market {
+            background: #e8f5e9;
+            color: #1b5e20;
+            font-weight: 700;
+            border: 1px solid #a5d6a7;
+        }
+
+        .badge-urban {
+            background: #e3f2fd;
+            color: #0d47a1;
+            font-weight: 600;
+            border: 1px solid #90caf9;
+        }
+
+        .sla-tag {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .sla-ok {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .sla-breach {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        /* Modal Details */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.55);
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-card {
+            background: var(--surface);
+            border-radius: 12px;
+            width: 100%;
+            max-width: 640px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border);
+        }
+
+        .modal-card-header {
+            padding: 16px 22px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-card-header h3 {
+            font-size: 17px;
+            font-weight: 700;
+        }
+
+        .modal-card-body {
+            padding: 22px;
+            font-size: 13.5px;
+            line-height: 1.5;
+        }
+
+        .modal-detail-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .detail-cell strong {
+            display: block;
+            font-size: 11.5px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .detail-cell span {
+            font-weight: 600;
+        }
+
+        .audit-box {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 10px;
+        }
+
+        /* Print Layout */
+        @media print {
+            body {
+                background: #fff !important;
+                color: #000 !important;
+            }
+
+            .sidebar,
+            .topbar,
+            .filter-panel,
+            .clenro-actions,
+            .table-toolbar,
+            .btn-action {
+                display: none !important;
+            }
+
+            .main-content {
+                margin-left: 0 !important;
+                padding: 0 !important;
+            }
+
+            .clenro-header-card {
+                background: #fff !important;
+                color: #000 !important;
+                border: 2px solid #000 !important;
+                box-shadow: none !important;
+            }
+
+            .clenro-title-block p {
+                color: #333 !important;
+            }
+
+            .kpi-card,
+            .directives-card,
+            .viz-card,
+            .table-card {
+                box-shadow: none !important;
+                border: 1px solid #ccc !important;
+                page-break-inside: avoid;
+            }
+
+            .print-signature-section {
+                display: block !important;
+                margin-top: 40px;
+                page-break-inside: avoid;
+            }
+        }
+
+        .print-signature-section {
+            display: none;
+            padding-top: 30px;
+        }
+
+        .sig-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 30px;
+            text-align: center;
+        }
+
+        .sig-line {
+            margin-top: 50px;
+            border-top: 1px solid #000;
+            padding-top: 6px;
+            font-weight: bold;
+        }
+
+        /* Total Tonnage Distribution Styles */
+        .distribution-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+        }
+
+        .chart-toggle-btn {
+            background: transparent;
+            border: none;
+            padding: 5px 12px;
+            font-size: 11.5px;
+            font-weight: 600;
+            color: var(--text-muted);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .chart-toggle-btn:hover {
+            color: var(--text);
+            background: rgba(0, 0, 0, 0.04);
+        }
+
+        .chart-toggle-btn.active {
+            background: var(--surface);
+            color: var(--green-800);
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+            font-weight: 700;
+        }
+
+        [data-theme="dark"] .chart-toggle-btn.active {
+            background: rgba(255, 255, 255, 0.1);
+            color: #4ade80;
+        }
+
+        .pie-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 7px 10px;
+            border-radius: 6px;
+            transition: background 0.12s ease, border-color 0.12s ease;
+            cursor: pointer;
+            border: 1px solid transparent;
+            background: var(--surface-subtle, rgba(0, 0, 0, 0.01));
+        }
+
+        .pie-legend-item:hover,
+        .pie-legend-item.highlighted {
+            background: var(--green-50);
+            border-color: var(--green-200);
+        }
+
+        [data-theme="dark"] .pie-legend-item:hover,
+        [data-theme="dark"] .pie-legend-item.highlighted {
+            background: rgba(34, 197, 94, 0.12);
+            border-color: rgba(34, 197, 94, 0.3);
+        }
+
+        .pie-legend-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .pie-legend-scroll::-webkit-scrollbar-track {
+            background: var(--bg);
+            border-radius: 3px;
+        }
+
+        .pie-legend-scroll::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 3px;
+        }
+
+        @media (max-width: 860px) {
+            .distribution-body {
+                grid-template-columns: 1fr !important;
+                gap: 20px !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="dashboard-layout">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-header">KatokKalinis</div>
+            <div class="sidebar-role" id="sidebar-role"></div>
+            <nav class="sidebar-nav" id="sidebar-nav"></nav>
+            <div class="sidebar-footer">
+
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="topbar">
+                <h2>CLENRO Decision Support</h2>
+                <div id="topbar-user"></div>
+            </header>
+
+            <section class="content">
+
+                <!-- CLENRO Executive Banner -->
+                <div class="clenro-header-card">
+                    <div class="clenro-title-block">
+                        <h2>
+                            CLENRO Garbage Summary by Location
+                            <span class="clenro-badge">Cagayan de Oro City</span>
+                        </h2>
+                        <p>
+                            City Local Environment and Natural Resources Office (CLENRO) &middot; Total &amp; Average
+                            Garbage Weight per Barangay and Market Zone.
+                            <strong>Coverage: Barangay 1 to 40 (Urban Core) &middot; Cogon Market Zone &middot; Carmen
+                                Market Zone.</strong>
+                        </p>
+                    </div>
+                    <div class="clenro-actions">
+                        <button class="btn-export" onclick="exportSummaryCsv()">
+                            <span>&#128229;</span> Export CSV
+                        </button>
+                        <button class="btn-print" onclick="window.print()">
+                            <span>&#128424;&#65039;</span> Print Report
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Simplified Filters -->
+                <div class="filter-panel">
+                    <div class="filter-row">
+                        <div class="filter-group">
+                            <label for="period-select">Year / Timeframe</label>
+                            <select id="period-select" class="filter-select" onchange="applyFilters()">
+                                <option value="all">All Years (2024 - 2026)</option>
+                                <option value="2026">Year 2026 (YTD)</option>
+                                <option value="2025">Year 2025 (Full Year)</option>
+                                <option value="2024">Year 2024 (Full Year)</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label for="zone-type-select">Zone Type</label>
+                            <select id="zone-type-select" class="filter-select" onchange="applyFilters()">
+                                <option value="all">All Locations</option>
+                                <option value="markets">Market Zones Only</option>
+                                <option value="barangays">Urban Barangays Only</option>
+                            </select>
+                        </div>
+                        <div>
+                            <button class="filter-btn-reset" onclick="resetFilters()">Reset Filters</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- KPI Summary Cards -->
+                <div class="kpi-ribbon">
+                    <div class="kpi-card">
+                        <div class="kpi-label">Locations with Records</div>
+                        <div class="kpi-value" id="kpi-locations">-</div>
+                        <div class="kpi-sub" id="kpi-locations-sub">Barangays + market zones</div>
+                    </div>
+                    <div class="kpi-card info">
+                        <div class="kpi-label">Grand Total Volume</div>
+                        <div class="kpi-value" id="kpi-total-vol">-</div>
+                        <div class="kpi-sub" id="kpi-total-vol-sub">Cubic meters collected</div>
+                    </div>
+                    <div class="kpi-card warning">
+                        <div class="kpi-label">Grand Total Tonnage</div>
+                        <div class="kpi-value" id="kpi-total-tons">-</div>
+                        <div class="kpi-sub" id="kpi-total-tons-sub">Metric tons collected</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-label">Overall Avg Weight / Incident</div>
+                        <div class="kpi-value" id="kpi-avg-weight">-</div>
+                        <div class="kpi-sub" id="kpi-avg-weight-sub">Metric tons per incident</div>
+                    </div>
+                </div>
+
+                <!-- Summary Table -->
+                <div class="table-card">
+                    <div class="table-toolbar"
+                        style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <h3 style="margin:0;">Garbage Summary per Location</h3>
+                            <span id="data-source-badge" class="data-source-badge local">&#128230; Local Dataset</span>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <label for="summary-page-size"
+                                style="font-size:12px; color:var(--text-muted); font-weight:600;">Rows per page:</label>
+                            <select id="summary-page-size" onchange="onPageSizeChange(this.value)"
+                                style="padding:4px 8px; border:1px solid var(--border); border-radius:6px; background:var(--bg); color:var(--text); font-size:12px; font-weight:600; cursor:pointer;">
+                                <option value="10" selected>10</option>
+                                <option value="20">20</option>
+                                <option value="42">All (42)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="clenro-table" id="summary-table">
+                            <thead>
+                                <tr>
+                                    <th style="width:28px">#</th>
+                                    <th>Location / Zone</th>
+                                    <th>Type</th>
+                                    <th style="text-align:right">Incidents</th>
+                                    <th style="text-align:right">Total Volume (m3)</th>
+                                    <th style="text-align:right">Total Tonnage (t)</th>
+                                    <th style="text-align:right">Avg Weight / Incident (t)</th>
+                                    <th style="min-width:120px">Volume Share</th>
+                                </tr>
+                            </thead>
+                            <tbody id="summary-tbody">
+                                <tr class="skeleton-row">
+                                    <td colspan="8" style="padding:14px">Loading summary...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="pagination-bar">
+                        <span class="pagination-info" id="summary-info">-</span>
+                        <div class="pagination-controls" id="summary-pagination-controls"></div>
+                    </div>
+                </div>
+
+                <!-- Pie / Donut Distribution Chart -->
+                <div class="table-card distribution-card" style="margin-bottom:22px; padding:22px 24px;">
+                    <div class="table-toolbar"
+                        style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px; margin-bottom:18px; padding-bottom:14px; border-bottom:1px solid var(--border);">
+                        <div>
+                            <h3 style="margin:0 0 3px 0; font-size:16px; font-weight:700; color:var(--text);">Total
+                                Tonnage per Location (Pie Distribution)</h3>
+                            <span style="font-size:12px; color:var(--text-muted)">Proportional share of total collected
+                                solid waste tonnage</span>
+                        </div>
+                        <div class="chart-view-toggle"
+                            style="display:inline-flex; background:var(--bg); border:1px solid var(--border); padding:3px; border-radius:8px; gap:4px;">
+                            <button type="button" id="btn-chart-top" class="chart-toggle-btn active"
+                                onclick="setChartMode('top')">Top Sources &amp; Others</button>
+                            <button type="button" id="btn-chart-sector" class="chart-toggle-btn"
+                                onclick="setChartMode('sector')">By Sector / Zone</button>
+                            <button type="button" id="btn-chart-all" class="chart-toggle-btn"
+                                onclick="setChartMode('all')">All 42 Locations</button>
+                        </div>
+                    </div>
+
+                    <div class="distribution-body"
+                        style="display:grid; grid-template-columns: 320px 1fr; gap:32px; align-items:center;">
+                        <!-- Canvas / Donut Chart Column -->
+                        <div
+                            style="display:flex; flex-direction:column; align-items:center; justify-content:center; position:relative;">
+                            <div style="position:relative; width:300px; height:300px;">
+                                <canvas id="summaryBarChart" width="300" height="300"
+                                    style="width:300px; height:300px; display:block; cursor:pointer;"></canvas>
+                                <div id="pie-center-label"
+                                    style="position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; pointer-events:none; text-align:center;">
+                                    <span id="pie-center-tons"
+                                        style="font-size:22px; font-weight:800; color:var(--text); line-height:1.1;">—</span>
+                                    <span
+                                        style="font-size:10.5px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; margin-top:2px;">Total
+                                        Waste</span>
+                                    <span id="pie-center-sub"
+                                        style="font-size:11px; color:var(--green-700); font-weight:600; margin-top:2px;">42
+                                        Locations</span>
+                                </div>
+                            </div>
+                            <div id="pie-hover-info"
+                                style="margin-top:10px; font-size:12px; color:var(--text-muted); min-height:18px; text-align:center; font-weight:500;">
+                                Hover over slices or legend items to inspect
+                            </div>
+                        </div>
+
+                        <!-- Legend Column -->
+                        <div class="pie-legend-wrapper" style="display:flex; flex-direction:column; min-width:0;">
+                            <div
+                                style="display:flex; justify-content:space-between; align-items:center; padding-bottom:8px; border-bottom:1px solid var(--border); margin-bottom:10px;">
+                                <span
+                                    style="font-size:11.5px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px;">Location
+                                    Share &amp; Volume</span>
+                                <span id="legend-badge"
+                                    style="font-size:11px; font-weight:700; background:var(--green-50); color:var(--green-800); border:1px solid var(--green-200); padding:2px 8px; border-radius:12px;">8
+                                    Categories</span>
+                            </div>
+                            <div id="pie-legend" class="pie-legend-scroll"
+                                style="display:grid; grid-template-columns:1fr; gap:8px; max-height:340px; overflow-y:auto; padding-right:6px;">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Print Signature -->
+                <div class="print-signature-section">
+                    <div class="sig-grid">
+                        <div>
+                            <div class="sig-line">Prepared by:<br><strong>CLENRO Solid Waste Data
+                                    Unit</strong><br>Cagayan de Oro City</div>
+                        </div>
+                        <div>
+                            <div class="sig-line">Reviewed &amp; Recommending Approval:<br><strong>ENGR. ARMEN A.
+                                    CUENCA, EnP</strong><br>Department Head, CLENRO CDO</div>
+                        </div>
+                        <div>
+                            <div class="sig-line">Approved for Executive Action:<br><strong>HON. ROLANDO "KLAREX" A.
+                                    UY</strong><br>City Mayor, Cagayan de Oro City</div>
+                        </div>
+                    </div>
+                </div>
+
+            </section>
+        </main>
+    </div>
+
+    <script src="js/app.js"></script>
+    <script>
+        const clenroDataset = [
+            { id: 1, location_zone: 'Cogon Market Zone', incident_date: '2024-01-12', waste_volume_m3: 18.50, estimated_tonnage: 7.40 },
+            { id: 2, location_zone: 'Cogon Market Zone', incident_date: '2024-04-28', waste_volume_m3: 14.20, estimated_tonnage: 5.60 },
+            { id: 3, location_zone: 'Cogon Market Zone', incident_date: '2024-08-27', waste_volume_m3: 24.00, estimated_tonnage: 9.80 },
+            { id: 4, location_zone: 'Cogon Market Zone', incident_date: '2024-12-23', waste_volume_m3: 28.50, estimated_tonnage: 11.40 },
+            { id: 5, location_zone: 'Cogon Market Zone', incident_date: '2025-03-14', waste_volume_m3: 12.00, estimated_tonnage: 5.20 },
+            { id: 6, location_zone: 'Cogon Market Zone', incident_date: '2025-07-18', waste_volume_m3: 16.80, estimated_tonnage: 6.90 },
+            { id: 7, location_zone: 'Cogon Market Zone', incident_date: '2025-10-11', waste_volume_m3: 15.00, estimated_tonnage: 6.00 },
+            { id: 8, location_zone: 'Cogon Market Zone', incident_date: '2026-02-15', waste_volume_m3: 11.20, estimated_tonnage: 4.50 },
+            { id: 9, location_zone: 'Carmen Market Zone', incident_date: '2024-02-19', waste_volume_m3: 14.50, estimated_tonnage: 5.80 },
+            { id: 10, location_zone: 'Carmen Market Zone', incident_date: '2024-06-10', waste_volume_m3: 11.00, estimated_tonnage: 4.80 },
+            { id: 11, location_zone: 'Carmen Market Zone', incident_date: '2024-08-28', waste_volume_m3: 19.80, estimated_tonnage: 7.90 },
+            { id: 12, location_zone: 'Carmen Market Zone', incident_date: '2024-11-15', waste_volume_m3: 16.50, estimated_tonnage: 6.60 },
+            { id: 13, location_zone: 'Carmen Market Zone', incident_date: '2025-01-06', waste_volume_m3: 13.00, estimated_tonnage: 5.20 },
+            { id: 14, location_zone: 'Carmen Market Zone', incident_date: '2025-05-20', waste_volume_m3: 9.50, estimated_tonnage: 3.80 },
+            { id: 15, location_zone: 'Carmen Market Zone', incident_date: '2025-09-12', waste_volume_m3: 15.20, estimated_tonnage: 6.10 },
+            { id: 16, location_zone: 'Carmen Market Zone', incident_date: '2026-01-28', waste_volume_m3: 12.80, estimated_tonnage: 5.10 },
+            { id: 17, location_zone: 'Carmen Market Zone', incident_date: '2026-03-18', waste_volume_m3: 13.00, estimated_tonnage: 5.60 },
+            { id: 18, location_zone: 'Carmen Market Zone', incident_date: '2026-05-10', waste_volume_m3: 14.50, estimated_tonnage: 5.80 },
+            { id: 19, location_zone: 'Carmen Market Zone', incident_date: '2026-07-08', waste_volume_m3: 15.80, estimated_tonnage: 6.40 },
+            { id: 20, location_zone: 'Carmen Market Zone', incident_date: '2026-08-28', waste_volume_m3: 21.50, estimated_tonnage: 8.60 },
+            { id: 21, location_zone: 'Carmen Market Zone', incident_date: '2026-09-02', waste_volume_m3: 11.50, estimated_tonnage: 4.60 },
+            { id: 22, location_zone: 'Barangay 1', incident_date: '2024-03-05', waste_volume_m3: 6.20, estimated_tonnage: 2.40 },
+            { id: 23, location_zone: 'Barangay 2', incident_date: '2024-05-18', waste_volume_m3: 8.40, estimated_tonnage: 3.20 },
+            { id: 24, location_zone: 'Barangay 7', incident_date: '2024-08-25', waste_volume_m3: 11.50, estimated_tonnage: 4.60 },
+            { id: 25, location_zone: 'Barangay 10', incident_date: '2024-10-14', waste_volume_m3: 5.00, estimated_tonnage: 1.90 },
+            { id: 26, location_zone: 'Barangay 14', incident_date: '2024-12-29', waste_volume_m3: 7.80, estimated_tonnage: 3.00 },
+            { id: 27, location_zone: 'Barangay 21', incident_date: '2025-02-11', waste_volume_m3: 4.50, estimated_tonnage: 1.70 },
+            { id: 28, location_zone: 'Barangay 22', incident_date: '2025-04-02', waste_volume_m3: 13.50, estimated_tonnage: 5.40 },
+            { id: 29, location_zone: 'Barangay 24', incident_date: '2025-06-14', waste_volume_m3: 3.80, estimated_tonnage: 1.40 },
+            { id: 30, location_zone: 'Barangay 26', incident_date: '2025-08-20', waste_volume_m3: 9.20, estimated_tonnage: 3.60 },
+            { id: 31, location_zone: 'Barangay 31', incident_date: '2025-10-25', waste_volume_m3: 8.50, estimated_tonnage: 3.40 },
+            { id: 32, location_zone: 'Barangay 34', incident_date: '2025-11-30', waste_volume_m3: 12.40, estimated_tonnage: 5.00 },
+            { id: 33, location_zone: 'Barangay 35', incident_date: '2025-12-15', waste_volume_m3: 10.20, estimated_tonnage: 4.10 },
+            { id: 34, location_zone: 'Barangay 39', incident_date: '2026-01-10', waste_volume_m3: 8.80, estimated_tonnage: 3.50 },
+            { id: 35, location_zone: 'Barangay 40', incident_date: '2026-02-20', waste_volume_m3: 7.50, estimated_tonnage: 3.00 },
+            { id: 36, location_zone: 'Barangay 3', incident_date: '2026-03-01', waste_volume_m3: 4.20, estimated_tonnage: 1.60 },
+            { id: 37, location_zone: 'Barangay 4', incident_date: '2026-03-15', waste_volume_m3: 3.50, estimated_tonnage: 1.30 },
+            { id: 38, location_zone: 'Barangay 5', incident_date: '2026-04-10', waste_volume_m3: 5.10, estimated_tonnage: 2.00 },
+            { id: 39, location_zone: 'Barangay 12', incident_date: '2026-05-04', waste_volume_m3: 4.80, estimated_tonnage: 1.90 },
+        ];
+
+        let currentData = [...clenroDataset];
+        let summaryData = [];
+
+        function buildSummary(data) {
+            const map = {};
+            data.forEach(item => {
+                const key = item.location_zone;
+                if (!map[key]) {
+                    map[key] = { location_zone: key, type: key.includes('Market') ? 'Market Zone' : 'Urban Barangay', incidents: 0, total_volume_m3: 0, total_tonnage: 0 };
+                }
+                map[key].incidents++;
+                map[key].total_volume_m3 += Number(item.waste_volume_m3);
+                map[key].total_tonnage += Number(item.estimated_tonnage);
+            });
+            return Object.values(map)
+                .map(r => ({ ...r, avg_weight_t: r.incidents > 0 ? r.total_tonnage / r.incidents : 0 }))
+                .sort((a, b) => b.total_volume_m3 - a.total_volume_m3);
+        }
+
+        let currentSummaryPage = 1;
+        let summaryPageSize = 10;
+
+        function onPageSizeChange(val) {
+            summaryPageSize = parseInt(val, 10) || 10;
+            currentSummaryPage = 1;
+            renderSummaryTable();
+        }
+
+        function goToSummaryPage(page) {
+            const totalPages = Math.ceil(summaryData.length / summaryPageSize) || 1;
+            if (page < 1) page = 1;
+            if (page > totalPages) page = totalPages;
+            currentSummaryPage = page;
+            renderSummaryTable();
+            const tableEl = document.getElementById('summary-table');
+            if (tableEl) {
+                tableEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        }
+
+        function applyFilters() {
+            const period = document.getElementById('period-select').value;
+            const zoneType = document.getElementById('zone-type-select').value;
+            const filtered = currentData.filter(item => {
+                if (period !== 'all' && !item.incident_date.startsWith(period)) return false;
+                if (zoneType === 'markets' && !item.location_zone.includes('Market')) return false;
+                if (zoneType === 'barangays' && item.location_zone.includes('Market')) return false;
+                return true;
+            });
+            summaryData = buildSummary(filtered);
+            currentSummaryPage = 1;
+            renderKPIs(filtered);
+            renderSummaryTable();
+            drawSummaryChart();
+        }
+
+        function resetFilters() {
+            document.getElementById('period-select').value = 'all';
+            document.getElementById('zone-type-select').value = 'all';
+            currentSummaryPage = 1;
+            applyFilters();
+        }
+
+        function renderKPIs(filtered) {
+            const totalVol = filtered.reduce((s, i) => s + Number(i.waste_volume_m3), 0);
+            const totalTons = filtered.reduce((s, i) => s + Number(i.estimated_tonnage), 0);
+            const avgWt = filtered.length ? totalTons / filtered.length : 0;
+            const locs = summaryData.length;
+            document.getElementById('kpi-locations').textContent = locs;
+            document.getElementById('kpi-locations-sub').textContent = locs + ' location' + (locs !== 1 ? 's' : '') + ' with recorded incidents';
+            document.getElementById('kpi-total-vol').textContent = totalVol.toFixed(1) + ' m3';
+            document.getElementById('kpi-total-vol-sub').textContent = 'Across ' + filtered.length + ' incidents';
+            document.getElementById('kpi-total-tons').textContent = totalTons.toFixed(2) + ' t';
+            document.getElementById('kpi-total-tons-sub').textContent = 'Total metric tons hauled';
+            document.getElementById('kpi-avg-weight').textContent = avgWt.toFixed(2) + ' t';
+            document.getElementById('kpi-avg-weight-sub').textContent = 'Per incident (all locations)';
+        }
+
+        function renderSummaryTable() {
+            const tbody = document.getElementById('summary-tbody');
+            const infoEl = document.getElementById('summary-info');
+            const controlsEl = document.getElementById('summary-pagination-controls');
+            if (!tbody) return;
+
+            if (summaryData.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:28px;color:var(--text-muted);">No records match the selected filters.</td></tr>';
+                if (infoEl) infoEl.textContent = 'No records';
+                if (controlsEl) controlsEl.innerHTML = '';
+                return;
+            }
+
+            const total = summaryData.reduce((s, r) => s + r.incidents, 0);
+            const totalPages = Math.ceil(summaryData.length / summaryPageSize) || 1;
+            if (currentSummaryPage > totalPages) currentSummaryPage = totalPages;
+
+            const startIndex = (currentSummaryPage - 1) * summaryPageSize;
+            const endIndex = Math.min(startIndex + summaryPageSize, summaryData.length);
+            const pageRows = summaryData.slice(startIndex, endIndex);
+
+            const maxVol = Math.max.apply(null, summaryData.map(r => r.total_volume_m3));
+            const grandVol = summaryData.reduce((s, r) => s + r.total_volume_m3, 0);
+
+            tbody.innerHTML = pageRows.map(function (row, idx) {
+                const rank = startIndex + idx + 1;
+                const isMarket = row.type === 'Market Zone';
+                const typeCls = isMarket ? 'badge-market' : 'badge-urban';
+                const barPct = maxVol > 0 ? ((row.total_volume_m3 / maxVol) * 100).toFixed(1) : '0.0';
+                const sharePct = grandVol > 0 ? ((row.total_volume_m3 / grandVol) * 100).toFixed(1) : '0.0';
+                const barColor = isMarket ? '#2e7d32' : '#1565c0';
+
+                return '<tr>' +
+                    '<td style="color:var(--text-muted);font-size:12px;font-weight:600;">' + rank + '</td>' +
+                    '<td><strong>' + escapeHtml(row.location_zone) + '</strong></td>' +
+                    '<td><span class="badge ' + typeCls + '">' + escapeHtml(row.type) + '</span></td>' +
+                    '<td style="text-align:right;font-weight:600">' + row.incidents + '</td>' +
+                    '<td style="text-align:right;font-weight:700">' + row.total_volume_m3.toFixed(2) + '</td>' +
+                    '<td style="text-align:right;font-weight:700">' + row.total_tonnage.toFixed(2) + '</td>' +
+                    '<td style="text-align:right"><span style="font-weight:700;color:' + barColor + '">' + row.avg_weight_t.toFixed(2) + ' t</span></td>' +
+                    '<td><div style="display:flex;align-items:center;gap:7px">' +
+                    '<div style="flex:1;height:10px;background:var(--border);border-radius:5px;overflow:hidden">' +
+                    '<div style="width:' + barPct + '%;height:100%;background:' + barColor + ';border-radius:5px"></div>' +
+                    '</div>' +
+                    '<span style="font-size:11px;color:var(--text-muted);white-space:nowrap">' + sharePct + '%</span>' +
+                    '</div></td>' +
+                    '</tr>';
+            }).join('');
+
+            if (infoEl) {
+                infoEl.textContent = `Showing ${startIndex + 1}–${endIndex} of ${summaryData.length} locations · ${total} total incidents`;
+            }
+
+            // Render pagination controls
+            if (controlsEl) {
+                let controlsHtml = `
+                    <button class="page-btn" onclick="goToSummaryPage(${currentSummaryPage - 1})" ${currentSummaryPage <= 1 ? 'disabled' : ''} title="Previous Page">&larr; Prev</button>
+                `;
+
+                for (let p = 1; p <= totalPages; p++) {
+                    controlsHtml += `
+                        <button class="page-btn ${p === currentSummaryPage ? 'active' : ''}" onclick="goToSummaryPage(${p})">${p}</button>
+                    `;
+                }
+
+                controlsHtml += `
+                    <button class="page-btn" onclick="goToSummaryPage(${currentSummaryPage + 1})" ${currentSummaryPage >= totalPages ? 'disabled' : ''} title="Next Page">Next &rarr;</button>
+                `;
+
+                controlsEl.innerHTML = controlsHtml;
+            }
+        }
+
+        let currentChartMode = 'top'; // 'top' | 'sector' | 'all'
+        let hoveredSliceIdx = null;
+
+        function setChartMode(mode) {
+            currentChartMode = mode;
+            document.querySelectorAll('.chart-toggle-btn').forEach(btn => btn.classList.remove('active'));
+            const activeBtn = document.getElementById(`btn-chart-${mode}`);
+            if (activeBtn) activeBtn.classList.add('active');
+            drawSummaryChart();
+        }
+
+        function getLocationSector(locName) {
+            if (locName.includes('Cogon')) return 'Cogon Market Zone';
+            if (locName.includes('Carmen')) return 'Carmen Market Zone';
+            const match = locName.match(/Barangay\s+(\d+)/i);
+            if (match) {
+                const num = parseInt(match[1], 10);
+                if (num >= 1 && num <= 10) return 'Sector North (Brgy 1–10)';
+                if (num >= 11 && num <= 20) return 'Sector Central (Brgy 11–20)';
+                if (num >= 21 && num <= 30) return 'Sector East (Brgy 21–30)';
+                if (num >= 31 && num <= 40) return 'Sector Commercial (Brgy 31–40)';
+            }
+            return 'Other Poblacion Areas';
+        }
+
+        function getChartSlices() {
+            if (!summaryData || summaryData.length === 0) return [];
+            const sorted = summaryData.slice().sort((a, b) => b.total_tonnage - a.total_tonnage);
+
+            if (currentChartMode === 'sector') {
+                const sectorMap = {};
+                sorted.forEach(row => {
+                    const sec = getLocationSector(row.location_zone);
+                    if (!sectorMap[sec]) {
+                        sectorMap[sec] = { label: sec, total_tonnage: 0, count: 0, type: sec.includes('Market') ? 'Market Zone' : 'Urban Sector' };
+                    }
+                    sectorMap[sec].total_tonnage += row.total_tonnage;
+                    sectorMap[sec].count++;
+                });
+                return Object.values(sectorMap).sort((a, b) => b.total_tonnage - a.total_tonnage);
+            }
+
+            if (currentChartMode === 'top') {
+                const topCount = 7;
+                const topRows = sorted.slice(0, topCount).map(r => ({
+                    label: r.location_zone,
+                    total_tonnage: r.total_tonnage,
+                    type: r.type,
+                    count: 1
+                }));
+                const otherRows = sorted.slice(topCount);
+                if (otherRows.length > 0) {
+                    const otherTonnage = otherRows.reduce((s, r) => s + r.total_tonnage, 0);
+                    topRows.push({
+                        label: `Other Poblacion Barangays (${otherRows.length})`,
+                        total_tonnage: otherTonnage,
+                        type: 'Poblacion Barangays',
+                        count: otherRows.length,
+                        isOther: true
+                    });
+                }
+                return topRows;
+            }
+
+            // 'all' mode: all 42 locations
+            return sorted.map(r => ({
+                label: r.location_zone,
+                total_tonnage: r.total_tonnage,
+                type: r.type,
+                count: 1
+            }));
+        }
+
+        function drawSummaryChart() {
+            const canvas = document.getElementById('summaryBarChart');
+            if (!canvas || !summaryData || summaryData.length === 0) return;
+
+            const slices = getChartSlices();
+            const grandTotal = summaryData.reduce((s, r) => s + r.total_tonnage, 0);
+
+            // Update center label
+            const tonsEl = document.getElementById('pie-center-tons');
+            const subEl = document.getElementById('pie-center-sub');
+            const badgeEl = document.getElementById('legend-badge');
+            if (tonsEl) tonsEl.textContent = grandTotal.toFixed(1) + ' t';
+            if (subEl) subEl.textContent = summaryData.length + ' Locations';
+            if (badgeEl) badgeEl.textContent = `${slices.length} ${currentChartMode === 'sector' ? 'Sectors' : (currentChartMode === 'all' ? 'Locations' : 'Categories')}`;
+
+            renderDonutCanvas(slices, grandTotal);
+            renderChartLegend(slices, grandTotal);
+        }
+
+        function renderDonutCanvas(slices, grandTotal) {
+            const canvas = document.getElementById('summaryBarChart');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const size = 300;
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = size * dpr;
+            canvas.height = size * dpr;
+            canvas.style.width = size + 'px';
+            canvas.style.height = size + 'px';
+            ctx.scale(dpr, dpr);
+
+            const W = size, H = size;
+            ctx.clearRect(0, 0, W, H);
+
+            const cx = W / 2, cy = H / 2;
+            const outerRadius = W / 2 - 8;
+            const innerRadius = outerRadius * 0.58;
+
+            const palette = [
+                '#1b5e20', '#1565c0', '#e65100', '#6a1b9a', '#00838f',
+                '#2e7d32', '#0277bd', '#f57c00', '#ad1457', '#00695c',
+                '#33691e', '#283593', '#d84315', '#4527a0', '#004d40',
+                '#558b2f', '#37474f', '#c2185b', '#795548', '#546e7a'
+            ];
+
+            let startAngle = -Math.PI / 2;
+            window._chartSlicesMeta = [];
+
+            slices.forEach((slice, i) => {
+                const sliceAngle = grandTotal > 0 ? (slice.total_tonnage / grandTotal) * 2 * Math.PI : 0;
+                const endAngle = startAngle + sliceAngle;
+                const color = slice.isOther ? '#78909c' : palette[i % palette.length];
+                const pct = grandTotal > 0 ? (slice.total_tonnage / grandTotal) * 100 : 0;
+
+                window._chartSlicesMeta.push({
+                    startAngle,
+                    endAngle,
+                    slice,
+                    pct,
+                    color,
+                    index: i
+                });
+
+                const isHovered = (hoveredSliceIdx === i);
+                const drawOuterRadius = isHovered ? outerRadius + 5 : outerRadius;
+                const drawInnerRadius = isHovered ? innerRadius - 2 : innerRadius;
+
+                // Draw Donut Slice
+                ctx.beginPath();
+                ctx.arc(cx, cy, drawOuterRadius, startAngle, endAngle);
+                ctx.arc(cx, cy, drawInnerRadius, endAngle, startAngle, true);
+                ctx.closePath();
+                ctx.fillStyle = color;
+                ctx.fill();
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 2.5;
+                ctx.stroke();
+
+                // Percentage label on slice (if large enough, e.g. >= 8%)
+                if (pct >= 8 && (!slice.isOther || currentChartMode !== 'top')) {
+                    const midAngle = startAngle + sliceAngle / 2;
+                    const labelR = (drawInnerRadius + drawOuterRadius) / 2;
+                    const lx = cx + labelR * Math.cos(midAngle);
+                    const ly = cy + labelR * Math.sin(midAngle);
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = 'bold 11px Inter, sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(pct.toFixed(1) + '%', lx, ly);
+                }
+
+                startAngle = endAngle;
+            });
+        }
+
+        function renderChartLegend(slices, grandTotal) {
+            const legendEl = document.getElementById('pie-legend');
+            if (!legendEl) return;
+            legendEl.innerHTML = '';
+
+            const palette = [
+                '#1b5e20', '#1565c0', '#e65100', '#6a1b9a', '#00838f',
+                '#2e7d32', '#0277bd', '#f57c00', '#ad1457', '#00695c',
+                '#33691e', '#283593', '#d84315', '#4527a0', '#004d40',
+                '#558b2f', '#37474f', '#c2185b', '#795548', '#546e7a'
+            ];
+
+            slices.forEach((slice, i) => {
+                const color = slice.isOther ? '#78909c' : palette[i % palette.length];
+                const pct = grandTotal > 0 ? (slice.total_tonnage / grandTotal) * 100 : 0;
+
+                const item = document.createElement('div');
+                item.className = 'pie-legend-item';
+                item.id = `legend-item-${i}`;
+                item.title = `${slice.label}: ${slice.total_tonnage.toFixed(1)} t (${pct.toFixed(1)}%)`;
+                item.innerHTML = `
+                    <span style="display:inline-block; width:12px; height:12px; border-radius:3px; background:${color}; flex-shrink:0;"></span>
+                    <div style="display:flex; flex-direction:column; min-width:0; flex:1;">
+                        <div style="display:flex; align-items:center; justify-content:space-between; gap:6px;">
+                            <strong style="color:var(--text); font-size:12.5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(slice.label)}</strong>
+                            <span style="font-weight:700; color:var(--text); font-size:12px; white-space:nowrap;">${slice.total_tonnage.toFixed(1)} t</span>
+                        </div>
+                        <div style="display:flex; align-items:center; justify-content:space-between; font-size:11px; color:var(--text-muted);">
+                            <span>${escapeHtml(slice.type || 'Poblacion')}</span>
+                            <span style="font-weight:700; color:${color};">${pct.toFixed(1)}%</span>
+                        </div>
+                    </div>
+                `;
+
+                item.addEventListener('mouseenter', () => {
+                    hoveredSliceIdx = i;
+                    highlightLegendItem(i);
+                    updateHoverInfo(slice, pct, color);
+                    renderDonutCanvas(slices, grandTotal);
+                });
+
+                item.addEventListener('mouseleave', () => {
+                    hoveredSliceIdx = null;
+                    unhighlightLegendItem(i);
+                    resetHoverInfo();
+                    renderDonutCanvas(slices, grandTotal);
+                });
+
+                legendEl.appendChild(item);
+            });
+        }
+
+        function highlightLegendItem(index) {
+            document.querySelectorAll('.pie-legend-item').forEach(el => el.classList.remove('highlighted'));
+            const el = document.getElementById(`legend-item-${index}`);
+            if (el) {
+                el.classList.add('highlighted');
+                el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        }
+
+        function unhighlightLegendItem(index) {
+            const el = document.getElementById(`legend-item-${index}`);
+            if (el) el.classList.remove('highlighted');
+        }
+
+        function updateHoverInfo(slice, pct, color) {
+            const infoEl = document.getElementById('pie-hover-info');
+            if (infoEl) {
+                infoEl.innerHTML = `<strong style="color:${color}">${escapeHtml(slice.label)}</strong>: ${slice.total_tonnage.toFixed(2)} metric tons (${pct.toFixed(1)}% of total solid waste)`;
+            }
+        }
+
+        function resetHoverInfo() {
+            const infoEl = document.getElementById('pie-hover-info');
+            if (infoEl) {
+                infoEl.textContent = 'Hover over slices or legend items to inspect';
+            }
+        }
+
+        // Attach canvas mouse interaction
+        (function setupCanvasHover() {
+            window.addEventListener('DOMContentLoaded', () => {
+                const canvas = document.getElementById('summaryBarChart');
+                if (!canvas) return;
+
+                canvas.addEventListener('mousemove', (e) => {
+                    if (!window._chartSlicesMeta || window._chartSlicesMeta.length === 0) return;
+                    const rect = canvas.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    const size = 300;
+                    const cx = size / 2, cy = size / 2;
+                    const dx = x - cx, dy = y - cy;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    const outerRadius = size / 2 - 8;
+                    const innerRadius = outerRadius * 0.58;
+
+                    if (dist < innerRadius || dist > outerRadius + 10) {
+                        if (hoveredSliceIdx !== null) {
+                            hoveredSliceIdx = null;
+                            document.querySelectorAll('.pie-legend-item').forEach(el => el.classList.remove('highlighted'));
+                            resetHoverInfo();
+                            renderDonutCanvas(getChartSlices(), summaryData.reduce((s, r) => s + r.total_tonnage, 0));
+                        }
+                        return;
+                    }
+
+                    // Angle from -PI/2
+                    let angle = Math.atan2(dy, dx);
+                    if (angle < -Math.PI / 2) {
+                        angle += 2 * Math.PI;
+                    }
+
+                    const matched = window._chartSlicesMeta.find(m => {
+                        let start = m.startAngle;
+                        let end = m.endAngle;
+                        return angle >= start && angle <= end;
+                    });
+
+                    if (matched) {
+                        if (hoveredSliceIdx !== matched.index) {
+                            hoveredSliceIdx = matched.index;
+                            highlightLegendItem(matched.index);
+                            updateHoverInfo(matched.slice, matched.pct, matched.color);
+                            renderDonutCanvas(getChartSlices(), summaryData.reduce((s, r) => s + r.total_tonnage, 0));
+                        }
+                    }
+                });
+
+                canvas.addEventListener('mouseleave', () => {
+                    if (hoveredSliceIdx !== null) {
+                        hoveredSliceIdx = null;
+                        document.querySelectorAll('.pie-legend-item').forEach(el => el.classList.remove('highlighted'));
+                        resetHoverInfo();
+                        renderDonutCanvas(getChartSlices(), summaryData.reduce((s, r) => s + r.total_tonnage, 0));
+                    }
+                });
+            });
+        })();
+
+        function exportSummaryCsv() {
+            var headers = ['Rank', 'Location Zone', 'Type', 'Incidents', 'Total Volume (m3)', 'Total Tonnage (t)', 'Avg Weight per Incident (t)'];
+            var rows = summaryData.map(function (row, i) {
+                return [i + 1, '"' + row.location_zone + '"', '"' + row.type + '"', row.incidents, row.total_volume_m3.toFixed(2), row.total_tonnage.toFixed(2), row.avg_weight_t.toFixed(2)];
+            });
+            var csv = '\uFEFF' + [headers.join(',')].concat(rows.map(r => r.join(','))).join('\r\n');
+            var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            var url = URL.createObjectURL(blob);
+            var link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', 'CLENRO_Location_Summary_' + new Date().toISOString().substring(0, 10) + '.csv');
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
+        function setDataSourceBadge(isLive) {
+            var badge = document.getElementById('data-source-badge');
+            if (!badge) return;
+            badge.className = isLive ? 'data-source-badge live' : 'data-source-badge local';
+            badge.textContent = isLive ? '\uD83D\uDFE2 Live Backend' : '\uD83D\uDCE6 Local Dataset';
+        }
+
+        function showSkeleton() {
+            var tbody = document.getElementById('summary-tbody');
+            if (!tbody) return;
+            var rows = '';
+            for (var i = 0; i < 6; i++) {
+                rows += '<tr class="skeleton-row"><td>\u2588</td><td>\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588</td><td>\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588</td><td style="text-align:right">\u2588\u2588</td><td style="text-align:right">\u2588\u2588\u2588\u2588</td><td style="text-align:right">\u2588\u2588\u2588\u2588</td><td style="text-align:right">\u2588\u2588\u2588\u2588</td><td>\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588</td></tr>';
+            }
+            tbody.innerHTML = rows;
+            var infoEl = document.getElementById('summary-info');
+            if (infoEl) infoEl.textContent = 'Fetching live data...';
+        }
+
+        async function fetchLiveBackendData() {
+            showSkeleton();
+            try {
+                const token = localStorage.getItem('auth_token');
+                const headers = { 'Accept': 'application/json' };
+                if (token && token !== 'demo_clenro_session') {
+                    headers['Authorization'] = `Bearer ${token}`;
+                }
+
+                const url = (token && token !== 'demo_clenro_session')
+                    ? `${API_BASE_URL}/clenro/pileup-reports?per_page=500`
+                    : `${API_BASE_URL}/public/clenro/pileup-reports?per_page=500`;
+
+                var res = await fetch(url, { headers });
+                if (!res.ok && !url.includes('/public/')) {
+                    res = await fetch(`${API_BASE_URL}/public/clenro/pileup-reports?per_page=500`, { headers: { 'Accept': 'application/json' } });
+                }
+
+                if (res.ok) {
+                    var result = await res.json();
+
+                    if (result.success && result.data && result.data.data && result.data.data.length > 0) {
+                        currentData = result.data.data.map(function (item) {
+                            return {
+                                id: item.id,
+                                location_zone: item.location_zone,
+                                incident_date: item.incident_date ? item.incident_date.substring(0, 10) : '',
+                                waste_volume_m3: Number(item.waste_volume_m3),
+                                estimated_tonnage: Number(item.estimated_tonnage),
+                            };
+                        });
+                        setDataSourceBadge(true);
+                        applyFilters();
+                        return;
+                    }
+                }
+                throw new Error('no data');
+            } catch (e) {
+                console.log('Using local CLENRO dataset.');
+                setDataSourceBadge(false);
+                applyFilters();
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            applyFilters();
+            fetchLiveBackendData();
+            window.addEventListener('resize', drawSummaryChart);
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,176 @@
+PS C:\Users\Family\KatokKalinisWeb> Get-ChildItem .\app -Recurse
+
+
+    Directory: C:\Users\Family\KatokKalinisWeb\node_modules\@expo\log-box
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+d-----        18/08/2026  12:26 am                app
+
+
+    Directory: C:\Users\Family\KatokKalinisWeb\src
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+d-----        18/08/2026   7:02 pm                app
+
+
+PS C:\Users\Family\KatokKalinisWeb> Get-ChildItem .\services -Recurse
+
+
+    Directory: C:\Users\Family\KatokKalinisWeb\node_modules\@react-native\debugger-frontend\dist\third-party\front_end
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+d-----        16/08/2026   1:23 pm                services
+
+
+    Directory: C:\Users\Family\KatokKalinisWeb\node_modules\expo-modules-core\android\src\main\java\expo\modules\adapters\react
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+d-----        16/08/2026   1:23 pm                services
+
+
+    Directory: C:\Users\Family\KatokKalinisWeb\node_modules\expo-modules-core\android\src\main\java\expo\modules\core\interfaces
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+d-----        16/08/2026   1:23 pm                services
+
+
+    Directory: C:\Users\Family\KatokKalinisWeb\node_modules\expo-modules-core\android\src\main\java\expo\modules\kotlin
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+d-----        16/08/2026   1:23 pm                services
+
+
+    Directory: C:\Users\Family\KatokKalinisWeb\node_modules\expo-modules-core\ios\Legacy
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+d-----        16/08/2026   1:23 pm                Services
+
+
+    Directory: C:\Users\Family\KatokKalinisWeb\src
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+d-----        18/08/2026   8:20 pm                services
+
+
+PS C:\Users\Family\KatokKalinisWeb> 
+
+PS C:\Users\Family\KatokKalinisAppDriver> Get-ChildItem .\app -Recurse
+
+
+    Directory: C:\Users\Family\KatokKalinisAppDriver\app
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+d-----        14/08/2026   8:14 pm                driver
+d-----        14/08/2026   8:15 pm                inspector
+-a----        14/08/2026   9:01 pm           1305 index.tsx
+-a----        14/08/2026   8:24 pm            971 layout.tsx
+-a----        14/08/2026   8:53 pm           3750 role.tsx
+
+
+    Directory: C:\Users\Family\KatokKalinisAppDriver\app\driver
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----        14/08/2026   8:35 pm           6920 dashboard.tsx
+-a----        14/08/2026   9:02 pm           8035 login.tsx
+-a----        14/08/2026   8:35 pm           4255 map.tsx
+
+
+    Directory: C:\Users\Family\KatokKalinisAppDriver\app\inspector
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----        14/08/2026   8:35 pm           5395 grade.tsx
+-a----        14/08/2026   8:35 pm           5454 inspections.tsx
+-a----        14/08/2026   8:34 pm           5184 login.tsx
+-a----        14/08/2026   8:35 pm           2985 scan.tsx
+-a----        14/08/2026   8:35 pm           3836 vendor.tsx
+
+
+PS C:\Users\Family\KatokKalinisAppDriver> Get-ChildItem .\services -Recurse
+
+
+    Directory: C:\Users\Family\KatokKalinisAppDriver\services
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----        14/08/2026   8:35 pm           1066 auth.ts
+
+
+PS C:\Users\Family\KatokKalinisAppDriver>
+
+PS C:\xampp2\htdocs\KatokKalinis> Get-ChildItem .\app -Recurse
+
+
+    Directory: C:\xampp2\htdocs\KatokKalinis\backend
+
+
+Mode                 LastWriteTime         Length Name
+d-----        17/08/2026   6:24 pm                app
+
+
+    Directory: C:\xampp2\htdocs\KatokKalinis\backend\storage
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+d-----        17/08/2026   6:24 pm                app
+
+
+PS C:\xampp2\htdocs\KatokKalinis> Get-ChildItem .\services -Recurse
+PS C:\xampp2\htdocs\KatokKalinis>
+
+PS C:\Users\Family\KatokKalinisApp> Get-ChildItem .\app -Recurse
+
+
+    Directory: C:\Users\Family\KatokKalinisApp\app
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----        09/08/2026   4:03 pm          12815 dashboard.tsx
+-a----        17/08/2026   9:38 pm           5138 forgot-password.tsx
+-a----        17/08/2026  10:02 pm           1105 index.tsx
+-a----        09/08/2026   4:03 pm            178 layout.tsx
+-a----        17/08/2026  10:02 pm          11359 login.tsx
+-a----        09/08/2026   4:03 pm           6573 report.tsx
+-a----        17/08/2026  10:02 pm           2844 role.tsx
+-a----        18/08/2026  12:45 am          13758 schedule.tsx
+-a----        17/08/2026  10:02 pm           7704 signup.tsx
+-a----        09/08/2026   4:02 pm           2200 vendor.tsx
+
+
+PS C:\Users\Family\KatokKalinisApp> Get-ChildItem .\services -Recurse
+
+
+    Directory: C:\Users\Family\KatokKalinisApp\services
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----        17/08/2026  10:04 pm           1030 api.ts
+-a----        18/08/2026   1:21 am           3312 auth.ts
+
+
+PS C:\Users\Family\KatokKalinisApp>

@@ -1,0 +1,114 @@
+import random
+import string
+
+# ---------------------------------------------------
+# Step 1: Compute total possible user IDs
+# ---------------------------------------------------
+
+def compute_total_ids():
+    # 26 uppercase letters for each position
+    letters = 26 * 26
+
+    # 10 digits for each position
+    digits = 10 * 10 * 10
+
+    # Product Rule
+    total = letters * digits
+    return total
+
+
+# ---------------------------------------------------
+# Step 2: Compute valid user IDs
+# Exclude:
+# - identical letters
+# - identical digits
+# ---------------------------------------------------
+
+def compute_valid_ids():
+    total_ids = compute_total_ids()
+
+    # IDs with identical letters
+    # Example: AA, BB, CC
+    identical_letters = 26 * 1000
+
+    # IDs with identical digits
+    # Example: 111, 222, 333
+    identical_digits = 676 * 10
+
+    # IDs counted twice
+    # Example: AA-111
+    both_identical = 26 * 10
+
+    # Inclusion-Exclusion Principle
+    valid_ids = (
+        total_ids
+        - identical_letters
+        - identical_digits
+        + both_identical
+    )
+
+    return valid_ids
+
+
+# ---------------------------------------------------
+# Generate ONE valid user ID
+# Rules:
+# - letters must not be identical
+# - digits must not all be identical
+# ---------------------------------------------------
+
+def generate_valid_user_id():
+
+    while True:
+
+        # Generate 2 random letters
+        letters = (
+            random.choice(string.ascii_uppercase)
+            + random.choice(string.ascii_uppercase)
+        )
+
+        # Generate 3 random digits
+        digits = ''.join(
+            random.choice(string.digits)
+            for _ in range(3)
+        )
+
+        # Check conditions
+        if (
+            letters[0] != letters[1]
+            and not (digits[0] == digits[1] == digits[2])
+        ):
+
+            return f"{letters}-{digits}"
+
+
+# ---------------------------------------------------
+# Generate MANY valid IDs
+# ---------------------------------------------------
+
+def generate_many_ids(count=5000):
+
+    generated_ids = set()
+
+    while len(generated_ids) < count:
+        generated_ids.add(generate_valid_user_id())
+
+    return list(generated_ids)
+
+
+# ---------------------------------------------------
+# Main Program
+# ---------------------------------------------------
+
+print("========== USER ID COMPUTATION ==========")
+
+print("Total Possible IDs:", compute_total_ids())
+
+print("Valid IDs:", compute_valid_ids())
+
+print("\n========== SAMPLE GENERATED IDs ==========")
+
+sample_ids = generate_many_ids(5000)
+
+for uid in sample_ids:
+    print(uid)

@@ -1,0 +1,5 @@
+name = input("Enter your name pls: ")
+age = int(input("Enter your age pls: "))
+
+print("Hi!! Welcome " + name + "!")
+print("You are " + str(age) + " years old.")

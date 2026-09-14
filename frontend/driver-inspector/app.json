@@ -1,0 +1,16 @@
+{
+  "expo": {
+    "name": "KatokKalinisAppDriver",
+    "slug": "katokkalinisappdriver",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "scheme": "katokkalinisappdriver",
+    "splash": {
+      "backgroundColor": "#7ED957"
+    },
+    "android": {
+      "package": "com.katokkalinis.appdriver"
+    }
+  }
+}

@@ -1,0 +1,46 @@
+import time
+import base64
+
+def decode_message(encoded):
+    return base64.b64decode(encoded).decode("utf-8")
+
+def type_effect(text, delay=0.08):
+    for char in text:
+        print(char, end="", flush=True)
+        time.sleep(delay)
+    print()
+
+def heart():
+    print(r"""
+      **     **
+    ****** ******
+   ***************
+    *************
+      *********
+        *****
+          *
+    """)
+
+# Encrypted message
+message = "SSBNSVNTIFlPVSDwn5aR"
+
+print("Initializing memory...")
+time.sleep(1)
+
+for i in range(5, 0, -1):
+    print(f"Decrypting in {i}...")
+    time.sleep(0.5)
+
+print("\nAccessing hidden message...")
+time.sleep(1)
+
+decoded = decode_message(message)
+
+print("\n" + "=" * 40)
+type_effect(decoded, 0.15)
+print("=" * 40)
+
+heart()
+
+type_effect("Some messages are hidden in code...", 0.06)
+type_effect("but this one was impossible to hide. ❤️", 0.06)

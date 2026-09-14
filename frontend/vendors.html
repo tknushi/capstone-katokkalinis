@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vendors - KatokKalinis</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <div class="dashboard-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">KatokKalinis</div>
+            <div class="sidebar-role" id="sidebar-role"></div>
+            <nav class="sidebar-nav" id="sidebar-nav"></nav>
+            <div class="sidebar-footer">
+                
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="topbar">
+                <h2>Vendors</h2>
+                <div id="topbar-user"></div>
+            </header>
+            
+            <section class="content">
+                <div class="card compliance-card">
+                    <div class="card-header">
+                        <div>
+                            <h3>Market Compliance</h3>
+                        </div>
+                    </div>
+                    <div id="inspection-reviews" class="review-list">
+                        <p>Loading inspection reports...</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div>
+                            <h3>Records</h3>
+                        </div>
+                    </div>
+                    <div id="market-records" class="market-records">
+                        <p>Loading market records...</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Add/Edit Modal -->
+    <div id="form-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">Add Vendor</h3>
+                <span class="close-btn" onclick="closeModal()">&times;</span>
+            </div>
+            <form id="data-form">
+                <input type="hidden" id="item-id">
+                <div class="form-group">
+                    <label>Vendor Code</label>
+                    <input type="text" id="vendor_code" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>Business Name</label>
+                    <input type="text" id="business_name" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>Owner Name</label>
+                    <input type="text" id="owner_name" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>Barangay</label>
+                    <select id="barangay_id" class="form-control">
+                        <option value="">-- None --</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Market</label>
+                    <input type="text" id="market" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>Stall Number</label>
+                    <input type="text" id="stall_number" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>Contact Number</label>
+                    <input type="text" id="contact_number" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>Address</label>
+                    <input type="text" id="address" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>Status</label>
+                    <select id="status" class="form-control">
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                        <option value="suspended">Suspended</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn">Save</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+    <script>
+        const endpoint = '/vendors';
+        let barangays = [];
+
+        async function loadBarangays() {
+            try {
+                const res = await apiRequest('/barangays');
+                barangays = res.barangays || [];
+                const select = document.getElementById('barangay_id');
+                barangays.forEach(b => {
+                    const opt = document.createElement('option');
+                    opt.value = b.id;
+                    opt.textContent = b.name;
+                    select.appendChild(opt);
+                });
+            } catch (error) {
+                console.error('Failed to load barangays', error);
+            }
+        }
+
+        async function loadData() {
+            const container = document.getElementById('market-records');
+            try {
+                const res = await apiRequest(endpoint);
+                const vendors = res.vendors || [];
+                const markets = vendors.reduce((result, vendor) => {
+                    const key = vendor.market || 'Unassigned market';
+                    result[key] = result[key] || { name: key, location: vendor.address || vendor.barangay?.name || 'Location not recorded', members: [] };
+                    result[key].members.push(vendor);
+                    return result;
+                }, {});
+                const records = Object.values(markets);
+                container.innerHTML = records.length ? records.map(market => `
+                    <article class="market-record">
+                        <div><strong>${market.name}</strong><span>${market.location}</span><span>${market.members.length} registered member${market.members.length === 1 ? '' : 's'}</span></div>
+                        <div class="market-actions"><button class="btn" type="button" onclick='showMarketMembers(${JSON.stringify(market.members).replace(/'/g, "&#39;")})'>Member List</button><button class="btn" type="button" onclick="alert('Documents are not uploaded for this market yet.')">View Documents</button></div>
+                    </article>`).join('') : '<p class="empty-state">No market records yet.</p>';
+            } catch (error) {
+                container.innerHTML = `<p class="empty-state">Unable to load market records: ${error.message}</p>`;
+            }
+        }
+
+        function showMarketMembers(members) {
+            alert(members.map(member => `${member.owner_name} · ${member.business_name}`).join('\n') || 'No members recorded.');
+        }
+
+        async function loadInspectionReviews() {
+            const container = document.getElementById('inspection-reviews');
+            try {
+                const res = await apiRequest('/inspections');
+                const inspections = res.inspections || [];
+                const pending = inspections.filter(item => !item.decision);
+                const decided = inspections.filter(item => item.decision);
+
+                if (inspections.length === 0) {
+                    container.innerHTML = '<p class="empty-state">No inspection reports found.</p>';
+                    return;
+                }
+
+                const renderReview = (item, isDecided) => {
+                    const vendor = item.vendor || {};
+                    const flagged = item.total_score <= (res.flag_threshold || 60);
+                    return `
+                        <article class="review-item compliance-review-item">
+                            <div class="compliance-details">
+                                <strong>${vendor.market || vendor.business_name || 'Unknown market'}</strong>
+                                <small>Quarterly Assessment</small>
+                                <span>Submitted: ${item.inspected_at ? item.inspected_at.substring(0, 10) : '-'}</span>
+                                <b>Documents:</b>
+                                <div class="document-chips"><span>inspection-report.pdf</span><span>sanitation-summary.pdf</span></div>
+                            </div>
+                            <div class="review-actions">
+                                <span class="pill ${item.decision === 'accepted' ? 'pill-green' : item.decision === 'rejected' ? 'pill-red' : flagged ? 'pill-orange' : 'pill-green'}">${item.decision || (flagged ? 'Needs review' : 'Compliant')}</span>
+                                ${isDecided ? `<small class="decision-date">Decided: ${item.decided_at ? item.decided_at.substring(0, 10) : 'Recorded'}</small>` : `<button class="btn review-accept" onclick="decideInspection(${item.id}, 'accepted')">Accept</button><button class="btn review-reject" onclick="decideInspection(${item.id}, 'rejected')">Reject</button>`}
+                                <button class="btn review-details" onclick="alert('Inspector: ${(item.inspector && item.inspector.name) || 'Unknown'}\nScore: ${item.total_score}\nNotes: ${item.notes || 'No notes recorded.'}')">View Details</button>
+                            </div>
+                        </article>
+                    `;
+                };
+
+                container.innerHTML = `
+                    <div class="review-group"><h4>Pending Reviews</h4>${pending.length ? pending.map(item => renderReview(item, false)).join('') : '<p class="empty-state">No inspection reports are waiting for review.</p>'}</div>
+                    <div class="review-group"><h4>Decision History</h4>${decided.length ? decided.map(item => renderReview(item, true)).join('') : '<p class="empty-state">Accepted and rejected reports will appear here.</p>'}</div>`;
+            } catch (error) {
+                container.innerHTML = `<p class="empty-state">Unable to load inspection reports: ${error.message}</p>`;
+            }
+        }
+
+        async function decideInspection(id, decision) {
+            if (!confirm(`Are you sure you want to ${decision} this inspection report?`)) return;
+            try {
+                await apiRequest(`/inspections/${id}/decision`, 'PUT', { decision });
+                loadInspectionReviews();
+                loadData();
+            } catch (error) {
+                alert(`Unable to save decision: ${error.message}`);
+            }
+        }
+
+        function openModal() {
+            document.getElementById('form-modal').classList.add('active');
+            document.getElementById('modal-title').textContent = 'Add Vendor';
+            document.getElementById('data-form').reset();
+            document.getElementById('item-id').value = '';
+        }
+
+        function closeModal() {
+            document.getElementById('form-modal').classList.remove('active');
+        }
+
+        function editItem(item) {
+            openModal();
+            document.getElementById('modal-title').textContent = 'Edit Vendor';
+            document.getElementById('item-id').value = item.id;
+            document.getElementById('vendor_code').value = item.vendor_code || '';
+            document.getElementById('business_name').value = item.business_name || '';
+            document.getElementById('owner_name').value = item.owner_name || '';
+            document.getElementById('barangay_id').value = item.barangay_id || '';
+            document.getElementById('market').value = item.market || '';
+            document.getElementById('stall_number').value = item.stall_number || '';
+            document.getElementById('contact_number').value = item.contact_number || '';
+            document.getElementById('address').value = item.address || '';
+            document.getElementById('status').value = item.status || 'active';
+        }
+
+        async function deleteItem(id) {
+            if(!confirm('Are you sure you want to delete this vendor?')) return;
+            try {
+                await apiRequest(`${endpoint}/${id}`, 'DELETE');
+                loadData();
+            } catch(e) {
+                alert('Error deleting: ' + e.message);
+            }
+        }
+
+        document.getElementById('data-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('item-id').value;
+            const payload = {
+                vendor_code: document.getElementById('vendor_code').value,
+                business_name: document.getElementById('business_name').value,
+                owner_name: document.getElementById('owner_name').value,
+                barangay_id: document.getElementById('barangay_id').value || null,
+                market: document.getElementById('market').value,
+                stall_number: document.getElementById('stall_number').value,
+                contact_number: document.getElementById('contact_number').value,
+                address: document.getElementById('address').value,
+                status: document.getElementById('status').value,
+            };
+
+            try {
+                if (id) {
+                    await apiRequest(`${endpoint}/${id}`, 'PUT', payload);
+                } else {
+                    await apiRequest(endpoint, 'POST', payload);
+                }
+                closeModal();
+                loadData();
+            } catch(e) {
+                alert('Error saving: ' + e.message);
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadBarangays();
+            loadData();
+            loadInspectionReviews();
+        });
+    </script>
+</body>
+</html>

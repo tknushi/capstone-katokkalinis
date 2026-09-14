@@ -1,0 +1,19 @@
+def password_strength():
+    letters = 26
+    digits = 10
+
+    total = (letters ** 2) * (digits ** 2)
+
+    same_letters = 26 * (digits ** 2)
+    same_digits = 10 * (letters ** 2)
+
+    overlap = 26 * 10
+
+    weak = same_letters + same_digits - overlap
+    strong = total - weak
+
+    print("Total passwords:", total)
+    print("Weak passwords:", weak)
+    print("Strong passwords:", strong)
+
+password_strength()

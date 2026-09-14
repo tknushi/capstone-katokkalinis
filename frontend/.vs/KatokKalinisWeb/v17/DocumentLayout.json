@@ -1,0 +1,151 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\Family\\KatokKalinisWeb\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Family\\KatokKalinisWeb\\src\\app\\login.tsx||{3B902123-F8A7-4915-9F01-361F908088D0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\app\\login.tsx||{3B902123-F8A7-4915-9F01-361F908088D0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Family\\KatokKalinisWeb\\src\\app\\contractor.tsx||{3B902123-F8A7-4915-9F01-361F908088D0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\app\\contractor.tsx||{3B902123-F8A7-4915-9F01-361F908088D0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Family\\KatokKalinisWeb\\src\\services\\api.ts||{3B902123-F8A7-4915-9F01-361F908088D0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\services\\api.ts||{3B902123-F8A7-4915-9F01-361F908088D0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Family\\KatokKalinisWeb\\src\\services\\auth.ts||{3B902123-F8A7-4915-9F01-361F908088D0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\services\\auth.ts||{3B902123-F8A7-4915-9F01-361F908088D0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Family\\KatokKalinisWeb\\src\\app\\attendance.tsx||{3B902123-F8A7-4915-9F01-361F908088D0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\app\\attendance.tsx||{3B902123-F8A7-4915-9F01-361F908088D0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Family\\KatokKalinisWeb\\src\\app\\dashboard.tsx||{3B902123-F8A7-4915-9F01-361F908088D0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\app\\dashboard.tsx||{3B902123-F8A7-4915-9F01-361F908088D0}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 3,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "contractor.tsx",
+              "DocumentMoniker": "C:\\Users\\Family\\KatokKalinisWeb\\src\\app\\contractor.tsx",
+              "RelativeDocumentMoniker": "src\\app\\contractor.tsx",
+              "ToolTip": "C:\\Users\\Family\\KatokKalinisWeb\\src\\app\\contractor.tsx",
+              "RelativeToolTip": "src\\app\\contractor.tsx",
+              "ViewState": "AgIAAOEFAAAAAAAAAAAgwBQGAAADAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2026-08-20T02:03:02.405Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "auth.ts",
+              "DocumentMoniker": "C:\\Users\\Family\\KatokKalinisWeb\\src\\services\\auth.ts",
+              "RelativeDocumentMoniker": "src\\services\\auth.ts",
+              "ToolTip": "C:\\Users\\Family\\KatokKalinisWeb\\src\\services\\auth.ts",
+              "RelativeToolTip": "src\\services\\auth.ts",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2026-08-20T01:59:32.071Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "api.ts",
+              "DocumentMoniker": "C:\\Users\\Family\\KatokKalinisWeb\\src\\services\\api.ts",
+              "RelativeDocumentMoniker": "src\\services\\api.ts",
+              "ToolTip": "C:\\Users\\Family\\KatokKalinisWeb\\src\\services\\api.ts",
+              "RelativeToolTip": "src\\services\\api.ts",
+              "ViewState": "AgIAABcBAAAAAAAAAAAgwEoBAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2026-08-20T01:53:26.711Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "login.tsx",
+              "DocumentMoniker": "C:\\Users\\Family\\KatokKalinisWeb\\src\\app\\login.tsx",
+              "RelativeDocumentMoniker": "src\\app\\login.tsx",
+              "ToolTip": "C:\\Users\\Family\\KatokKalinisWeb\\src\\app\\login.tsx",
+              "RelativeToolTip": "src\\app\\login.tsx",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2026-08-18T10:17:09.683Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "dashboard.tsx",
+              "DocumentMoniker": "C:\\Users\\Family\\KatokKalinisWeb\\src\\app\\dashboard.tsx",
+              "RelativeDocumentMoniker": "src\\app\\dashboard.tsx",
+              "ToolTip": "C:\\Users\\Family\\KatokKalinisWeb\\src\\app\\dashboard.tsx",
+              "RelativeToolTip": "src\\app\\dashboard.tsx",
+              "ViewState": "AgIAABgDAAAAAAAAAAAgwEEDAAADAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2026-08-18T10:16:30.541Z"
+            }
+          ]
+        },
+        {
+          "DockedWidth": 193,
+          "SelectedChildIndex": 0,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "attendance.tsx",
+              "DocumentMoniker": "C:\\Users\\Family\\KatokKalinisWeb\\src\\app\\attendance.tsx",
+              "RelativeDocumentMoniker": "src\\app\\attendance.tsx",
+              "ToolTip": "C:\\Users\\Family\\KatokKalinisWeb\\src\\app\\attendance.tsx",
+              "RelativeToolTip": "src\\app\\attendance.tsx",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2026-08-19T14:26:03.185Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:1:0:{d212f56b-c48a-434c-a121-1c5d80b59b9f}"
+            }
+          ]
+        },
+        {
+          "DockedWidth": 546,
+          "SelectedChildIndex": -1,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:4:0:{d212f56b-c48a-434c-a121-1c5d80b59b9f}"
+            }
+          ]
+        },
+        {
+          "DockedWidth": 529,
+          "SelectedChildIndex": -1,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:3:0:{d212f56b-c48a-434c-a121-1c5d80b59b9f}"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

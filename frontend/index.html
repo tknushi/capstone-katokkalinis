@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KatokKalinis</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div style="display:flex;flex-direction:column;justify-content:center;align-items:center;min-height:100vh;font-family:system-ui,-apple-system,sans-serif;color:#1e331b;background:#f8f9fa;">
+        <div style="text-align:center;padding:30px;background:#fff;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,0.08);max-width:360px;width:90%;">
+            <div style="font-size:28px;font-weight:800;margin-bottom:8px;">
+                <span style="color:#2e7d32;">Katok</span><span style="color:#4caf50;">Kalinis</span>
+            </div>
+            <p style="color:#666;font-size:14px;margin-bottom:20px;">Connecting to KatokKalinis Dashboard...</p>
+            <a href="login.html" class="btn" style="display:inline-block;text-decoration:none;padding:10px 24px;background:#2e7d32;color:#fff;border-radius:8px;font-weight:600;">Go to Login</a>
+        </div>
+    </div>
+    <script src="js/app.js"></script>
+    <script>
+        (function() {
+            const token = localStorage.getItem('auth_token');
+            const role = getUserRole();
+            if (token && token !== 'demo_session_token' && role) {
+                window.location.href = getHomePage(role);
+            } else {
+                window.location.href = 'login.html';
+            }
+        })();
+    </script>
+</body>
+</html>

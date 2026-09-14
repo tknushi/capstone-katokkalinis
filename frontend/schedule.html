@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schedule - KatokKalinis</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <div class="dashboard-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">KatokKalinis</div>
+            <div class="sidebar-role" id="sidebar-role"></div>
+            <nav class="sidebar-nav" id="sidebar-nav"></nav>
+            <div class="sidebar-footer">
+                
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="topbar">
+                <h2>Schedule</h2>
+                <div id="topbar-user"></div>
+            </header>
+            
+            <section class="content">
+                <div class="card calendar-card">
+                    <div class="card-header">
+                        <h3 id="calendar-title">Collection Calendar</h3>
+                        <button class="btn" onclick="openModal()" style="width: auto;">Create Schedule</button>
+                    </div>
+                    <div id="schedule-calendar" class="schedule-calendar">Loading calendar...</div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header"><h3>Recent Reports</h3></div>
+                    <div id="recent-admin-reports" class="review-list">Loading driver reports...</div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Add/Edit Modal -->
+    <div id="form-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">Add Schedule</h3>
+                <span class="close-btn" onclick="closeModal()">&times;</span>
+            </div>
+            <form id="data-form">
+                <input type="hidden" id="item-id">
+                <div class="form-group">
+                    <label>Barangay</label>
+                    <select id="barangay_id" class="form-control" required>
+                        <option value="">-- Select Barangay --</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Date of Duty</label>
+                    <input type="date" id="date" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>Pickup Time</label>
+                    <input type="time" id="pickup_time" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>Status</label>
+                    <select id="status" class="form-control" required>
+                        <option value="scheduled">Scheduled</option>
+                        <option value="in_progress">In Progress</option>
+                        <option value="completed">Completed</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Notes</label>
+                    <textarea id="notes" class="form-control"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="active" checked style="width: auto;"> Active
+                    </label>
+                </div>
+                <button type="submit" class="btn">Save</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+    <script>
+        const endpoint = '/schedules';
+        let barangays = [];
+        let schedules = [];
+
+        function renderCalendar() {
+            const calendar = document.getElementById('schedule-calendar');
+            const date = new Date();
+            const year = date.getFullYear();
+            const month = date.getMonth();
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            const scheduleDates = schedules.reduce((dates, item) => {
+                if (item.date) dates[item.date] = (dates[item.date] || []).concat(item);
+                return dates;
+            }, {});
+            document.getElementById('calendar-title').textContent = `Collection Calendar · ${date.toLocaleString('en', { month: 'long', year: 'numeric' })}`;
+            let html = dayNames.map(day => `<div class="calendar-day-name">${day}</div>`).join('');
+            for (let i = 0; i < firstDay; i++) html += '<div class="calendar-day calendar-day-empty"></div>';
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const entries = scheduleDates[dateKey] || [];
+                html += `<div class="calendar-day"><strong>${day}</strong>${entries.slice(0, 2).map(item => `<span>${item.barangay?.name || 'Collection'} · ${item.pickup_time?.substring(0, 5) || ''}</span>`).join('')}</div>`;
+            }
+            calendar.innerHTML = html;
+        }
+
+        async function loadRecentAdminReports() {
+            const container = document.getElementById('recent-admin-reports');
+            try {
+                const res = await apiRequest('/collection-routes');
+                const reports = (res.routes || []).slice(0, 5);
+                container.innerHTML = reports.length ? reports.map(report => `
+                    <article class="review-item report-item">
+                        <div class="driver-report-person"><span class="driver-avatar" aria-hidden="true">●</span><strong>${report.truck?.driver?.name || 'Driver not assigned'}</strong><small>${report.truck?.truck_number || 'Truck not assigned'}</small></div>
+                        <span>${report.barangay?.name || 'Barangay not recorded'}</span>
+                        <span>${report.collection_date ? report.collection_date.substring(0, 10) : '-'}</span>
+                        <span>${report.start_time?.substring(0, 5) || '-'} - ${report.end_time?.substring(0, 5) || '-'}</span>
+                        <span class="pill ${report.status === 'completed' ? 'pill-green' : report.status === 'in_progress' ? 'pill-blue' : 'pill-orange'}">${report.status === 'in_progress' ? 'In Progress' : report.status === 'completed' ? 'Completed' : 'Scheduled'}</span>
+                        <button class="btn edit-schedule-btn" type="button" onclick="openModal()">Edit Schedule</button>
+                    </article>`).join('') : '<p class="empty-state">No driver reports yet.</p>';
+            } catch (error) {
+                container.innerHTML = `<p class="empty-state">Unable to load reports: ${error.message}</p>`;
+            }
+        }
+
+        async function loadBarangays() {
+            try {
+                const res = await apiRequest('/barangays');
+                barangays = res.barangays || [];
+                const select = document.getElementById('barangay_id');
+                barangays.forEach(b => {
+                    const opt = document.createElement('option');
+                    opt.value = b.id;
+                    opt.textContent = b.name;
+                    select.appendChild(opt);
+                });
+            } catch (error) {
+                console.error('Failed to load barangays', error);
+            }
+        }
+
+        async function loadData() {
+            try {
+                const res = await apiRequest(endpoint);
+                const data = res.schedules || [];
+                schedules = data;
+                renderCalendar();
+            } catch (error) {
+                document.getElementById('schedule-calendar').innerHTML = `<p class="empty-state">Unable to load calendar: ${error.message}</p>`;
+            }
+        }
+
+        function openModal() {
+            document.getElementById('form-modal').classList.add('active');
+            document.getElementById('modal-title').textContent = 'Add Schedule';
+            document.getElementById('data-form').reset();
+            document.getElementById('item-id').value = '';
+        }
+
+        function closeModal() {
+            document.getElementById('form-modal').classList.remove('active');
+        }
+
+        function editItem(item) {
+            openModal();
+            document.getElementById('modal-title').textContent = 'Edit Schedule';
+            document.getElementById('item-id').value = item.id;
+            document.getElementById('barangay_id').value = item.barangay_id || '';
+            document.getElementById('date').value = item.date || '';
+            document.getElementById('pickup_time').value = item.pickup_time ? item.pickup_time.substring(0, 5) : '';
+            document.getElementById('status').value = item.status || 'scheduled';
+            document.getElementById('notes').value = item.notes || '';
+            document.getElementById('active').checked = !!item.active;
+        }
+
+        async function deleteItem(id) {
+            if(!confirm('Are you sure you want to delete this schedule?')) return;
+            try {
+                await apiRequest(`${endpoint}/${id}`, 'DELETE');
+                loadData();
+            } catch(e) {
+                alert('Error deleting: ' + e.message);
+            }
+        }
+
+        document.getElementById('data-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('item-id').value;
+            const payload = {
+                barangay_id: document.getElementById('barangay_id').value,
+                date: document.getElementById('date').value,
+                pickup_time: document.getElementById('pickup_time').value,
+                notes: document.getElementById('notes').value,
+                active: document.getElementById('active').checked,
+                status: document.getElementById('status').value,
+            };
+
+            try {
+                if (id) {
+                    await apiRequest(`${endpoint}/${id}`, 'PUT', payload);
+                } else {
+                    await apiRequest(endpoint, 'POST', payload);
+                }
+                closeModal();
+                loadData();
+            } catch(e) {
+                alert('Error saving: ' + e.message);
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadBarangays();
+            loadData();
+            loadRecentAdminReports();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,200 @@
+PS C:\Users\Family\KatokKalinisAppDriver> Get-Content .\services\api.ts
+const API_URL = "http://10.0.2.2:8000/api";
+
+/*
+|--------------------------------------------------------------------------
+| API REQUEST
+|--------------------------------------------------------------------------
+*/
+
+export async function apiRequest(
+  endpoint: string,
+  options: RequestInit = {}
+) {
+  try {
+    console.log("API REQUEST:", `${API_URL}${endpoint}`);
+
+    const response = await fetch(`${API_URL}${endpoint}`, {
+      ...options,
+
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+
+        ...(options.headers || {}),
+      },
+
+    const text = await response.text();
+
+    console.log("API STATUS:", response.status);
+    console.log("API RESPONSE:", text);
+
+    let data: any;
+
+    try {
+      data = JSON.parse(text);
+    } catch {
+      throw new Error(
+        "Laravel returned an invalid response."
+      );
+    }
+
+    return data;
+  } catch (error) {
+    console.error("API REQUEST ERROR:", error);
+    throw error;
+  }
+}
+PS C:\Users\Family\KatokKalinisAppDriver> Get-Content .\services\auth.ts
+import { apiRequest } from "./api";
+
+export type UserRole = "driver" | "inspector";
+
+export interface User {
+  id: number;
+  name: string;
+  email: string;
+  role: UserRole;
+}
+
+export interface AuthResponse {
+  success: boolean;
+  message: string;
+  token?: string;
+  user?: User;
+}
+
+/*
+|--------------------------------------------------------------------------
+| LOGIN
+|--------------------------------------------------------------------------
+*/
+
+export async function loginUser(
+  email: string,
+  password: string
+): Promise<AuthResponse> {
+  try {
+    const data = await apiRequest("/login", {
+      method: "POST",
+      body: JSON.stringify({
+        email,
+        password,
+      }),
+    });
+
+    if (!data.success) {
+      return {
+        success: false,
+        message: data.message || "Login failed.",
+      };
+    }
+
+    const roles = data.user?.roles || [];
+
+    const roleName =
+      roles.length > 0
+        ? roles[0].name
+        : null;
+
+    if (
+      roleName !== "driver" &&
+      roleName !== "inspector"
+    ) {
+      return {
+        success: false,
+        message:
+          "This account does not have a valid Driver/Inspector role.",
+      };
+    }
+
+    return {
+      success: true,
+      message:
+        data.message || "Login successful.",
+
+      token: data.token,
+
+      user: {
+        id: data.user.id,
+        name: data.user.name,
+        email: data.user.email,
+        role: roleName,
+      },
+    };
+  } catch (error) {
+    console.error("LOGIN ERROR:", error);
+
+    return {
+      success: false,
+      message:
+        "Cannot connect to the Laravel server.",
+    };
+  }
+}
+
+PS C:\xampp2\htdocs\KatokKalinis\backend> Get-Content .\routes\api.php
+<?php
+
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\EmployeeController;
+use App\Http\Controllers\Api\ContractorController;
+use App\Http\Controllers\Api\ContractController;
+
+// Authentication
+Route::post('/login', [AuthController::class, 'login']);
+Route::post('/register', [AuthController::class, 'register']);
+Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+
+// Employees
+Route::get('/employees', [EmployeeController::class, 'index']);
+Route::post('/employees', [EmployeeController::class, 'store']);
+Route::get('/employees/{id}', [EmployeeController::class, 'show']);
+Route::put('/employees/{id}', [EmployeeController::class, 'update']);
+Route::delete('/employees/{id}', [EmployeeController::class, 'destroy']);
+
+// Contractors
+Route::get('/contractors', [ContractorController::class, 'index']);
+Route::post('/contractors', [ContractorController::class, 'store']);
+Route::get('/contractors/{id}', [ContractorController::class, 'show']);
+Route::put('/contractors/{id}', [ContractorController::class, 'update']);
+Route::delete('/contractors/{id}', [ContractorController::class, 'destroy']);
+
+// Contracts
+Route::get('/contracts', [ContractController::class, 'index']);
+Route::post('/contracts', [ContractController::class, 'store']);
+Route::get('/contracts/{id}', [ContractController::class, 'show']);
+Route::put('/contracts/{id}', [ContractController::class, 'update']);
+Route::delete('/contracts/{id}', [ContractController::class, 'destroy']);
+PS C:\xampp2\htdocs\KatokKalinis\backend>
+
+PS C:\xampp2\htdocs\KatokKalinis\backend> php artisan route:list
+
+  GET|HEAD  / ....................................................................................................................................................................................... routes/web.php:5
+  GET|HEAD  api/contractors ........................................................................................................................................................... Api\ContractorController@index
+  POST      api/contractors ........................................................................................................................................................... Api\ContractorController@store
+  GET|HEAD  api/contractors/{id} ....................................................................................................................................................... Api\ContractorController@show
+  PUT       api/contractors/{id} ..................................................................................................................................................... Api\ContractorController@update
+  DELETE    api/contractors/{id} .................................................................................................................................................... Api\ContractorController@destroy
+  GET|HEAD  api/contracts ............................................................................................................................................................... Api\ContractController@index
+  POST      api/contracts ............................................................................................................................................................... Api\ContractController@store
+  GET|HEAD  api/contracts/{id} ........................................................................................................................................................... Api\ContractController@show
+  PUT       api/contracts/{id} ......................................................................................................................................................... Api\ContractController@update
+  DELETE    api/contracts/{id} ........................................................................................................................................................ Api\ContractController@destroy
+  GET|HEAD  api/employees ............................................................................................................................................................... Api\EmployeeController@index
+  POST      api/employees ............................................................................................................................................................... Api\EmployeeController@store
+  GET|HEAD  api/employees/{id} ........................................................................................................................................................... Api\EmployeeController@show
+  PUT       api/employees/{id} ......................................................................................................................................................... Api\EmployeeController@update
+  DELETE    api/employees/{id} ........................................................................................................................................................ Api\EmployeeController@destroy
+  POST      api/forgot-password .................................................................................................................................................... Api\AuthController@forgotPassword
+  POST      api/login ....................................................................................................................................................................... Api\AuthController@login
+  POST      api/register ................................................................................................................................................................. Api\AuthController@register
+  GET|HEAD  sanctum/csrf-cookie .................................................................................................................... sanctum.csrf-cookie › Laravel\Sanctum › CsrfCookieController@show
+  GET|HEAD  storage/{path} ....................................................................................... storage.local › vendor/laravel/framework/src/Illuminate/Filesystem/FilesystemServiceProvider.php:98
+  PUT       storage/{path} ............................................................................... storage.local.upload › vendor/laravel/framework/src/Illuminate/Filesystem/FilesystemServiceProvider.php:106
+  GET|HEAD  up ........................................................................................................... vendor/laravel/framework/src/Illuminate/Foundation/Configuration/ApplicationBuilder.php:219
+
+                                                                                                                                                                                                   Showing [23] routes
+
+PS C:\xampp2\htdocs\KatokKalinis\backend>

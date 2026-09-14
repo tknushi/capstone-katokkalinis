@@ -1,0 +1,332 @@
+PS C:\Users\Family\KatokKalinisAppDriver> Get-Content .\services\api.ts
+Get-Content : Cannot find path 'C:\Users\Family\KatokKalinisAppDriver\services\api.ts' because it does not exist.
+At line:1 char:1
++ Get-Content .\services\api.ts
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (C:\Users\Family...services\api.ts:String) [Get-Content], ItemNotFoundException
+    + FullyQualifiedErrorId : PathNotFound,Microsoft.PowerShell.Commands.GetContentCommand
+
+PS C:\Users\Family\KatokKalinisAppDriver> Get-Content .\services\auth.ts
+export interface LoginUser {
+  id: number;
+  email: string;
+  role: string;
+  name?: string;
+}
+
+export interface LoginResult {
+  success: boolean;
+  message: string;
+  user?: LoginUser;
+}
+
+export async function loginUser(
+  email: string,
+  password: string
+): Promise<LoginResult> {
+
+  /*
+   * TEMPORARY LOGIN
+   *
+   * We will replace this section with
+   * your PHP/MySQL API.
+   */
+
+  if (
+    email === "driver@test.com" &&
+    password === "123456"
+  ) {
+    return {
+      success: true,
+      message: "Login successful",
+      user: {
+        id: 1,
+        email: email,
+        role: "driver",
+        name: "John Doe",
+      },
+    };
+  }
+
+  if (
+    email === "inspector@test.com" &&
+    password === "123456"
+  ) {
+    return {
+      success: true,
+      message: "Login successful",
+      user: {
+        id: 2,
+        email: email,
+        role: "inspector",
+        name: "John Doe",
+      },
+    };
+  }
+
+  return {
+    success: false,
+    message: "Invalid User ID or password.",
+  };
+}
+PS C:\Users\Family\KatokKalinisAppDriver>
+
+PS C:\Users\Family\KatokKalinisApp> Get-Content .\services\api.ts
+const API_URL = "http://10.0.2.2:8000/api";
+
+/*
+|--------------------------------------------------------------------------
+| API REQUEST
+|--------------------------------------------------------------------------
+*/
+
+export async function apiRequest(
+  endpoint: string,
+  options: RequestInit = {}
+) {
+  try {
+    const response = await fetch(
+      `${API_URL}${endpoint}`,
+      {
+        ...options,
+
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+
+          ...(options.headers || {}),
+        },
+      }
+    );
+
+    const text = await response.text();
+
+    let data: any;
+
+    try {
+      data = JSON.parse(text);
+    } catch {
+      console.log(
+        "Laravel returned:",
+        text
+      );
+
+      throw new Error(
+        "Laravel returned an invalid response."
+      );
+    }
+
+    return data;
+
+  } catch (error) {
+      "API REQUEST ERROR:",
+      error
+    );
+
+    throw error;
+  }
+}
+PS C:\Users\Family\KatokKalinisApp> Get-Content .\services\auth.ts
+import { apiRequest } from "./api";
+
+export type UserRole = "resident" | "vendor";
+
+export interface User {
+  id: number;
+  name: string;
+  email: string;
+  role: UserRole;
+}
+
+export interface AuthResponse {
+  success: boolean;
+  message: string;
+  token?: string;
+  user?: User;
+}
+
+/*
+|--------------------------------------------------------------------------
+| LOGIN
+|--------------------------------------------------------------------------
+*/
+
+export async function loginUser(
+  email: string,
+  password: string
+): Promise<AuthResponse> {
+  const data = await apiRequest("/login", {
+    method: "POST",
+    body: JSON.stringify({
+      email,
+      password,
+    }),
+  });
+
+  if (!data.success) {
+    return {
+      success: false,
+      message: data.message || "Login failed.",
+    };
+  }
+
+  const roles = data.user?.roles || [];
+
+  const roleName = roles.length > 0
+    ? roles[0].name
+    : null;
+
+  if (roleName !== "resident" && roleName !== "vendor") {
+    return {
+      success: false,
+      message: "This account does not have a valid mobile app role.",
+    };
+  }
+
+  return {
+    success: true,
+    message: data.message || "Login successful.",
+    token: data.token,
+    user: {
+      id: data.user.id,
+      name: data.user.name,
+      email: data.user.email,
+      role: roleName,
+    },
+  };
+}
+
+/*
+|--------------------------------------------------------------------------
+| REGISTER
+|--------------------------------------------------------------------------
+*/
+
+export async function registerUser(
+  name: string,
+  email: string,
+  password: string,
+  passwordConfirmation: string,
+  role: UserRole
+): Promise<AuthResponse> {
+  const data = await apiRequest("/register", {
+    method: "POST",
+    body: JSON.stringify({
+      name,
+      email,
+      password,
+      password_confirmation: passwordConfirmation,
+      role,
+    }),
+  });
+
+  if (!data.success) {
+    return {
+      success: false,
+      message: data.message || "Registration failed.",
+    };
+  }
+
+  const roles = data.user?.roles || [];
+
+  const roleName = roles.length > 0
+    ? roles[0].name
+    : role;
+
+  return {
+    success: true,
+    message: data.message || "Registration successful.",
+    token: data.token,
+    user: {
+      id: data.user.id,
+      name: data.user.name,
+      email: data.user.email,
+      role: roleName,
+    },
+  };
+}
+
+export async function forgotPassword(
+  email: string
+): Promise<{
+  success: boolean;
+  message: string;
+}> {
+  try {
+    const response = await fetch(
+      "http://10.0.2.2:8000/api/forgot-password",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          email,
+        }),
+      }
+    );
+
+    const data = await response.json();
+
+    return {
+      success: data.success === true,
+      message:
+        data.message ||
+        "Unable to process password reset.",
+    };
+  } catch (error) {
+    console.error(
+      "FORGOT PASSWORD ERROR:",
+      error
+    );
+
+    return {
+      success: false,
+      message:
+        "Cannot connect to the Laravel server.",
+    };
+  }
+}
+PS C:\Users\Family\KatokKalinisApp>
+
+PS C:\Users\Family\KatokKalinisWeb> Get-Content .\services\api.ts
+Get-Content : Cannot find path 'C:\Users\Family\KatokKalinisWeb\services\api.ts' because it does not exist.
+At line:1 char:1
++ Get-Content .\services\api.ts
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (C:\Users\Family...services\api.ts:String) [Get-Content], ItemNotFoundException
+    + FullyQualifiedErrorId : PathNotFound,Microsoft.PowerShell.Commands.GetContentCommand
+
+PS C:\Users\Family\KatokKalinisWeb> Get-Content .\services\auth.ts
+Get-Content : Cannot find path 'C:\Users\Family\KatokKalinisWeb\services\auth.ts' because it does not exist.
+At line:1 char:1
++ Get-Content .\services\auth.ts
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (C:\Users\Family...ervices\auth.ts:String) [Get-Content], ItemNotFoundException
+    + FullyQualifiedErrorId : PathNotFound,Microsoft.PowerShell.Commands.GetContentCommand
+
+PS C:\Users\Family\KatokKalinisWeb> Get-Content .\services\auth.ts
+Get-Content : Cannot find path 'C:\Users\Family\KatokKalinisWeb\services\auth.ts' because it does not exist.
+At line:1 char:1
++ Get-Content .\services\auth.ts
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (C:\Users\Family...ervices\auth.ts:String) [Get-Content], ItemNotFoundException
+    + FullyQualifiedErrorId : PathNotFound,Microsoft.PowerShell.Commands.GetContentCommand
+
+PS C:\xampp2\htdocs\KatokKalinis> Get-Content .\services\api.ts
+Get-Content : Cannot find path 'C:\xampp2\htdocs\KatokKalinis\services\api.ts' because it does not exist.
+At line:1 char:1
++ Get-Content .\services\api.ts
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (C:\xampp2\htdoc...services\api.ts:String) [Get-Content], ItemNotFoundException
+    + FullyQualifiedErrorId : PathNotFound,Microsoft.PowerShell.Commands.GetContentCommand
+
+PS C:\xampp2\htdocs\KatokKalinis> Get-Content .\services\auth.ts
+Get-Content : Cannot find path 'C:\xampp2\htdocs\KatokKalinis\services\auth.ts' because it does not exist.
+At line:1 char:1
++ Get-Content .\services\auth.ts
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (C:\xampp2\htdoc...ervices\auth.ts:String) [Get-Content], ItemNotFoundException
+    + FullyQualifiedErrorId : PathNotFound,Microsoft.PowerShell.Commands.GetContentCommand
+

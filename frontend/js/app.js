@@ -205,8 +205,10 @@ function loadSidebar() {
         navContainer.innerHTML = links;
         
         // Highlight active link
-        const currentPath = window.location.pathname.split('/').pop() || 'index.html';
-        const activeLink = document.querySelector(`.nav-link[href="${currentPath}"]`);
+        const pageName = window.location.pathname.split('/').pop() || 'index.html';
+        const pageWithExt = pageName.endsWith('.html') ? pageName : (pageName ? `${pageName}.html` : 'index.html');
+        const pageWithoutExt = pageName.replace(/\.html$/, '');
+        const activeLink = document.querySelector(`.nav-link[href="${pageWithExt}"], .nav-link[href="${pageWithoutExt}"], .nav-link[href="${pageName}"]`);
         if(activeLink) activeLink.classList.add('active');
     }
 

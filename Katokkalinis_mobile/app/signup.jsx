@@ -128,6 +128,7 @@ export default function Signup() {
       await AsyncStorage.setItem("userContact", contactNumber.trim());
       await AsyncStorage.setItem("userBarangay", barangay.trim());
       await AsyncStorage.setItem("userName", fullName.trim());
+      await AsyncStorage.setItem("userReportsCount", "0");
 
       Alert.alert(
         "Registration Successful",

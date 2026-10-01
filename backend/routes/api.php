@@ -23,6 +23,7 @@ use App\Http\Controllers\Api\ClenroPileupReportController;
 use App\Http\Controllers\Api\FeedbackController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\ViolationController;
+use App\Http\Controllers\Api\CollectionLogController;
 
 use App\Http\Middleware\SuperAdminMiddleware;
 
@@ -276,6 +277,30 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/collection-routes/{id}', [CollectionRouteController::class, 'update']);
     Route::delete('/collection-routes/{id}', [CollectionRouteController::class, 'destroy']);
 });
+
+
+/*
+|--------------------------------------------------------------------------
+| DRIVER ACTUAL COLLECTION LOGS
+| (Insert-only, Typo-edit before finalization, Finalized locked, Idempotency)
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/driver/collection-logs', [CollectionLogController::class, 'index']);
+    Route::post('/driver/collection-logs', [CollectionLogController::class, 'store']);
+    Route::get('/driver/collection-logs/{id}', [CollectionLogController::class, 'show']);
+    Route::put('/driver/collection-logs/{id}', [CollectionLogController::class, 'update']);
+    Route::post('/driver/collection-logs/{id}/finalize', [CollectionLogController::class, 'finalize']);
+
+    Route::get('/barangays/1-to-40', [CollectionLogController::class, 'barangays1to40']);
+    Route::get('/admin/collection-logs', [CollectionLogController::class, 'index']);
+});
+
+// Demo/preview route
+Route::get('/public/barangays/1-to-40', [CollectionLogController::class, 'barangays1to40']);
+Route::get('/public/driver/collection-logs', [CollectionLogController::class, 'index']);
+
 
 
 /*

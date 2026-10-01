@@ -91,6 +91,14 @@ export default function Post() {
       const response = await submitReport(data);
 
       if (response.success) {
+        try {
+          const currentCountStr = await AsyncStorage.getItem("userReportsCount");
+          const nextCount = parseInt(currentCountStr || "0", 10) + 1;
+          await AsyncStorage.setItem("userReportsCount", String(nextCount));
+        } catch (e) {
+          console.warn("Could not update local report count:", e);
+        }
+
         Alert.alert(
           "Report Submitted",
           "Your report has been logged and sent to municipal sanitation dispatchers.",

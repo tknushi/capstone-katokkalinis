@@ -25,6 +25,17 @@ class ReportController extends Controller
 
         /*
         |--------------------------------------------------------------------------
+        | FILTER BY USER (My Reports)
+        |--------------------------------------------------------------------------
+        */
+        if ($request->boolean('my_reports') && $request->user()) {
+            $query->where('user_id', $request->user()->id);
+        } elseif ($request->filled('user_id')) {
+            $query->where('user_id', $request->user_id);
+        }
+
+        /*
+        |--------------------------------------------------------------------------
         | FILTER BY STATUS
         |--------------------------------------------------------------------------
         */

@@ -1,6 +1,6 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   ScrollView,
   StyleSheet,
@@ -9,17 +9,36 @@ import {
   View,
 } from "react-native";
 import KatokLogo from "../../components/KatokLogo";
-import PhilippinesMapView from "../../components/PhilippinesMapView";
+import LeafletCdoMapView from "../../components/LeafletCdoMapView";
 import TopNotificationBanner from "../../components/TopNotificationBanner";
+import { BarangayItem, getBarangays1to40 } from "../../services/driver";
 
 export default function DriverMap() {
   const router = useRouter();
+  const [barangays, setBarangays] = useState<BarangayItem[]>([]);
   const [banner, setBanner] = useState({
     visible: true,
     title: "Route Active • Truck KAL-104",
     message: "Live telemetry connected to Cagayan de Oro City Sanitation Dispatch.",
     type: "truck" as "truck" | "info" | "success",
   });
+
+  useEffect(() => {
+    loadBarangays();
+  }, []);
+
+  const loadBarangays = async () => {
+    try {
+      const data = await getBarangays1to40();
+      setBarangays(data);
+    } catch (e) {
+      console.warn("Failed to load barangays for map", e);
+    }
+  };
+
+  const handleSelectBarangay = (name: string) => {
+    router.push("/driver/dashboard" as any);
+  };
 
   return (
     <View style={styles.container}>
@@ -57,24 +76,103 @@ export default function DriverMap() {
       >
         {/* 2. TITLE SECTION */}
         <View style={styles.titleSection}>
-          <Text style={styles.pageTitle}>Route Map</Text>
+          <Text style={styles.pageTitle}>CDO Route Map</Text>
           <Text style={styles.pageSubtitle}>
-            Compactor navigation & real-time stops across Cagayan de Oro
+            Leaflet OpenStreetMap • Mindanao (Cagayan de Oro City) • Barangays 1 to 40
           </Text>
         </View>
 
-        {/* 3. REAL PHILIPPINES / CDO MAP */}
-        <PhilippinesMapView
-          truckName="Compactor Truck #04"
-          truckPlate="KAL-104"
-          activeBarangay="Barangay 2 Main Ave, CDO"
-          nextStopName="Barangay 3 Residential Zone"
-          height={380}
-          showControls={true}
+        {/* 3. LEAFLET OPENSTREETMAP */}
+        <LeafletCdoMapView
+          height={400}
+          barangays={barangays}
+          onSelectBarangay={handleSelectBarangay}
+          activeTruckPlate="KAL-104"
         />
+
+        {/* 4. ROUTE DIRECTORY (BARANGAY 1 TO 40) */}
+        <Text style={[styles.sectionTitle, { marginTop: 16 }]}>Garbage Truck Fleet Routes</Text>
+
+        <View style={styles.routeCardList}>
+          {/* Route 1 */}
+          <View style={[styles.routeCard, { borderLeftColor: "#2E7D32" }]}>
+            <View style={styles.routeCardHeader}>
+              <View style={[styles.routeNumBadge, { backgroundColor: "#2E7D32" }]}>
+                <Text style={styles.routeNumText}>R1</Text>
+              </View>
+              <View style={{ flex: 1, marginLeft: 8 }}>
+                <Text style={styles.routeCardTitle}>North Poblacion</Text>
+                <Text style={styles.routeCardSub}>Barangays 1 to 10 • Truck KAL-101</Text>
+              </View>
+              <View style={styles.activeTag}>
+                <Text style={styles.activeTagText}>Active</Text>
+              </View>
+            </View>
+            <Text style={styles.routeCoverage}>
+              Coverage: City Health, Fernandez, Burgos, Port Access, Gaabucayan.
+            </Text>
+          </View>
+
+          {/* Route 2 */}
+          <View style={[styles.routeCard, { borderLeftColor: "#1976D2" }]}>
+            <View style={styles.routeCardHeader}>
+              <View style={[styles.routeNumBadge, { backgroundColor: "#1976D2" }]}>
+                <Text style={styles.routeNumText}>R2</Text>
+              </View>
+              <View style={{ flex: 1, marginLeft: 8 }}>
+                <Text style={styles.routeCardTitle}>Central Poblacion</Text>
+                <Text style={styles.routeCardSub}>Barangays 11 to 20 • Truck KAL-102</Text>
+              </View>
+              <View style={styles.activeTag}>
+                <Text style={styles.activeTagText}>Active</Text>
+              </View>
+            </View>
+            <Text style={styles.routeCoverage}>
+              Coverage: Tirso Neri Heritage, JR Borja, Cogon Market Periphery, Limketkai.
+            </Text>
+          </View>
+
+          {/* Route 3 */}
+          <View style={[styles.routeCard, { borderLeftColor: "#F57C00" }]}>
+            <View style={styles.routeCardHeader}>
+              <View style={[styles.routeNumBadge, { backgroundColor: "#F57C00" }]}>
+                <Text style={styles.routeNumText}>R3</Text>
+              </View>
+              <View style={{ flex: 1, marginLeft: 8 }}>
+                <Text style={styles.routeCardTitle}>East Poblacion</Text>
+                <Text style={styles.routeCardSub}>Barangays 21 to 30 • Truck KAL-103</Text>
+              </View>
+              <View style={styles.activeTag}>
+                <Text style={styles.activeTagText}>Active</Text>
+              </View>
+            </View>
+            <Text style={styles.routeCoverage}>
+              Coverage: Agora Terminal, Provincial Capitol, Velez Central, Daumar St.
+            </Text>
+          </View>
+
+          {/* Route 4 */}
+          <View style={[styles.routeCard, { borderLeftColor: "#7B1FA2" }]}>
+            <View style={styles.routeCardHeader}>
+              <View style={[styles.routeNumBadge, { backgroundColor: "#7B1FA2" }]}>
+                <Text style={styles.routeNumText}>R4</Text>
+              </View>
+              <View style={{ flex: 1, marginLeft: 8 }}>
+                <Text style={styles.routeCardTitle}>South Poblacion</Text>
+                <Text style={styles.routeCardSub}>Barangays 31 to 40 • Truck KAL-104 (Your Truck)</Text>
+              </View>
+              <View style={[styles.activeTag, { backgroundColor: "#E8F8EE" }]}>
+                <Text style={[styles.activeTagText, { color: "#2E7D32" }]}>Your Run</Text>
+              </View>
+            </View>
+            <Text style={styles.routeCoverage}>
+              Coverage: Cogon Market Central Bay, City Hall & Gaston Park, Carmen Bridge Approach, Riverbank.
+            </Text>
+          </View>
+        </View>
       </ScrollView>
 
-      {/* 4. BOTTOM NAVIGATION (Requirement 13: Exactly 3 Tabs) */}
+      {/* 4. BOTTOM NAVIGATION */}
       <View style={styles.bottomNav}>
         <TouchableOpacity
           style={styles.navItem}
@@ -88,7 +186,7 @@ export default function DriverMap() {
         <TouchableOpacity
           style={styles.navItem}
           activeOpacity={0.8}
-          onPress={() => router.push("/schedule")}
+          onPress={() => router.push("/driver/dashboard" as any)}
         >
           <MaterialCommunityIcons name="truck-fast" size={24} color="#7A8D78" />
           <Text style={styles.navItemText}>Collection</Text>
@@ -153,23 +251,83 @@ const styles = StyleSheet.create({
     color: "#2E7D32",
   },
   scrollContent: {
-    paddingHorizontal: 18,
+    paddingHorizontal: 16,
     paddingTop: 14,
     paddingBottom: 95,
   },
   titleSection: {
-    marginBottom: 12,
+    marginBottom: 10,
   },
   pageTitle: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: "900",
     color: "#1E331B",
   },
   pageSubtitle: {
-    fontSize: 12,
+    fontSize: 11,
     color: "#688264",
     marginTop: 2,
     fontWeight: "500",
+  },
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: "800",
+    color: "#1E331B",
+    marginBottom: 8,
+  },
+  routeCardList: {
+    gap: 10,
+  },
+  routeCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 12,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: "#E5ECE4",
+    borderLeftWidth: 4,
+  },
+  routeCardHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  routeNumBadge: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  routeNumText: {
+    fontSize: 10,
+    fontWeight: "900",
+    color: "#FFFFFF",
+  },
+  routeCardTitle: {
+    fontSize: 13,
+    fontWeight: "800",
+    color: "#1E331B",
+  },
+  routeCardSub: {
+    fontSize: 10,
+    color: "#688264",
+    fontWeight: "600",
+  },
+  activeTag: {
+    backgroundColor: "#F0F4EF",
+    paddingVertical: 3,
+    paddingHorizontal: 8,
+    borderRadius: 6,
+  },
+  activeTagText: {
+    fontSize: 10,
+    fontWeight: "700",
+    color: "#4A6148",
+  },
+  routeCoverage: {
+    fontSize: 10,
+    color: "#556655",
+    marginTop: 6,
+    lineHeight: 14,
   },
   bottomNav: {
     position: "absolute",

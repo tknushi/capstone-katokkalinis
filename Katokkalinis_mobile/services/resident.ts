@@ -27,7 +27,7 @@ export async function completeSchedule(scheduleId: number) {
   return apiRequest(`/schedules/${scheduleId}/complete`, { method: "POST" });
 }
 
-export async function fetchReports(params?: { status?: string; search?: string }) {
+export async function fetchReports(params?: { status?: string; search?: string; myReports?: boolean }) {
   let url = "/reports";
   const queryParts: string[] = [];
   if (params?.status && params.status !== "all") {
@@ -36,10 +36,32 @@ export async function fetchReports(params?: { status?: string; search?: string }
   if (params?.search) {
     queryParts.push(`search=${encodeURIComponent(params.search)}`);
   }
+  if (params?.myReports) {
+    queryParts.push(`my_reports=1`);
+  }
   if (queryParts.length > 0) {
     url += `?${queryParts.join("&")}`;
   }
   return apiRequest(url, { method: "GET" });
+}
+
+export async function fetchMyReportsCount(userId?: number | string): Promise<number> {
+  try {
+    const res = await apiRequest("/reports?my_reports=1", { method: "GET" });
+    if (res && res.success && Array.isArray(res.reports)) {
+      return res.reports.length;
+    }
+    if (res && Array.isArray(res.reports)) {
+      if (userId) {
+        return res.reports.filter((r: any) => String(r.user_id) === String(userId)).length;
+      }
+      return res.reports.length;
+    }
+    return 0;
+  } catch (e) {
+    console.warn("Could not fetch my reports count from API:", e);
+    return 0;
+  }
 }
 
 export async function submitReport(data: {

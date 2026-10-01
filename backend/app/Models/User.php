@@ -99,6 +99,11 @@ class User extends Authenticatable
     |--------------------------------------------------------------------------
     */
 
+    public function collectionLogs(): HasMany
+    {
+        return $this->hasMany(CollectionLog::class, 'driver_id');
+    }
+
     public function roles()
     {
         return $this->belongsToMany(

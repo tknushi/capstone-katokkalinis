@@ -1,8 +1,8 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { useFocusEffect, useRouter } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -19,6 +19,7 @@ import {
 } from "react-native";
 import { apiRequest } from "../services/api";
 import { logoutUser } from "../services/auth";
+import { fetchMyReportsCount } from "../services/resident";
 import { sanitizePhoneNumber, validatePhilippinePhone } from "../utils/phoneValidation";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
@@ -52,6 +53,9 @@ export default function Profile() {
   const [activityModalVisible, setActivityModalVisible] = useState(false);
   const [complianceModalVisible, setComplianceModalVisible] = useState(false);
 
+  // Reports count (starts at 0 for new accounts, updates when they post)
+  const [reportsCount, setReportsCount] = useState(0);
+
   // Edit form state
   const [editName, setEditName] = useState(name);
   const [editContact, setEditContact] = useState(contactNumber);
@@ -69,10 +73,6 @@ export default function Profile() {
   const [pushNotifs, setPushNotifs] = useState(true);
   const [inspectionAlerts, setInspectionAlerts] = useState(true);
 
-  useEffect(() => {
-    loadProfile();
-  }, []);
-
   const loadProfile = async () => {
     try {
       const storedRole = await AsyncStorage.getItem("userRole");
@@ -87,6 +87,23 @@ export default function Profile() {
       }
       if (storedEmail) setEmail(storedEmail);
       if (storedId) setVendorId(`VEN-${storedId}`);
+
+      // Load user report count (defaults to 0 for newly created accounts)
+      const cachedCountStr = await AsyncStorage.getItem("userReportsCount");
+      if (cachedCountStr !== null) {
+        setReportsCount(parseInt(cachedCountStr, 10) || 0);
+      } else {
+        setReportsCount(0);
+      }
+
+      // Sync live count from API
+      try {
+        const liveCount = await fetchMyReportsCount(storedId);
+        setReportsCount(liveCount);
+        await AsyncStorage.setItem("userReportsCount", String(liveCount));
+      } catch (err) {
+        console.warn("Could not sync live report count:", err);
+      }
 
       try {
         const res = await apiRequest("/me", { method: "GET" });
@@ -103,6 +120,17 @@ export default function Profile() {
       console.error(e);
     }
   };
+
+  useEffect(() => {
+    loadProfile();
+  }, []);
+
+  // Automatically refresh report count when returning to this screen
+  useFocusEffect(
+    useCallback(() => {
+      loadProfile();
+    }, [])
+  );
 
   const handleSaveProfile = async () => {
     if (!editName.trim()) {
@@ -339,13 +367,13 @@ export default function Profile() {
           ) : (
             <View style={styles.statsContainer}>
               <View style={styles.statItem}>
-                <Text style={styles.statNumber}>18</Text>
-                <Text style={styles.statLabel}>Collections</Text>
+                <Text style={[styles.statNumber, { color: "#2E7D32" }]}>{reportsCount}</Text>
+                <Text style={styles.statLabel}>Reports Submitted</Text>
               </View>
               <View style={styles.statDivider} />
               <View style={styles.statItem}>
-                <Text style={[styles.statNumber, { color: "#4CAF50" }]}>5</Text>
-                <Text style={styles.statLabel}>Reports</Text>
+                <Text style={[styles.statNumber, { color: "#1E331B" }]}>Active</Text>
+                <Text style={styles.statLabel}>Account Status</Text>
               </View>
             </View>
           )}
@@ -811,50 +839,46 @@ export default function Profile() {
       <View style={styles.bottomNav}>
         <TouchableOpacity
           style={styles.navItem}
+          activeOpacity={0.8}
           onPress={() => router.replace(role === "vendor" ? "/vendor" : "/dashboard")}
         >
-          <Ionicons
-            name="home-outline"
-            size={22}
-            color="rgba(255, 255, 255, 0.85)"
-          />
-          <Text style={styles.navText}>Home</Text>
+          <MaterialCommunityIcons name="home-outline" size={24} color="#7A8D78" />
+          <Text style={styles.navItemText}>Home</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.navItem}
+          activeOpacity={0.8}
           onPress={() => router.push(role === "vendor" ? "/vendor" : "/report")}
         >
-          <Ionicons
-            name={role === "vendor" ? "qr-code-outline" : "document-text-outline"}
-            size={22}
-            color="rgba(255, 255, 255, 0.85)"
+          <MaterialCommunityIcons
+            name={role === "vendor" ? "qrcode-scan" : "file-document-outline"}
+            size={24}
+            color="#7A8D78"
           />
-          <Text style={styles.navText}>{role === "vendor" ? "QR" : "Report"}</Text>
+          <Text style={styles.navItemText}>{role === "vendor" ? "QR" : "Reports"}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.navItem}
+          activeOpacity={0.8}
           onPress={() => router.push(role === "vendor" ? "/profile" : "/schedule")}
         >
-          <Ionicons
-            name={role === "vendor" ? "shield-checkmark-outline" : "calendar-outline"}
-            size={22}
-            color="rgba(255, 255, 255, 0.85)"
+          <MaterialCommunityIcons
+            name={role === "vendor" ? "shield-check-outline" : "calendar-month-outline"}
+            size={24}
+            color="#7A8D78"
           />
-          <Text style={styles.navText}>{role === "vendor" ? "Status" : "Schedule"}</Text>
+          <Text style={styles.navItemText}>{role === "vendor" ? "Status" : "Schedule"}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.navItem}
+          activeOpacity={0.8}
           onPress={() => {}}
         >
-          <Ionicons
-            name="person"
-            size={24}
-            color="#FFFFFF"
-          />
-          <Text style={[styles.navText, { fontWeight: "800" }]}>Profile</Text>
+          <MaterialCommunityIcons name="account" size={24} color="#2E7D32" />
+          <Text style={[styles.navItemText, styles.navItemTextActive]}>Profile</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -1238,20 +1262,31 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 65,
-    backgroundColor: "#7ED957",
+    backgroundColor: "#FFFFFF",
     flexDirection: "row",
     justifyContent: "space-around",
     alignItems: "center",
+    borderTopWidth: 1,
+    borderTopColor: "#EEF5ED",
+    paddingBottom: 4,
   },
 
   navItem: {
     alignItems: "center",
+    justifyContent: "center",
+    flex: 1,
     paddingVertical: 4,
   },
 
-  navText: {
-    color: "#FFFFFF",
-    fontSize: 10,
+  navItemText: {
+    fontSize: 11,
+    fontWeight: "600",
+    color: "#7A8D78",
     marginTop: 2,
+  },
+
+  navItemTextActive: {
+    color: "#2E7D32",
+    fontWeight: "800",
   },
 });

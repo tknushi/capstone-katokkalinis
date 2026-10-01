@@ -173,18 +173,37 @@ export default function Dashboard() {
     : "08:00 AM";
 
   useEffect(() => {
-    // Top banner alert when app is opened if truck is active in area
-    const timer = setTimeout(() => {
-      setTopBanner({
-        visible: true,
-        title: "Garbage Truck Approaching",
-        message: "Compactor Truck #04 is now active in your barangay cluster.",
-        type: "truck",
-      });
-    }, 1200);
+    // Only pop up the collection alert on the actual SET DATE
+    if (!nextSchedule?.date) {
+      setTopBanner((prev) => ({ ...prev, visible: false }));
+      return;
+    }
 
-    return () => clearTimeout(timer);
-  }, []);
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    const day = String(now.getDate()).padStart(2, "0");
+    const todayStr = `${year}-${month}-${day}`;
+
+    const scheduleDateStr = String(nextSchedule.date).slice(0, 10);
+    const isSetDate = scheduleDateStr === todayStr;
+
+    if (isSetDate) {
+      const timer = setTimeout(() => {
+        setTopBanner({
+          visible: true,
+          title: "Garbage Collection Today",
+          message: `Scheduled pickup today at ${pickupTimeDisplay} for ${userLocation}. Please have your bins ready.`,
+          type: "truck",
+        });
+      }, 1200);
+
+      return () => clearTimeout(timer);
+    } else {
+      // Do not pop up if today is not the set date
+      setTopBanner((prev) => ({ ...prev, visible: false }));
+    }
+  }, [nextSchedule?.date, pickupTimeDisplay, userLocation]);
 
   return (
     <View style={styles.container}>

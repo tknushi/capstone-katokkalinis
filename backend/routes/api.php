@@ -23,6 +23,7 @@ use App\Http\Controllers\Api\ClenroPileupReportController;
 use App\Http\Controllers\Api\FeedbackController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\ViolationController;
+use App\Http\Controllers\Api\OverviewController;
 
 use App\Http\Middleware\SuperAdminMiddleware;
 
@@ -111,6 +112,8 @@ Route::middleware([
     |--------------------------------------------------------------------------
     */
 
+    Route::delete('/users/bulk', [UserController::class, 'bulkDestroy']);
+    Route::post('/users/bulk-delete', [UserController::class, 'bulkDestroy']);
     Route::delete('/users/{id}', [UserController::class, 'destroy']);
 
 });
@@ -127,6 +130,20 @@ Route::middleware([
 */
 
 Route::middleware('auth:sanctum')->group(function () {
+    Route::delete('/users/bulk', [UserController::class, 'bulkDestroy']);
+    Route::post('/users/bulk-delete', [UserController::class, 'bulkDestroy']);
+    Route::patch('/users/bulk-archive', [UserController::class, 'bulkArchive']);
+    Route::post('/users/bulk-archive', [UserController::class, 'bulkArchive']);
+    Route::patch('/users/bulk-restore', [UserController::class, 'bulkRestore']);
+    Route::post('/users/bulk-restore', [UserController::class, 'bulkRestore']);
+    Route::patch('/users/bulk-role', [UserController::class, 'bulkUpdateRole']);
+    Route::post('/users/bulk-role', [UserController::class, 'bulkUpdateRole']);
+
+    Route::patch('/users/{id}/archive', [UserController::class, 'archive']);
+    Route::post('/users/{id}/archive', [UserController::class, 'archive']);
+    Route::patch('/users/{id}/restore', [UserController::class, 'restore']);
+    Route::post('/users/{id}/restore', [UserController::class, 'restore']);
+
     Route::get('/users', [UserController::class, 'index']);
     Route::get('/users/{id}', [UserController::class, 'show']);
     Route::put('/users/{id}', [UserController::class, 'update']);
@@ -174,6 +191,19 @@ Route::middleware('auth:sanctum')->group(function () {
 */
 
 Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/attendance/check-in', [AttendanceController::class, 'checkIn']);
+    Route::post('/attendance/check-out', [AttendanceController::class, 'checkOut']);
+
+    Route::patch('/attendance/bulk-archive', [AttendanceController::class, 'bulkArchive']);
+    Route::post('/attendance/bulk-archive', [AttendanceController::class, 'bulkArchive']);
+    Route::patch('/attendance/bulk-restore', [AttendanceController::class, 'bulkRestore']);
+    Route::post('/attendance/bulk-restore', [AttendanceController::class, 'bulkRestore']);
+
+    Route::patch('/attendance/{id}/archive', [AttendanceController::class, 'archive']);
+    Route::post('/attendance/{id}/archive', [AttendanceController::class, 'archive']);
+    Route::patch('/attendance/{id}/restore', [AttendanceController::class, 'restore']);
+    Route::post('/attendance/{id}/restore', [AttendanceController::class, 'restore']);
+
     Route::get('/attendance', [AttendanceController::class, 'index']);
     Route::post('/attendance', [AttendanceController::class, 'store']);
     Route::get('/attendance/{id}', [AttendanceController::class, 'show']);
@@ -287,7 +317,18 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/analytics/overview', [AnalyticsController::class, 'overview']);
     Route::get('/analytics/barangay-stats', [AnalyticsController::class, 'barangayAnalytics']);
+
+    /*
+    |--------------------------------------------------------------------------
+    | BARANGAY OVERVIEW DASHBOARD SUMMARY & ACTIVITY LOGS
+    |--------------------------------------------------------------------------
+    */
+    Route::get('/overview/summary', [OverviewController::class, 'summary']);
+    Route::get('/activity-logs', [ActivityLogController::class, 'index']);
 });
+
+// Demo / Local preview access without Sanctum token
+Route::get('/public/overview/summary', [OverviewController::class, 'summary']);
 
 
 /*

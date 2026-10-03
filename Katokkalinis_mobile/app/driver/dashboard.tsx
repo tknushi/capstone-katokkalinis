@@ -16,6 +16,7 @@ import {
 import KatokLogo from "../../components/KatokLogo";
 import PhilippinesMapView from "../../components/PhilippinesMapView";
 import TopNotificationBanner from "../../components/TopNotificationBanner";
+import { apiRequest } from "../../services/api";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -77,6 +78,23 @@ export default function DriverDashboard() {
     setIsCollecting(true);
     setRouteCompleted(false);
     await AsyncStorage.setItem("driver_is_collecting", "true");
+
+    try {
+      await apiRequest("/collection-routes", {
+        method: "POST",
+        body: JSON.stringify({
+          truck_id: 1,
+          barangay_id: 2,
+          collection_date: new Date().toISOString().slice(0, 10),
+          start_time: new Date().toTimeString().slice(0, 5),
+          status: "in_progress",
+          notes: "Driver John Driver active on Compactor Route #04 (Barangay 1 - 4)",
+        }),
+      });
+    } catch (e) {
+      console.warn("Could not sync start collection route to backend:", e);
+    }
+
     setBanner({
       visible: true,
       title: "Collection Started",
@@ -117,9 +135,27 @@ export default function DriverDashboard() {
         { text: "Cancel", style: "cancel" },
         {
           text: "Mark Completed",
-          onPress: () => {
+          onPress: async () => {
             setRouteCompleted(true);
             setIsCollecting(false);
+
+            try {
+              await apiRequest("/collection-routes", {
+                method: "POST",
+                body: JSON.stringify({
+                  truck_id: 1,
+                  barangay_id: 4,
+                  collection_date: new Date().toISOString().slice(0, 10),
+                  start_time: "08:00",
+                  end_time: new Date().toTimeString().slice(0, 5),
+                  status: "completed",
+                  notes: "Driver John Driver cleared all 4 scheduled stops in Poblacion Sector",
+                }),
+              });
+            } catch (e) {
+              console.warn("Could not sync complete route to backend:", e);
+            }
+
             setBanner({
               visible: true,
               title: "Route Cleared",
@@ -139,6 +175,9 @@ export default function DriverDashboard() {
     }
 
     try {
+      const match = selectedBrgy.match(/Barangay\s+(\d+)/i);
+      const brgyNum = match ? parseInt(match[1], 10) : 1;
+
       const newRecord: CollectionRecord = {
         id: Date.now().toString(),
         barangay: selectedBrgy,
@@ -152,6 +191,24 @@ export default function DriverDashboard() {
       const existing = existingRaw ? JSON.parse(existingRaw) : [];
       existing.unshift(newRecord);
       await AsyncStorage.setItem("driver_collection_records", JSON.stringify(existing));
+
+      // Sync completed collection run to backend
+      try {
+        await apiRequest("/collection-routes", {
+          method: "POST",
+          body: JSON.stringify({
+            truck_id: 1,
+            barangay_id: brgyNum,
+            collection_date: new Date().toISOString().slice(0, 10),
+            start_time: "08:00",
+            end_time: new Date().toTimeString().slice(0, 5),
+            status: "completed",
+            notes: `Emptied ${binsCount.trim() || 'N/A'} bins, weight ${weightKg.trim() || 'N/A'} kg (${wasteType}) in ${selectedBrgy}`,
+          }),
+        });
+      } catch (apiErr) {
+        console.warn("Could not sync record to backend:", apiErr);
+      }
 
       setRecordModalVisible(false);
       setBinsCount("");

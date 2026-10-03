@@ -21,8 +21,12 @@ export function getBaseApiUrl(): string {
     return envUrl.replace(/\/+$/, "");
   }
 
-  // Detect IP from Expo Metro bundler
-  const hostUri = Constants.expoConfig?.hostUri;
+  // Detect IP from Expo Metro bundler / Expo Go host
+  const hostUri =
+    Constants.expoConfig?.hostUri ||
+    (Constants as any).expoGoConfig?.debuggerHost ||
+    (Constants as any).manifest2?.extra?.expoClient?.hostUri;
+
   if (hostUri) {
     const host = hostUri.split(":")[0];
     if (host && host !== "localhost" && host !== "127.0.0.1") {
@@ -30,18 +34,8 @@ export function getBaseApiUrl(): string {
     }
   }
 
-  // Android Emulator
-  if (Platform.OS === "android") {
-    return "http://10.0.2.2:8000/api";
-  }
-
-  // Web Browser
-  if (Platform.OS === "web" && typeof window !== "undefined" && window.location?.hostname) {
-    return `http://${window.location.hostname}:8000/api`;
-  }
-
-  // Default LAN fallback
-  return envUrl ? envUrl.replace(/\/+$/, "") : "http://192.168.18.174:8000/api";
+  // Fallback to detected LAN IP
+  return "http://10.255.127.26:8000/api";
 }
 
 /*

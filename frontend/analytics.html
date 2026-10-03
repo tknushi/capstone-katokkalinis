@@ -450,7 +450,6 @@
                         <h3>
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--green-600)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
                             Barangay &amp; Zone Analytics
-                            <span id="brgy-data-badge" class="data-src-badge data-src-local">⏳ Loading</span>
                         </h3>
                         <div class="zone-selector-wrap">
                             <span class="zone-selector-label">Zone</span>
@@ -505,7 +504,87 @@
         };
 
         // Fallback zone/barangay data when API is offline
+        const b1to10 = [
+            { id: 1, name: 'Barangay 1', vendors: 18, reports: 2, latitude: 8.4745, longitude: 124.6432, description: 'City Hall & Riverwall Walkway Corridor' },
+            { id: 2, name: 'Barangay 2', vendors: 15, reports: 1, latitude: 8.4758, longitude: 124.6441, description: 'Capistrano & Gaerlan St. Corridor' },
+            { id: 3, name: 'Barangay 3', vendors: 12, reports: 1, latitude: 8.4770, longitude: 124.6445, description: 'Velez & Burgos St. Commercial Strip' },
+            { id: 4, name: 'Barangay 4', vendors: 10, reports: 2, latitude: 8.4741, longitude: 124.6453, description: 'San Agustin Cathedral & Plaza Corridor' },
+            { id: 5, name: 'Barangay 5', vendors: 16, reports: 1, latitude: 8.4735, longitude: 124.6461, description: 'Rizal Monument & Fernandez St.' },
+            { id: 6, name: 'Barangay 6', vendors: 14, reports: 2, latitude: 8.4728, longitude: 124.6470, description: 'Tiano Brothers & Pabayo Commercial Strip' },
+            { id: 7, name: 'Barangay 7', vendors: 20, reports: 1, latitude: 8.4722, longitude: 124.6478, description: 'Plaza Divisoria & Tirso Neri St. Kiosks' },
+            { id: 8, name: 'Barangay 8', vendors: 12, reports: 0, latitude: 8.4715, longitude: 124.6486, description: 'RN Abejuela & Central Divisoria Strip' },
+            { id: 9, name: 'Barangay 9', vendors: 14, reports: 1, latitude: 8.4708, longitude: 124.6494, description: 'Dolores & Toribio Chaves Residential' },
+            { id: 10, name: 'Barangay 10', vendors: 9, reports: 1, latitude: 8.4700, longitude: 124.6502, description: 'Macahambus & Capistrano Perimeter' },
+        ];
+        const b11to20 = [
+            { id: 11, name: 'Barangay 11', vendors: 10, reports: 1, latitude: 8.4792, longitude: 124.6512, description: 'Hayes & Velez South Commercial Belt' },
+            { id: 12, name: 'Barangay 12', vendors: 9, reports: 1, latitude: 8.4800, longitude: 124.6520, description: 'Apolinar Velez St. Medical Belt' },
+            { id: 13, name: 'Barangay 13', vendors: 8, reports: 0, latitude: 8.4808, longitude: 124.6528, description: 'Pabayo & Pacana Commercial Boundary' },
+            { id: 14, name: 'Barangay 14', vendors: 9, reports: 1, latitude: 8.4816, longitude: 124.6536, description: 'Toribio Chaves & Corrales Corridor' },
+            { id: 15, name: 'Barangay 15', vendors: 10, reports: 1, latitude: 8.4824, longitude: 124.6544, description: 'Fernandez & Tiano South Strip' },
+            { id: 16, name: 'Barangay 16', vendors: 9, reports: 1, latitude: 8.4832, longitude: 124.6552, description: 'Mortola & San Agustin Corridor' },
+            { id: 17, name: 'Barangay 17', vendors: 10, reports: 1, latitude: 8.4840, longitude: 124.6560, description: 'A. Velez St. South Business Boundary' },
+            { id: 18, name: 'Barangay 18', vendors: 9, reports: 1, latitude: 8.4848, longitude: 124.6568, description: 'Macahambus & Pabayo South Zone' },
+            { id: 19, name: 'Barangay 19', vendors: 12, reports: 1, latitude: 8.4856, longitude: 124.6576, description: 'Chavez & Corrales Ave Corridor' },
+            { id: 20, name: 'Barangay 20', vendors: 9, reports: 1, latitude: 8.4864, longitude: 124.6584, description: 'JR Borja South Institutional Strip' },
+        ];
+        const b21to30 = [
+            { id: 21, name: 'Barangay 21', vendors: 6, reports: 1, latitude: 8.4872, longitude: 124.6592, description: 'Corrales Extension & Provincial Capitol' },
+            { id: 22, name: 'Barangay 22', vendors: 7, reports: 2, latitude: 8.4880, longitude: 124.6600, description: 'Bitan-ag Creek & Gaabucayan Corridor' },
+            { id: 23, name: 'Barangay 23', vendors: 5, reports: 1, latitude: 8.4888, longitude: 124.6608, description: 'Osmeña Extension & Old Railhead Belt' },
+            { id: 24, name: 'Barangay 24', vendors: 6, reports: 0, latitude: 8.4896, longitude: 124.6616, description: 'Limketkai Drive West Approach' },
+            { id: 25, name: 'Barangay 25', vendors: 7, reports: 1, latitude: 8.4904, longitude: 124.6624, description: 'Limketkai Drive Culvert Area' },
+            { id: 26, name: 'Barangay 26', vendors: 5, reports: 1, latitude: 8.4912, longitude: 124.6632, description: 'Valenzuela & Kolambog Transition Strip' },
+            { id: 27, name: 'Barangay 27', vendors: 6, reports: 0, latitude: 8.4920, longitude: 124.6640, description: 'Ramonal Village East Approach' },
+            { id: 28, name: 'Barangay 28', vendors: 7, reports: 1, latitude: 8.4928, longitude: 124.6648, description: 'Camaman-an Border Drainage Corridor' },
+            { id: 29, name: 'Barangay 29', vendors: 5, reports: 1, latitude: 8.4936, longitude: 124.6656, description: 'Pinikitan & Bitan-ag Upper Creek' },
+            { id: 30, name: 'Barangay 30', vendors: 6, reports: 0, latitude: 8.4944, longitude: 124.6664, description: 'Lapasan Creek & East Commercial Boundary' },
+        ];
+        const b31to40 = [
+            { id: 31, name: 'Barangay 31', vendors: 9, reports: 1, latitude: 8.4952, longitude: 124.6672, description: 'JR Borja West Commercial District' },
+            { id: 32, name: 'Barangay 32', vendors: 8, reports: 0, latitude: 8.4960, longitude: 124.6680, description: 'Yacapin West & Trading Strip' },
+            { id: 33, name: 'Barangay 33', vendors: 10, reports: 1, latitude: 8.4781, longitude: 124.6476, description: 'Cogon West & Capt. Vicente Roa Strip' },
+            { id: 34, name: 'Barangay 34', vendors: 12, reports: 2, latitude: 8.4976, longitude: 124.6696, description: 'Agora South & Osmeña Terminal Area' },
+            { id: 35, name: 'Barangay 35', vendors: 8, reports: 1, latitude: 8.4984, longitude: 124.6704, description: 'C.M. Recto Ave & Highway Transit' },
+            { id: 36, name: 'Barangay 36', vendors: 7, reports: 0, latitude: 8.4992, longitude: 124.6712, description: 'Gaabucayan Marine & Port Access Area' },
+            { id: 37, name: 'Barangay 37', vendors: 9, reports: 1, latitude: 8.5000, longitude: 124.6720, description: 'Corrales North & Port Terminal Corridor' },
+            { id: 38, name: 'Barangay 38', vendors: 8, reports: 0, latitude: 8.5008, longitude: 124.6728, description: 'Macabalan South & Coastal Approach' },
+            { id: 39, name: 'Barangay 39', vendors: 7, reports: 1, latitude: 8.4768, longitude: 124.6489, description: 'Cogon East Fish & Night Market Strip' },
+            { id: 40, name: 'Barangay 40', vendors: 7, reports: 0, latitude: 8.4772, longitude: 124.6493, description: 'Cogon North Vegetable & Fruit Strip' },
+        ];
+        const allB1to40 = [...b1to10, ...b11to20, ...b21to30, ...b31to40];
+
         const fallbackZones = [
+            {
+                zone: 'All Barangays (Barangay 1-40)',
+                total_vendors: allB1to40.reduce((s, b) => s + b.vendors, 0),
+                total_reports: allB1to40.reduce((s, b) => s + b.reports, 0),
+                barangays: allB1to40
+            },
+            {
+                zone: 'Sector North (Barangay 1-10)',
+                total_vendors: b1to10.reduce((s, b) => s + b.vendors, 0),
+                total_reports: b1to10.reduce((s, b) => s + b.reports, 0),
+                barangays: b1to10
+            },
+            {
+                zone: 'Sector South (Barangay 11-20)',
+                total_vendors: b11to20.reduce((s, b) => s + b.vendors, 0),
+                total_reports: b11to20.reduce((s, b) => s + b.reports, 0),
+                barangays: b11to20
+            },
+            {
+                zone: 'Sector East (Barangay 21-30)',
+                total_vendors: b21to30.reduce((s, b) => s + b.vendors, 0),
+                total_reports: b21to30.reduce((s, b) => s + b.reports, 0),
+                barangays: b21to30
+            },
+            {
+                zone: 'Sector West (Barangay 31-40)',
+                total_vendors: b31to40.reduce((s, b) => s + b.vendors, 0),
+                total_reports: b31to40.reduce((s, b) => s + b.reports, 0),
+                barangays: b31to40
+            },
             {
                 zone: 'Cogon Market Zone',
                 total_vendors: 680, total_reports: 24,
@@ -522,70 +601,6 @@
                 barangays: [
                     { id: 201, name: 'Carmen Public Market (Vamenta)', vendors: 240, reports: 10, latitude: 8.5012, longitude: 124.6373, description: 'Carmen market north wing.' },
                     { id: 202, name: 'Carmen Public Market (Seriña)', vendors: 180, reports: 8, latitude: 8.5023, longitude: 124.6385, description: 'Carmen market south wing.' },
-                ]
-            },
-            {
-                zone: 'Sector North (Barangay 1-10)',
-                total_vendors: 140, total_reports: 12,
-                barangays: [
-                    { id: 1, name: 'Barangay 1', vendors: 18, reports: 2, latitude: 8.4750, longitude: 124.6441, description: 'Divisoria commercial district.' },
-                    { id: 2, name: 'Barangay 2', vendors: 15, reports: 1, latitude: 8.4762, longitude: 124.6430, description: 'Near Cagayan River bank.' },
-                    { id: 3, name: 'Barangay 3', vendors: 12, reports: 1, latitude: 8.4770, longitude: 124.6445, description: null },
-                    { id: 4, name: 'Barangay 4', vendors: 10, reports: 2, latitude: 8.4741, longitude: 124.6453, description: null },
-                    { id: 5, name: 'Barangay 5', vendors: 16, reports: 1, latitude: 8.4735, longitude: 124.6461, description: null },
-                    { id: 6, name: 'Barangay 6', vendors: 14, reports: 2, latitude: 8.4728, longitude: 124.6470, description: null },
-                    { id: 7, name: 'Barangay 7', vendors: 20, reports: 1, latitude: 8.4722, longitude: 124.6478, description: null },
-                    { id: 8, name: 'Barangay 8', vendors: 12, reports: 0, latitude: 8.4715, longitude: 124.6486, description: null },
-                    { id: 9, name: 'Barangay 9', vendors: 14, reports: 1, latitude: 8.4708, longitude: 124.6494, description: null },
-                    { id: 10, name: 'Barangay 10', vendors: 9, reports: 1, latitude: 8.4700, longitude: 124.6502, description: null },
-                ]
-            },
-            {
-                zone: 'Sector Central (Barangay 11-20)',
-                total_vendors: 95, total_reports: 9,
-                barangays: [
-                    { id: 11, name: 'Barangay 11', vendors: 10, reports: 1, latitude: 8.4792, longitude: 124.6512, description: null },
-                    { id: 12, name: 'Barangay 12', vendors: 9, reports: 1, latitude: 8.4800, longitude: 124.6520, description: null },
-                    { id: 13, name: 'Barangay 13', vendors: 8, reports: 0, latitude: 8.4808, longitude: 124.6528, description: null },
-                    { id: 14, name: 'Barangay 14', vendors: 9, reports: 1, latitude: 8.4816, longitude: 124.6536, description: null },
-                    { id: 15, name: 'Barangay 15', vendors: 10, reports: 1, latitude: 8.4824, longitude: 124.6544, description: null },
-                    { id: 16, name: 'Barangay 16', vendors: 9, reports: 1, latitude: 8.4832, longitude: 124.6552, description: null },
-                    { id: 17, name: 'Barangay 17', vendors: 10, reports: 1, latitude: 8.4840, longitude: 124.6560, description: null },
-                    { id: 18, name: 'Barangay 18', vendors: 9, reports: 1, latitude: 8.4848, longitude: 124.6568, description: null },
-                    { id: 19, name: 'Barangay 19', vendors: 12, reports: 1, latitude: 8.4856, longitude: 124.6576, description: null },
-                    { id: 20, name: 'Barangay 20', vendors: 9, reports: 1, latitude: 8.4864, longitude: 124.6584, description: null },
-                ]
-            },
-            {
-                zone: 'Sector East (Barangay 21-30)',
-                total_vendors: 60, total_reports: 8,
-                barangays: [
-                    { id: 21, name: 'Barangay 21', vendors: 6, reports: 1, latitude: 8.4872, longitude: 124.6592, description: null },
-                    { id: 22, name: 'Barangay 22 (Bitan-ag)', vendors: 7, reports: 2, latitude: 8.4880, longitude: 124.6600, description: 'Near Bitan-ag Creek flood corridor.' },
-                    { id: 23, name: 'Barangay 23', vendors: 5, reports: 1, latitude: 8.4888, longitude: 124.6608, description: null },
-                    { id: 24, name: 'Barangay 24', vendors: 6, reports: 0, latitude: 8.4896, longitude: 124.6616, description: null },
-                    { id: 25, name: 'Barangay 25', vendors: 7, reports: 1, latitude: 8.4904, longitude: 124.6624, description: 'Limketkai Drive culvert area.' },
-                    { id: 26, name: 'Barangay 26', vendors: 5, reports: 1, latitude: 8.4912, longitude: 124.6632, description: null },
-                    { id: 27, name: 'Barangay 27', vendors: 6, reports: 0, latitude: 8.4920, longitude: 124.6640, description: null },
-                    { id: 28, name: 'Barangay 28', vendors: 7, reports: 1, latitude: 8.4928, longitude: 124.6648, description: null },
-                    { id: 29, name: 'Barangay 29', vendors: 5, reports: 1, latitude: 8.4936, longitude: 124.6656, description: null },
-                    { id: 30, name: 'Barangay 30', vendors: 6, reports: 0, latitude: 8.4944, longitude: 124.6664, description: null },
-                ]
-            },
-            {
-                zone: 'Sector Commercial (Barangay 31-40)',
-                total_vendors: 85, total_reports: 7,
-                barangays: [
-                    { id: 31, name: 'Barangay 31', vendors: 9, reports: 1, latitude: 8.4952, longitude: 124.6672, description: null },
-                    { id: 32, name: 'Barangay 32', vendors: 8, reports: 0, latitude: 8.4960, longitude: 124.6680, description: null },
-                    { id: 33, name: 'Barangay 33', vendors: 10, reports: 1, latitude: 8.4968, longitude: 124.6688, description: null },
-                    { id: 34, name: 'Barangay 34 (Agora)', vendors: 12, reports: 2, latitude: 8.4976, longitude: 124.6696, description: 'Near Agora public market.' },
-                    { id: 35, name: 'Barangay 35', vendors: 8, reports: 1, latitude: 8.4984, longitude: 124.6704, description: null },
-                    { id: 36, name: 'Barangay 36', vendors: 7, reports: 0, latitude: 8.4992, longitude: 124.6712, description: null },
-                    { id: 37, name: 'Barangay 37', vendors: 9, reports: 1, latitude: 8.5000, longitude: 124.6720, description: null },
-                    { id: 38, name: 'Barangay 38', vendors: 8, reports: 0, latitude: 8.5008, longitude: 124.6728, description: null },
-                    { id: 39, name: 'Barangay 39', vendors: 7, reports: 1, latitude: 8.5016, longitude: 124.6736, description: null },
-                    { id: 40, name: 'Barangay 40', vendors: 7, reports: 0, latitude: 8.5024, longitude: 124.6744, description: null },
                 ]
             }
         ];
@@ -607,21 +622,16 @@
         }
 
         async function loadZoneAnalytics() {
-            const badge = document.getElementById('brgy-data-badge');
             try {
                 const data = await apiRequest('/analytics/barangay-stats');
                 if (data && data.zones && data.zones.length > 0) {
                     allZones = data.zones;
-                    badge.textContent = '🟢 Live Data';
-                    badge.className = 'data-src-badge data-src-live';
                 } else {
                     throw new Error('empty');
                 }
             } catch {
                 console.warn('Barangay analytics API unavailable — using fallback.');
                 allZones = fallbackZones;
-                badge.textContent = '📦 Local Dataset';
-                badge.className = 'data-src-badge data-src-local';
             }
             populateZoneSelector();
         }
@@ -636,6 +646,10 @@
                 opt.textContent = z.zone;
                 sel.appendChild(opt);
             });
+            if (allZones.length > 0) {
+                sel.value = 0;
+                onZoneChange();
+            }
         }
 
         function onZoneChange() {

@@ -19,6 +19,8 @@ class User extends Authenticatable
         'address',
         'joined_at',
         'password',
+        'is_archived',
+        'archived_at',
     ];
 
     protected $hidden = [
@@ -30,6 +32,8 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
         'joined_at' => 'date:Y-m-d',
+        'is_archived' => 'boolean',
+        'archived_at' => 'datetime',
     ];
 
     /*

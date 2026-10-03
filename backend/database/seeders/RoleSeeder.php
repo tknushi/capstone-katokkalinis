@@ -39,6 +39,10 @@ class RoleSeeder extends Seeder
                 'description' => 'KatokKalinis employee',
             ],
             [
+                'name' => 'admin',
+                'description' => 'System administrator',
+            ],
+            [
                 'name' => 'super_admin',
                 'description' => 'System administrator',
             ],

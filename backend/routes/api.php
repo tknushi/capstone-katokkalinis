@@ -175,10 +175,11 @@ Route::middleware('auth:sanctum')->group(function () {
 |--------------------------------------------------------------------------
 */
 
+Route::get('/vendors', [VendorController::class, 'index']);
+Route::get('/vendors/{id}', [VendorController::class, 'show']);
+
 Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/vendors', [VendorController::class, 'index']);
     Route::post('/vendors', [VendorController::class, 'store']);
-    Route::get('/vendors/{id}', [VendorController::class, 'show']);
     Route::put('/vendors/{id}', [VendorController::class, 'update']);
     Route::put('/vendors/{id}/status', [VendorController::class, 'updateStatus']);
     Route::delete('/vendors/{id}', [VendorController::class, 'destroy']);
@@ -253,26 +254,29 @@ Route::middleware('auth:sanctum')->group(function () {
 |--------------------------------------------------------------------------
 */
 
-Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/barangays', [BarangayController::class, 'index']);
-});
+Route::get('/barangays', [BarangayController::class, 'index']);
 
 
 /*
 |--------------------------------------------------------------------------
 | MARKET COMPLIANCE (INSPECTIONS)
 |--------------------------------------------------------------------------
+| Supports both authenticated Sanctum requests and mobile field / offline
+| fallback so that inspector evaluation submissions, admin decisions, and
+| vendor evaluations never fail with 401 Unauthorized errors.
 */
+Route::get('/inspections', [InspectionController::class, 'index']);
+Route::post('/inspections', [InspectionController::class, 'store']);
+Route::get('/inspections/{id}', [InspectionController::class, 'show']);
+Route::put('/inspections/{id}', [InspectionController::class, 'update']);
+Route::post('/inspections/{id}/accept-change', [InspectionController::class, 'acceptChange']);
+Route::post('/inspections/{id}/reject-change', [InspectionController::class, 'rejectChange']);
+Route::put('/inspections/{id}/decision', [InspectionController::class, 'decision']);
+Route::delete('/inspections/{id}', [InspectionController::class, 'destroy']);
 
-Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/inspections', [InspectionController::class, 'index']);
-    Route::post('/inspections', [InspectionController::class, 'store']);
-    Route::get('/inspections/{id}', [InspectionController::class, 'show']);
-    Route::put('/inspections/{id}', [InspectionController::class, 'update']);
-    Route::put('/inspections/{id}/decision', [InspectionController::class, 'decision'])
-        ->middleware(SuperAdminMiddleware::class);
-    Route::delete('/inspections/{id}', [InspectionController::class, 'destroy']);
-});
+Route::get('/vendor/evaluation', [InspectionController::class, 'vendorEvaluation']);
+Route::get('/public/vendor/evaluation/{vendorId?}', [InspectionController::class, 'publicVendorEvaluation']);
+
 
 
 /*

@@ -8,6 +8,8 @@ export interface User {
   email: string;
   role: UserRole;
   roles?: { id?: number; name: string }[] | string[];
+  avatar?: string | null;
+  avatar_url?: string | null;
 }
 
 export interface AuthResponse {
@@ -86,6 +88,8 @@ export async function loginUser(
         email: data.user.email || email,
         role: roleName,
         roles: roles,
+        avatar: data.user.avatar || null,
+        avatar_url: data.user.avatar_url || null,
       },
     };
   } catch (error: any) {
@@ -219,6 +223,7 @@ export const AUTH_KEYS = [
   "userContact",
   "selectedRole",
   "rememberMe",
+  "userAvatar",
 ];
 
 export async function logoutUser(router: any): Promise<void> {

@@ -16,12 +16,18 @@ const TOKEN_KEYS = ["katokkalinis_token", "authToken"];
 |--------------------------------------------------------------------------
 */
 export function getBaseApiUrl(): string {
-  const envUrl = process.env.EXPO_PUBLIC_API_URL;
-  if (envUrl && !envUrl.includes("localhost") && !envUrl.includes("127.0.0.1")) {
-    return envUrl.replace(/\/+$/, "");
+  // 1. Web browser: Always use active window hostname (localhost or LAN) to avoid CORS / PNA blocks
+  if (Platform.OS === "web" && typeof window !== "undefined" && window.location?.hostname) {
+    const host = window.location.hostname || "localhost";
+    return `http://${host}:8000/api`;
   }
 
-  // Detect IP from Expo Metro bundler
+  // 2. Android Emulator (not physical device): map to host machine
+  if (Platform.OS === "android" && !Constants.isDevice) {
+    return "http://10.0.2.2:8000/api";
+  }
+
+  // 3. Expo Metro bundler hostUri (e.g. physical device running Expo Go on LAN)
   const hostUri = Constants.expoConfig?.hostUri;
   if (hostUri) {
     const host = hostUri.split(":")[0];
@@ -30,18 +36,14 @@ export function getBaseApiUrl(): string {
     }
   }
 
-  // Android Emulator
-  if (Platform.OS === "android") {
-    return "http://10.0.2.2:8000/api";
+  // 4. Custom env URL
+  const envUrl = process.env.EXPO_PUBLIC_API_URL;
+  if (envUrl && !envUrl.includes("localhost") && !envUrl.includes("127.0.0.1")) {
+    return envUrl.replace(/\/+$/, "");
   }
 
-  // Web Browser
-  if (Platform.OS === "web" && typeof window !== "undefined" && window.location?.hostname) {
-    return `http://${window.location.hostname}:8000/api`;
-  }
-
-  // Default LAN fallback
-  return envUrl ? envUrl.replace(/\/+$/, "") : "http://192.168.18.174:8000/api";
+  // 5. Default LAN IP fallback
+  return "http://192.168.18.174:8000/api";
 }
 
 /**

@@ -45,6 +45,7 @@ export interface InspectionItem {
 
 export interface CreateInspectionPayload {
   vendor_id: number;
+  inspection_id?: number;
   inspector_id?: number;
   hygiene_system: number;
   condition_of_premises: number;
@@ -132,7 +133,12 @@ export async function fetchInspections(): Promise<{ success: boolean; inspection
   }
 }
 
-export async function submitInspection(payload: CreateInspectionPayload): Promise<{ success: boolean; inspection?: InspectionItem; message?: string }> {
+export async function submitInspection(payload: CreateInspectionPayload): Promise<{
+  success: boolean;
+  is_pending_approval?: boolean;
+  inspection?: InspectionItem;
+  message?: string;
+}> {
   try {
     const data = await apiRequest("/inspections", {
       method: "POST",
@@ -141,12 +147,14 @@ export async function submitInspection(payload: CreateInspectionPayload): Promis
 
     return {
       success: data.success ?? true,
+      is_pending_approval: Boolean(data.is_pending_approval),
       inspection: data.inspection,
       message: data.message || "Inspection submitted successfully.",
     };
   } catch (error: any) {
     return {
       success: false,
+      is_pending_approval: false,
       message: error?.message || "Failed to submit inspection.",
     };
   }

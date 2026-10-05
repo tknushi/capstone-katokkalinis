@@ -153,13 +153,22 @@ export default function InspectorDashboard() {
           <TouchableOpacity
             style={styles.vendorItemCard}
             activeOpacity={0.88}
-            onPress={() => router.push("/inspector/grade" as any)}
+            onPress={() =>
+              router.push({
+                pathname: "/inspector/grade",
+                params: {
+                  vendor_id: 1,
+                  vendor_name: "KatokKalimpyo Fresh Fruits",
+                  vendor_code: "2026012345",
+                },
+              } as any)
+            }
           >
             <View style={[styles.vendorIconCircle, { backgroundColor: "#E8F8EE" }]}>
               <MaterialCommunityIcons name="store" size={22} color="#2E7D32" />
             </View>
             <View style={{ flex: 1, marginLeft: 12 }}>
-              <Text style={styles.vendorNameText}>KatokKalimpyo</Text>
+              <Text style={styles.vendorNameText}>KatokKalimpyo Fresh Fruits</Text>
               <Text style={styles.vendorStallText}>Stall #12 • Divisoria Public Market</Text>
             </View>
             <View style={styles.actionBadge}>
@@ -170,13 +179,22 @@ export default function InspectorDashboard() {
           <TouchableOpacity
             style={styles.vendorItemCard}
             activeOpacity={0.88}
-            onPress={() => router.push("/inspector/grade" as any)}
+            onPress={() =>
+              router.push({
+                pathname: "/inspector/grade",
+                params: {
+                  vendor_id: 2,
+                  vendor_name: "KalimpyoKatok Vegetable Stand",
+                  vendor_code: "2026012346",
+                },
+              } as any)
+            }
           >
             <View style={[styles.vendorIconCircle, { backgroundColor: "#E3F2FD" }]}>
               <MaterialCommunityIcons name="store" size={22} color="#1976D2" />
             </View>
             <View style={{ flex: 1, marginLeft: 12 }}>
-              <Text style={styles.vendorNameText}>KalimpyoKatok</Text>
+              <Text style={styles.vendorNameText}>KalimpyoKatok Vegetable Stand</Text>
               <Text style={styles.vendorStallText}>Stall #45 • Cogon Market Center</Text>
             </View>
             <View style={styles.actionBadge}>

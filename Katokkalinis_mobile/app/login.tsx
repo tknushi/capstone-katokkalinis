@@ -15,6 +15,7 @@ import {
 } from "react-native";
 
 import * as Haptics from "expo-haptics";
+import { resolveMediaUrl } from "../services/api";
 import { forgotPassword, loginUser } from "../services/auth";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
@@ -84,6 +85,13 @@ export default function Login() {
       await AsyncStorage.setItem("userId", String(result.user.id));
       await AsyncStorage.setItem("userName", result.user.name);
       await AsyncStorage.setItem("userEmail", result.user.email);
+
+      if (result.user.avatar_url || result.user.avatar) {
+        const resolvedAvatar = resolveMediaUrl(result.user.avatar_url || result.user.avatar);
+        if (resolvedAvatar) {
+          await AsyncStorage.setItem("userAvatar", resolvedAvatar);
+        }
+      }
 
       if (result.token) {
         await AsyncStorage.setItem("authToken", result.token);

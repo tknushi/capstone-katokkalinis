@@ -17,6 +17,7 @@ import {
   View,
 } from "react-native";
 import InitialsAvatar from "../components/InitialsAvatar";
+import VendorHotbar from "../components/VendorHotbar";
 import { apiRequest, resolveMediaUrl } from "../services/api";
 import { logoutUser } from "../services/auth";
 import { fetchMyReportsCount } from "../services/resident";
@@ -231,11 +232,17 @@ export default function Profile() {
   const uploadAvatar = async (asset) => {
     try {
       setAvatarUri(asset.uri);
+      const effectiveName = name || (await AsyncStorage.getItem("userName")) || "User";
+      const effectiveEmail = email || (await AsyncStorage.getItem("userEmail")) || "user@katokkalinis.com";
+      const effectiveContact = contactNumber || (await AsyncStorage.getItem("userContact")) || "";
+      const effectiveAddress = address || (await AsyncStorage.getItem("userAddress")) || (await AsyncStorage.getItem("userBarangay")) || "";
+
       const payload = {
-        name,
-        email,
-        contact_number: contactNumber,
-        address,
+        name: effectiveName,
+        email: effectiveEmail,
+        contact_number: effectiveContact,
+        phone: effectiveContact,
+        address: effectiveAddress,
       };
       if (asset.base64) {
         payload.avatar = `data:image/jpeg;base64,${asset.base64}`;
@@ -879,51 +886,55 @@ export default function Profile() {
       </Modal>
 
       {/* BOTTOM NAVIGATION */}
-      <View style={styles.bottomNav}>
-        <TouchableOpacity
-          style={styles.navItem}
-          activeOpacity={0.8}
-          onPress={() => router.replace(role === "vendor" ? "/vendor" : "/dashboard")}
-        >
-          <MaterialCommunityIcons name="home-outline" size={24} color="#7A8D78" />
-          <Text style={styles.navItemText}>Home</Text>
-        </TouchableOpacity>
+      {role === "vendor" ? (
+        <VendorHotbar activeTab="profile" />
+      ) : (
+        <View style={styles.bottomNav}>
+          <TouchableOpacity
+            style={styles.navItem}
+            activeOpacity={0.8}
+            onPress={() => router.replace("/dashboard")}
+          >
+            <MaterialCommunityIcons name="home-outline" size={24} color="#7A8D78" />
+            <Text style={styles.navItemText}>Home</Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.navItem}
-          activeOpacity={0.8}
-          onPress={() => router.push(role === "vendor" ? "/vendor" : "/report")}
-        >
-          <MaterialCommunityIcons
-            name={role === "vendor" ? "qrcode-scan" : "file-document-outline"}
-            size={24}
-            color="#7A8D78"
-          />
-          <Text style={styles.navItemText}>{role === "vendor" ? "QR" : "Reports"}</Text>
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.navItem}
+            activeOpacity={0.8}
+            onPress={() => router.push("/report")}
+          >
+            <MaterialCommunityIcons
+              name="file-document-outline"
+              size={24}
+              color="#7A8D78"
+            />
+            <Text style={styles.navItemText}>Reports</Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.navItem}
-          activeOpacity={0.8}
-          onPress={() => router.push(role === "vendor" ? "/profile" : "/schedule")}
-        >
-          <MaterialCommunityIcons
-            name={role === "vendor" ? "shield-check-outline" : "calendar-month-outline"}
-            size={24}
-            color="#7A8D78"
-          />
-          <Text style={styles.navItemText}>{role === "vendor" ? "Status" : "Schedule"}</Text>
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.navItem}
+            activeOpacity={0.8}
+            onPress={() => router.push("/schedule")}
+          >
+            <MaterialCommunityIcons
+              name="calendar-month-outline"
+              size={24}
+              color="#7A8D78"
+            />
+            <Text style={styles.navItemText}>Schedule</Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.navItem}
-          activeOpacity={0.8}
-          onPress={() => {}}
-        >
-          <MaterialCommunityIcons name="account" size={24} color="#2E7D32" />
-          <Text style={[styles.navItemText, styles.navItemTextActive]}>Profile</Text>
-        </TouchableOpacity>
-      </View>
+          <TouchableOpacity
+            style={styles.navItem}
+            activeOpacity={0.8}
+            onPress={() => {}}
+          >
+            <MaterialCommunityIcons name="account" size={24} color="#2E7D32" />
+            <Text style={[styles.navItemText, styles.navItemTextActive]}>Profile</Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
 }

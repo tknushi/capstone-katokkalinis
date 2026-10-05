@@ -7,7 +7,8 @@
     <link rel="stylesheet" href="css/style.css">
     <style>
         .flagged-row { background-color: #fdecea; }
-        .filter-bar { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
+        .pending-row { background-color: #fef9e7; border-left: 4px solid #f39c12; }
+        .filter-bar { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; align-items: center; }
         .filter-bar select, .filter-bar label { padding: 8px 0; }
         .score-pill {
             display: inline-block;
@@ -18,6 +19,25 @@
         }
         .score-good { background: #2ecc71; }
         .score-bad { background: #e74c3c; }
+        .badge-pending {
+            display: inline-block;
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+        .pending-box {
+            margin-top: 6px;
+            background: #fff8e1;
+            border: 1px dashed #ffb300;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            color: #333;
+        }
     </style>
 </head>
 <body>
@@ -46,15 +66,17 @@
                     </div>
                     <div class="filter-bar">
                         <label><input type="checkbox" id="flagged-only" style="width:auto;" onchange="loadData()"> Show flagged markets only (score &le; <span id="threshold">60</span>)</label>
+                        <label style="margin-left: 15px;"><input type="checkbox" id="pending-only" style="width:auto;" onchange="loadData()"> Show Pending Change Requests Only</label>
+                        <button type="button" class="btn btn-sm" onclick="loadData(true)" style="margin-left: 15px; padding: 6px 12px; font-size: 12px; width: auto; background: #27ae60; color: #fff; cursor: pointer; border: none; border-radius: 6px;">&#x21bb; Refresh</button>
                     </div>
                     <table class="table">
                         <thead>
                             <tr>
                                 <th>ID</th>
-                                <th>Vendor</th>
+                                <th>Vendor & Details</th>
                                 <th>Barangay</th>
                                 <th>Inspector</th>
-                                <th>Score</th>
+                                <th>Official Score</th>
                                 <th>Status</th>
                                 <th>Inspected At</th>
                                 <th>Actions</th>
@@ -150,42 +172,101 @@
         async function loadData() {
             const tbody = document.getElementById('table-body');
             const flaggedOnly = document.getElementById('flagged-only').checked;
+            const pendingOnly = document.getElementById('pending-only').checked;
             const qs = flaggedOnly ? '?flagged=1' : '';
 
             try {
                 const res = await apiRequest(endpoint + qs);
-                const data = res.inspections || [];
+                let data = res.inspections || [];
                 document.getElementById('threshold').textContent = res.flag_threshold ?? 60;
+
+                if (pendingOnly) {
+                    data = data.filter(item => item.change_status === 'pending');
+                }
 
                 if (data.length === 0) {
                     tbody.innerHTML = '<tr><td colspan="8">No inspections found.</td></tr>';
                     return;
                 }
 
+                currentInspections = data;
                 tbody.innerHTML = data.map(item => {
+                    const hasPendingChange = item.change_status === 'pending';
                     const flagged = item.total_score <= (res.flag_threshold ?? 60);
                     const scoreClass = flagged ? 'score-bad' : 'score-good';
                     const vendorName = (item.vendor && item.vendor.business_name) || '-';
                     const barangayName = (item.vendor && item.vendor.barangay && item.vendor.barangay.name) || '-';
                     const inspectorName = (item.inspector && item.inspector.name) || '-';
                     const inspectedAt = item.inspected_at ? item.inspected_at.substring(0, 10) : '-';
+                    const requesterName = (item.change_requester && item.change_requester.name) || 'Inspector';
+
                     return `
-                    <tr class="${flagged ? 'flagged-row' : ''}">
+                    <tr class="${hasPendingChange ? 'pending-row' : (flagged ? 'flagged-row' : '')}">
                         <td>${item.id}</td>
-                        <td>${vendorName}${flagged ? ' &#9888;' : ''}</td>
-                        <td>${barangayName}</td>
-                        <td>${inspectorName}</td>
-                        <td><span class="score-pill ${scoreClass}">${item.total_score}</span></td>
-                        <td>${item.status}</td>
+                        <td>
+                            <strong>${escapeHtml(vendorName)}</strong>
+                            ${hasPendingChange ? `
+                                <div class="pending-box">
+                                    <span class="badge-pending">&#9888; Pending Change Request</span>
+                                    <div style="margin-top: 4px;">
+                                        <strong>Scores:</strong> Hygiene: ${item.hygiene_system} &rarr; <b>${item.pending_hygiene_system}</b> |
+                                        Premises: ${item.condition_of_premises} &rarr; <b>${item.pending_condition_of_premises}</b> |
+                                        Total: ${item.total_score}% &rarr; <b>${item.pending_total_score}% (${item.pending_grade_letter || 'A'})</b>
+                                    </div>
+                                    <div style="margin-top: 2px;">
+                                        <strong>Proposed Notes:</strong> "${escapeHtml(item.pending_notes || 'No notes')}"
+                                    </div>
+                                    <div style="font-size: 11px; color: #666; margin-top: 2px;">
+                                        Requested by: ${escapeHtml(requesterName)}
+                                    </div>
+                                </div>
+                            ` : ''}
+                        </td>
+                        <td>${escapeHtml(barangayName)}</td>
+                        <td>${escapeHtml(inspectorName)}</td>
+                        <td><span class="score-pill ${scoreClass}">${item.total_score}% (Grade ${item.grade_letter || 'A'})</span></td>
+                        <td>
+                            <span>${item.status}</span>
+                            ${hasPendingChange ? '<br><span class="badge-pending">Pending Review</span>' : ''}
+                        </td>
                         <td>${inspectedAt}</td>
                         <td>
-                            <button class="btn" style="padding: 5px 10px; width: auto; background: #f39c12;" onclick='editItem(${JSON.stringify(item).replace(/'/g, "&#39;")})'>Edit</button>
-                            <button class="btn" style="padding: 5px 10px; width: auto; background: #e74c3c;" onclick="deleteItem(${item.id})">Delete</button>
+                            ${hasPendingChange ? `
+                                <div style="display: flex; gap: 5px; margin-bottom: 5px;">
+                                    <button class="btn" style="padding: 4px 8px; width: auto; background: #27ae60; font-size: 11px;" onclick="acceptChange(${item.id})">&#10003; Accept</button>
+                                    <button class="btn" style="padding: 4px 8px; width: auto; background: #c0392b; font-size: 11px;" onclick="rejectChange(${item.id})">&#10007; Reject</button>
+                                </div>
+                            ` : ''}
+                            <button class="btn" style="padding: 4px 8px; width: auto; background: #f39c12; font-size: 11px;" onclick="editItem(${item.id})">Edit</button>
+                            <button class="btn" style="padding: 4px 8px; width: auto; background: #e74c3c; font-size: 11px;" onclick="deleteItem(${item.id})">Delete</button>
                         </td>
                     </tr>
                 `;}).join('');
             } catch (error) {
                 tbody.innerHTML = `<tr><td colspan="8">Error loading data: ${error.message}</td></tr>`;
+            }
+        }
+
+        async function acceptChange(id) {
+            if (!confirm('Accept this evaluation change request? It will immediately become the official evaluation and sync to the vendor mobile app.')) return;
+            try {
+                const res = await apiRequest(`${endpoint}/${id}/accept-change`, 'POST');
+                alert(res.message || 'Evaluation change request accepted and applied.');
+                loadData();
+            } catch(e) {
+                alert('Error accepting change: ' + e.message);
+            }
+        }
+
+        async function rejectChange(id) {
+            const reason = prompt('Reason for rejection (optional):', 'Declined by administrator');
+            if (reason === null) return;
+            try {
+                const res = await apiRequest(`${endpoint}/${id}/reject-change`, 'POST', { reason });
+                alert(res.message || 'Evaluation change request rejected.');
+                loadData();
+            } catch(e) {
+                alert('Error rejecting change: ' + e.message);
             }
         }
 
@@ -200,7 +281,13 @@
             document.getElementById('form-modal').classList.remove('active');
         }
 
-        function editItem(item) {
+        function editItem(idOrItem) {
+            let item = idOrItem;
+            if (typeof idOrItem === 'number' || typeof idOrItem === 'string') {
+                item = currentInspections.find(i => String(i.id) === String(idOrItem));
+            }
+            if (!item) return;
+
             openModal();
             document.getElementById('modal-title').textContent = 'Edit Inspection';
             document.getElementById('item-id').value = item.id;
@@ -250,6 +337,11 @@
         document.addEventListener('DOMContentLoaded', () => {
             loadDropdowns();
             loadData();
+
+            // Auto-refresh every 1 second for ultra-fast real-time inspector sync
+            setInterval(() => {
+                loadData(true);
+            }, 1000);
         });
     </script>
 </body>

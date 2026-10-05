@@ -55,7 +55,7 @@ export default function DriverLogin() {
         return;
       }
 
-      if (result.user.role !== "driver" && result.user.role !== "super_admin") {
+      if (result.user.role !== "driver") {
         Alert.alert("Access Notice", `Logged in with role: ${result.user.role}.`);
       }
 

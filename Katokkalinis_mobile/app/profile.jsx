@@ -7,7 +7,6 @@ import {
   ActivityIndicator,
   Alert,
   Dimensions,
-  Image,
   Modal,
   ScrollView,
   StyleSheet,
@@ -17,7 +16,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { apiRequest } from "../services/api";
+import InitialsAvatar from "../components/InitialsAvatar";
+import { apiRequest, resolveMediaUrl } from "../services/api";
 import { logoutUser } from "../services/auth";
 import { fetchMyReportsCount } from "../services/resident";
 import { sanitizePhoneNumber, validatePhilippinePhone } from "../utils/phoneValidation";
@@ -105,6 +105,9 @@ export default function Profile() {
         console.warn("Could not sync live report count:", err);
       }
 
+      const storedAvatar = await AsyncStorage.getItem("userAvatar");
+      if (storedAvatar) setAvatarUri(storedAvatar);
+
       try {
         const res = await apiRequest("/me", { method: "GET" });
         if (res && res.user) {
@@ -112,6 +115,13 @@ export default function Profile() {
           if (res.user.email) setEmail(res.user.email);
           if (res.user.contact_number) setContactNumber(res.user.contact_number);
           if (res.user.address) setAddress(res.user.address);
+          if (res.user.avatar || res.user.avatar_url) {
+            const resolved = resolveMediaUrl(res.user.avatar_url || res.user.avatar);
+            if (resolved) {
+              setAvatarUri(resolved);
+              await AsyncStorage.setItem("userAvatar", resolved);
+            }
+          }
         }
       } catch {
         // Offline default fallback
@@ -218,6 +228,40 @@ export default function Profile() {
     }
   };
 
+  const uploadAvatar = async (asset) => {
+    try {
+      setAvatarUri(asset.uri);
+      const payload = {
+        name,
+        email,
+        contact_number: contactNumber,
+        address,
+      };
+      if (asset.base64) {
+        payload.avatar = `data:image/jpeg;base64,${asset.base64}`;
+      } else if (asset.uri) {
+        payload.avatar = asset.uri;
+      }
+
+      const res = await apiRequest("/profile", {
+        method: "PUT",
+        body: JSON.stringify(payload),
+      });
+
+      if (res && res.success && res.user) {
+        const perm = resolveMediaUrl(res.user.avatar_url || res.user.avatar);
+        if (perm) {
+          setAvatarUri(perm);
+          await AsyncStorage.setItem("userAvatar", perm);
+        }
+        Alert.alert("Success", "Profile photo updated and saved permanently.");
+      }
+    } catch (err) {
+      console.warn("Avatar upload error:", err);
+      await AsyncStorage.setItem("userAvatar", asset.uri);
+    }
+  };
+
   const handlePickAvatar = () => {
     Alert.alert("Profile Photo", "Choose photo source:", [
       {
@@ -232,12 +276,11 @@ export default function Profile() {
             const result = await ImagePicker.launchCameraAsync({
               allowsEditing: true,
               aspect: [1, 1],
-              quality: 0.8,
+              quality: 0.7,
+              base64: true,
             });
             if (!result.canceled && result.assets?.[0]?.uri) {
-              const uri = result.assets[0].uri;
-              setAvatarUri(uri);
-              await AsyncStorage.setItem("userAvatar", uri);
+              await uploadAvatar(result.assets[0]);
             }
           } catch (e) {
             console.error("Camera error:", e);
@@ -257,12 +300,11 @@ export default function Profile() {
               mediaTypes: ["images"],
               allowsEditing: true,
               aspect: [1, 1],
-              quality: 0.8,
+              quality: 0.7,
+              base64: true,
             });
             if (!result.canceled && result.assets?.[0]?.uri) {
-              const uri = result.assets[0].uri;
-              setAvatarUri(uri);
-              await AsyncStorage.setItem("userAvatar", uri);
+              await uploadAvatar(result.assets[0]);
             }
           } catch (e) {
             console.error("Gallery error:", e);
@@ -312,11 +354,12 @@ export default function Profile() {
         {/* PROFILE CARD */}
         <View style={styles.profileCard}>
           <View style={styles.avatarContainer}>
-            {avatarUri ? (
-              <Image source={{ uri: avatarUri }} style={styles.avatarPhoto} />
-            ) : (
-              <Ionicons name="person-circle" size={86} color="#2E7D32" />
-            )}
+            <InitialsAvatar
+              name={name}
+              avatarUri={avatarUri}
+              size={86}
+              style={styles.avatarPhoto}
+            />
             <TouchableOpacity
               style={styles.cameraBadge}
               onPress={handlePickAvatar}

@@ -17,6 +17,8 @@ class User extends Authenticatable
         'email',
         'phone',
         'address',
+        'avatar',
+        'barangay_id',
         'joined_at',
         'password',
     ];
@@ -30,7 +32,30 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
         'joined_at' => 'date:Y-m-d',
+        'barangay_id' => 'integer',
     ];
+
+    protected $appends = [
+        'avatar_url',
+    ];
+
+    public function getAvatarUrlAttribute(): ?string
+    {
+        if (!$this->avatar) {
+            return null;
+        }
+
+        if (filter_var($this->avatar, FILTER_VALIDATE_URL) || str_starts_with($this->avatar, 'data:image')) {
+            return $this->avatar;
+        }
+
+        return url($this->avatar);
+    }
+
+    public function barangay()
+    {
+        return $this->belongsTo(Barangay::class);
+    }
 
     /*
     |--------------------------------------------------------------------------

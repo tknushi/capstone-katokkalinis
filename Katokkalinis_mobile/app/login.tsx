@@ -14,6 +14,7 @@ import {
   View,
 } from "react-native";
 
+import * as Haptics from "expo-haptics";
 import { forgotPassword, loginUser } from "../services/auth";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
@@ -72,7 +73,7 @@ export default function Login() {
         return;
       }
 
-      if (result.user.role !== selectedRole && result.user.role !== "super_admin") {
+      if (result.user.role !== selectedRole) {
         Alert.alert(
           "Account Type",
           `Logged in with role: ${result.user.role}. Redirecting to your dashboard.`
@@ -95,8 +96,18 @@ export default function Login() {
         await AsyncStorage.removeItem("rememberMe");
       }
 
+      try {
+        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      } catch {
+        // Haptics fallback on unsupported platforms
+      }
+
       if (result.user.role === "vendor" || selectedRole === "vendor") {
         router.replace("/vendor" as any);
+      } else if (result.user.role === "driver") {
+        router.replace("/driver/dashboard" as any);
+      } else if (result.user.role === "inspector") {
+        router.replace("/inspector/dashboard" as any);
       } else {
         router.replace("/dashboard" as any);
       }

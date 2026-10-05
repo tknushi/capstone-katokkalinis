@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
 use App\Models\CollectionSchedule;
+use App\Models\Notification;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -120,6 +122,27 @@ class ScheduleController extends Controller
             "Completed schedule #{$schedule->id} for {$schedule->barangay->name}.",
             $schedule
         );
+
+        // Notify residents belonging to this matching barangay
+        $barangay = $schedule->barangay;
+        if ($barangay) {
+            $residents = User::whereHas('roles', function ($q) {
+                $q->where('name', 'resident');
+            })->where(function ($q) use ($barangay) {
+                $q->where('barangay_id', $barangay->id)
+                  ->orWhere('address', 'like', "%{$barangay->name}%");
+            })->get();
+
+            foreach ($residents as $resident) {
+                Notification::create([
+                    'user_id' => $resident->id,
+                    'title' => 'Waste Collection Completed',
+                    'message' => "Scheduled waste collection in {$barangay->name} has been completed.",
+                    'type' => 'truck',
+                    'is_read' => false,
+                ]);
+            }
+        }
 
         return response()->json([
             'success' => true,

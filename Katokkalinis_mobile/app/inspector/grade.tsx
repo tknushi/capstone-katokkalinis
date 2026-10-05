@@ -2,6 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
+import * as Haptics from "expo-haptics";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -116,6 +117,11 @@ export default function Grade() {
       });
 
       if (res.success) {
+        try {
+          await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        } catch {
+          // Haptics fallback
+        }
         setIsLocked(true); // Lock report upon successful submission (Requirement 18)
         Alert.alert(
           "Grading Report Submitted & Locked",

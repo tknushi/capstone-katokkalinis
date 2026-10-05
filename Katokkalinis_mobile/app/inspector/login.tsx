@@ -55,7 +55,7 @@ export default function InspectorLogin() {
         return;
       }
 
-      if (result.user.role !== "inspector" && result.user.role !== "super_admin") {
+      if (result.user.role !== "inspector") {
         Alert.alert("Access Notice", `Logged in with role: ${result.user.role}.`);
       }
 

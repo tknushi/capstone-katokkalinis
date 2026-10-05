@@ -7,7 +7,9 @@ use App\Models\ActivityLog;
 use App\Models\Barangay;
 use App\Models\CollectionLog;
 use App\Models\CollectionLogAudit;
+use App\Models\Notification;
 use App\Models\Truck;
+use App\Models\User;
 use DomainException;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
@@ -373,6 +375,38 @@ class CollectionLogController extends Controller
                     'reason' => 'Driver confirmed and finalized entry. Record locked permanently.',
                     'created_at' => now(),
                 ]);
+
+                // Notify residents belonging to this matching barangay
+                $barangayId = $log->barangay_id;
+                $barangayName = $log->barangay_name;
+
+                $residentQuery = User::whereHas('roles', function ($q) {
+                    $q->where('name', 'resident');
+                });
+
+                if ($barangayId) {
+                    $residentQuery->where(function ($q) use ($barangayId, $barangayName) {
+                        $q->where('barangay_id', $barangayId);
+                        if ($barangayName) {
+                            $q->orWhere('address', 'like', "%{$barangayName}%");
+                        }
+                    });
+                } elseif ($barangayName) {
+                    $residentQuery->where('address', 'like', "%{$barangayName}%");
+                }
+
+                $residents = $residentQuery->get();
+                $driverName = $user->name ?: 'Assigned Driver';
+
+                foreach ($residents as $resident) {
+                    Notification::create([
+                        'user_id' => $resident->id,
+                        'title' => 'Waste Collection Completed',
+                        'message' => "Waste collection in {$barangayName} has been completed by driver {$driverName}. Thank you for keeping our community clean!",
+                        'type' => 'truck',
+                        'is_read' => false,
+                    ]);
+                }
             });
 
             $log->load(['driver:id,name,email', 'truck:id,truck_number,plate_number', 'audits']);

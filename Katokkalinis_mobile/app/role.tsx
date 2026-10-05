@@ -148,6 +148,7 @@ export default function RoleScreen() {
               />
             </View>
           </TouchableOpacity>
+
         </View>
       </ScrollView>
 

@@ -1,5 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import {
@@ -61,6 +62,15 @@ function computeCountdown(dateStr, timeStr) {
     return `in ${diffMinutes} min${diffMinutes > 1 ? "s" : ""}`;
   }
 }
+
+const QUICK_ACTIONS = [
+  { id: "schedule", label: "Schedule", icon: "calendar-clock-outline", color: "#1976D2", bg: "#E3F2FD", route: "/schedule", keywords: ["schedule", "pickup", "calendar", "time", "date", "trash"] },
+  { id: "post", label: "Submit Report", icon: "camera-plus-outline", color: "#2E7D32", bg: "#E8F8EE", route: "/post", keywords: ["report", "complaint", "issue", "dumping", "spill", "bin", "camera", "photo"] },
+  { id: "notifications", label: "Notifications", icon: "bell-ring-outline", color: "#F57F17", bg: "#FFF8E1", route: "/notifications", keywords: ["notification", "alert", "notice", "truck approaching"] },
+  { id: "feedback", label: "Feedback", icon: "message-text-outline", color: "#7B1FA2", bg: "#F3E5F5", route: "/feedback", keywords: ["feedback", "suggestion", "support", "community", "message"] },
+  { id: "reports_list", label: "All Reports", icon: "file-document-outline", color: "#455A64", bg: "#ECEFF1", route: "/report", keywords: ["view reports", "history", "resolved", "my reports"] },
+  { id: "profile", label: "Profile", icon: "account-outline", color: "#00796B", bg: "#E0F2F1", route: "/profile", keywords: ["profile", "account", "barangay", "contact", "settings"] },
+];
 
 export default function Dashboard() {
   const router = useRouter();
@@ -154,8 +164,32 @@ export default function Dashboard() {
   }, [nextSchedule?.date, nextSchedule?.pickup_time]);
 
   const onRefresh = () => {
+    try {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    } catch {
+      // Haptics fallback
+    }
     setRefreshing(true);
     loadScheduleData();
+  };
+
+  const displayedActions = searchQuery.trim()
+    ? QUICK_ACTIONS.filter(
+        (a) =>
+          a.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          a.keywords.some((k) => k.toLowerCase().includes(searchQuery.toLowerCase()))
+      )
+    : QUICK_ACTIONS.slice(0, 4);
+
+  const handleSearchSubmit = () => {
+    if (displayedActions.length > 0) {
+      try {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      } catch {
+        // Haptics fallback
+      }
+      router.push(displayedActions[0].route);
+    }
   };
 
   // Format date display (e.g. "Friday, May 2, 2026")
@@ -267,7 +301,17 @@ export default function Dashboard() {
             placeholderTextColor="#9AA998"
             value={searchQuery}
             onChangeText={setSearchQuery}
+            onSubmitEditing={handleSearchSubmit}
+            returnKeyType="search"
           />
+          {searchQuery.length > 0 && (
+            <TouchableOpacity
+              onPress={() => setSearchQuery("")}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <MaterialCommunityIcons name="close-circle" size={18} color="#A5B8A3" />
+            </TouchableOpacity>
+          )}
         </View>
 
         {/* 4. MAIN HERO CARD: NEXT COLLECTION WITH LIVE DB COUNTDOWN */}
@@ -304,56 +348,31 @@ export default function Dashboard() {
         </TouchableOpacity>
 
         {/* 5. QUICK ACTIONS GRID */}
-        <Text style={styles.sectionTitle}>Quick Actions</Text>
+        <View style={styles.quickActionsHeaderRow}>
+          <Text style={styles.sectionTitle}>
+            {searchQuery.trim() ? `Search Results (${displayedActions.length})` : "Quick Actions"}
+          </Text>
+          {searchQuery.trim().length > 0 && (
+            <TouchableOpacity onPress={() => setSearchQuery("")}>
+              <Text style={styles.clearSearchLink}>Clear</Text>
+            </TouchableOpacity>
+          )}
+        </View>
 
         <View style={styles.quickActionsGrid}>
-          {/* 1: View Schedule */}
-          <TouchableOpacity
-            style={styles.actionGridCard}
-            activeOpacity={0.85}
-            onPress={() => router.push("/schedule")}
-          >
-            <View style={[styles.actionIconBox, { backgroundColor: "#E3F2FD" }]}>
-              <MaterialCommunityIcons name="calendar-clock-outline" size={26} color="#1976D2" />
-            </View>
-            <Text style={styles.actionLabel}>Schedule</Text>
-          </TouchableOpacity>
-
-          {/* 2: Submit Report */}
-          <TouchableOpacity
-            style={styles.actionGridCard}
-            activeOpacity={0.85}
-            onPress={() => router.push("/post")}
-          >
-            <View style={[styles.actionIconBox, { backgroundColor: "#E8F8EE" }]}>
-              <MaterialCommunityIcons name="camera-plus-outline" size={26} color="#2E7D32" />
-            </View>
-            <Text style={styles.actionLabel}>Submit Report</Text>
-          </TouchableOpacity>
-
-          {/* 3: Notifications */}
-          <TouchableOpacity
-            style={styles.actionGridCard}
-            activeOpacity={0.85}
-            onPress={() => router.push("/notifications")}
-          >
-            <View style={[styles.actionIconBox, { backgroundColor: "#FFF8E1" }]}>
-              <MaterialCommunityIcons name="bell-ring-outline" size={26} color="#F57F17" />
-            </View>
-            <Text style={styles.actionLabel}>Notifications</Text>
-          </TouchableOpacity>
-
-          {/* 4: Feedback & Support */}
-          <TouchableOpacity
-            style={styles.actionGridCard}
-            activeOpacity={0.85}
-            onPress={() => router.push("/feedback")}
-          >
-            <View style={[styles.actionIconBox, { backgroundColor: "#F3E5F5" }]}>
-              <MaterialCommunityIcons name="message-text-outline" size={26} color="#7B1FA2" />
-            </View>
-            <Text style={styles.actionLabel}>Feedback</Text>
-          </TouchableOpacity>
+          {displayedActions.map((action) => (
+            <TouchableOpacity
+              key={action.id}
+              style={styles.actionGridCard}
+              activeOpacity={0.85}
+              onPress={() => router.push(action.route)}
+            >
+              <View style={[styles.actionIconBox, { backgroundColor: action.bg }]}>
+                <MaterialCommunityIcons name={action.icon} size={26} color={action.color} />
+              </View>
+              <Text style={styles.actionLabel}>{action.label}</Text>
+            </TouchableOpacity>
+          ))}
         </View>
       </ScrollView>
 
@@ -552,11 +571,21 @@ const styles = StyleSheet.create({
   },
 
   // SECTION & ACTIONS GRID
+  quickActionsHeaderRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 14,
+  },
   sectionTitle: {
     fontSize: 17,
     fontWeight: "800",
     color: "#1E331B",
-    marginBottom: 14,
+  },
+  clearSearchLink: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#2E7D32",
   },
   quickActionsGrid: {
     flexDirection: "row",

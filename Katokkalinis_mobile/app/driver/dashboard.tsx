@@ -1,11 +1,11 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import * as Haptics from "expo-haptics";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
-  Dimensions,
   Modal,
   ScrollView,
   StyleSheet,
@@ -27,8 +27,6 @@ import {
   submitCollectionLog,
 } from "../../services/driver";
 
-const { width: SCREEN_WIDTH } = Dimensions.get("window");
-
 export default function DriverDashboard() {
   const router = useRouter();
   const [userName, setUserName] = useState("John Driver");
@@ -48,7 +46,7 @@ export default function DriverDashboard() {
   // Record Collection Modal (Insert-Only)
   const [recordModalVisible, setRecordModalVisible] = useState(false);
   const [amountCollected, setAmountCollected] = useState("");
-  const [unit, setUnit] = useState("tons");
+  const [unit] = useState("tons");
   const [wasteType, setWasteType] = useState("Residual");
   const [notes, setNotes] = useState("");
   const [submittingLog, setSubmittingLog] = useState(false);
@@ -154,28 +152,6 @@ export default function DriverDashboard() {
     );
   };
 
-  const handleRouteCompleted = () => {
-    Alert.alert(
-      "Confirm Route Completion",
-      "Mark assigned collection stops as fully cleared?",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Mark Completed",
-          onPress: () => {
-            setRouteCompleted(true);
-            setIsCollecting(false);
-            setBanner({
-              visible: true,
-              title: "Route Cleared",
-              message: "All assigned barangay stops completed successfully.",
-              type: "success",
-            });
-          },
-        },
-      ]
-    );
-  };
 
   // 1. Submit New Collection Log (Insert-Only)
   const handleSaveCollectionRecord = async () => {
@@ -197,6 +173,11 @@ export default function DriverDashboard() {
       });
 
       if (res?.success) {
+        try {
+          await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        } catch {
+          // Haptics fallback
+        }
         setRecordModalVisible(false);
         setAmountCollected("");
         setNotes("");
@@ -288,6 +269,11 @@ export default function DriverDashboard() {
             try {
               const res = await finalizeCollectionLog(log.id);
               if (res?.success) {
+                try {
+                  await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                } catch {
+                  // Haptics fallback
+                }
                 setBanner({
                   visible: true,
                   title: "Record Locked",
@@ -479,7 +465,7 @@ export default function DriverDashboard() {
             <MaterialCommunityIcons name="clipboard-text-outline" size={36} color="#A5B8A3" />
             <Text style={styles.emptyTitle}>No Collection Logs Yet</Text>
             <Text style={styles.emptySub}>
-              All garbage collection data is recorded directly from driver mobile submissions. Tap "Record Log" to submit your first entry.
+              All garbage collection data is recorded directly from driver mobile submissions. Tap &quot;Record Log&quot; to submit your first entry.
             </Text>
           </View>
         ) : (

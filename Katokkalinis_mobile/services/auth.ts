@@ -1,6 +1,6 @@
 import { apiRequest } from "./api";
 
-export type UserRole = "resident" | "vendor" | "driver" | "inspector" | "admin" | "super_admin";
+export type UserRole = "resident" | "vendor" | "driver" | "inspector";
 
 export interface User {
   id: number;
@@ -69,7 +69,7 @@ export async function loginUser(
     }
 
     // Validate expected role if supplied
-    if (expectedRole && roleName !== expectedRole && roleName !== "super_admin") {
+    if (expectedRole && roleName !== expectedRole) {
       return {
         success: false,
         message: `This account does not have access to the ${expectedRole} portal.`,
@@ -109,7 +109,8 @@ export async function registerUser(
   passwordConfirmation: string,
   role: UserRole = "resident",
   phone?: string,
-  address?: string
+  address?: string,
+  barangayId?: number | null
 ): Promise<AuthResponse> {
   try {
     const data = await apiRequest("/register", {
@@ -123,6 +124,8 @@ export async function registerUser(
         phone,
         contact_number: phone,
         address,
+        barangay: address,
+        barangay_id: barangayId,
       }),
     });
 

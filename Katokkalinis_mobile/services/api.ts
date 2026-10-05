@@ -44,6 +44,27 @@ export function getBaseApiUrl(): string {
   return envUrl ? envUrl.replace(/\/+$/, "") : "http://192.168.18.174:8000/api";
 }
 
+/**
+ * Resolves a media path or URL to an absolute reachable URL on mobile devices.
+ * Rewrites localhost/127.0.0.1 to the active LAN server IP and handles /storage paths.
+ */
+export function resolveMediaUrl(pathOrUrl?: string | null): string | null {
+  if (!pathOrUrl) return null;
+  if (pathOrUrl.startsWith("data:image")) return pathOrUrl;
+
+  const baseOrigin = getBaseApiUrl().replace(/\/api$/, "");
+
+  if (pathOrUrl.startsWith("http://") || pathOrUrl.startsWith("https://")) {
+    if (pathOrUrl.includes("localhost:8000") || pathOrUrl.includes("127.0.0.1:8000")) {
+      return pathOrUrl.replace(/http:\/\/(localhost|127\.0\.0\.1):8000/, baseOrigin);
+    }
+    return pathOrUrl;
+  }
+
+  const cleanPath = pathOrUrl.startsWith("/") ? pathOrUrl : `/${pathOrUrl}`;
+  return `${baseOrigin}${cleanPath}`;
+}
+
 /*
 |--------------------------------------------------------------------------
 | HEALTH CHECK

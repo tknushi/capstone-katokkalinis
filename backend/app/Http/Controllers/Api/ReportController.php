@@ -19,7 +19,7 @@ class ReportController extends Controller
     public function index(Request $request)
     {
         $query = Report::with([
-            'user:id,name,email',
+            'user:id,name,email,avatar',
             'barangay:id,name',
         ])->latest();
 
@@ -143,7 +143,7 @@ class ReportController extends Controller
         ]);
 
         $report->load([
-            'user:id,name,email',
+            'user:id,name,email,avatar',
             'barangay:id,name',
         ]);
 
@@ -171,7 +171,7 @@ class ReportController extends Controller
     public function show($id)
     {
         $report = Report::with([
-            'user:id,name,email',
+            'user:id,name,email,avatar',
             'barangay:id,name',
         ])->find($id);
 

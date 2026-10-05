@@ -12,7 +12,10 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import InitialsAvatar from "../components/InitialsAvatar";
 import KatokLogo from "../components/KatokLogo";
+import ReportEvidenceImage from "../components/ReportEvidenceImage";
+import { resolveMediaUrl } from "../services/api";
 import { fetchReports } from "../services/resident";
 
 const fallbackReports = [
@@ -24,7 +27,7 @@ const fallbackReports = [
     status: "In Progress",
     text: "Uncollected commercial waste pile accumulating near vendor fruit stalls. Needs immediate compactor pickup.",
     imageUrl: "https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?auto=format&fit=crop&w=600&q=80",
-    avatar: "https://i.pravatar.cc/100?img=32",
+    avatar: null,
     category: "Uncollected Waste",
   },
   {
@@ -34,7 +37,7 @@ const fallbackReports = [
     time: "2 days ago",
     status: "Resolved",
     text: "Missed scheduled garbage collection on Wednesday morning. Driver arrived and completed clearing yesterday.",
-    avatar: "https://i.pravatar.cc/100?img=12",
+    avatar: null,
     category: "Missed Pickup",
   },
   {
@@ -44,7 +47,7 @@ const fallbackReports = [
     time: "4 days ago",
     status: "Resolved",
     text: "Damaged municipal waste bin replaced with a new segregated container.",
-    avatar: "https://i.pravatar.cc/100?img=47",
+    avatar: null,
     category: "Damaged Bin",
   },
 ];
@@ -56,6 +59,7 @@ export default function Report() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedReport, setSelectedReport] = useState(null);
+  const [fullScreenPhoto, setFullScreenPhoto] = useState(null);
 
   const loadReports = useCallback(async () => {
     try {
@@ -68,8 +72,8 @@ export default function Report() {
           time: r.created_at ? new Date(r.created_at).toLocaleDateString() : "Recent",
           status: r.status === "completed" || r.status === "resolved" ? "Resolved" : "In Progress",
           text: r.description || r.title || "Waste issue reported",
-          imageUrl: r.image || null,
-          avatar: `https://i.pravatar.cc/100?u=${r.user_id || r.id}`,
+          imageUrl: resolveMediaUrl(r.image_url || r.image),
+          avatar: resolveMediaUrl(r.user?.avatar_url || r.user?.avatar || null),
           category: r.category || "Waste Report",
         }));
         setReports(formatted);
@@ -208,7 +212,12 @@ export default function Report() {
               onPress={() => setSelectedReport(report)}
             >
               <View style={styles.cardHeader}>
-                <Image source={{ uri: report.avatar }} style={styles.authorAvatar} />
+                <InitialsAvatar
+                  name={report.name}
+                  avatarUri={report.avatar}
+                  size={42}
+                  style={styles.authorAvatar}
+                />
                 <View style={{ flex: 1, marginLeft: 10 }}>
                   <Text style={styles.authorName}>{report.name}</Text>
                   <View style={styles.locationRow}>
@@ -238,15 +247,15 @@ export default function Report() {
                 {report.text}
               </Text>
 
-              {report.imageUrl && (
+              {report.imageUrl ? (
                 <View style={styles.cardImageContainer}>
-                  <Image source={{ uri: report.imageUrl }} style={styles.cardImage} resizeMode="cover" />
-                  <View style={styles.photoOverlayBadge}>
-                    <MaterialCommunityIcons name="image-outline" size={14} color="#FFFFFF" />
-                    <Text style={styles.photoOverlayText}>Evidence</Text>
-                  </View>
+                  <ReportEvidenceImage
+                    uri={report.imageUrl}
+                    imageHeight={180}
+                    onPressFullScreen={(url) => setFullScreenPhoto(url)}
+                  />
                 </View>
-              )}
+              ) : null}
 
               <View style={styles.cardFooter}>
                 <View style={styles.timeRow}>
@@ -286,7 +295,12 @@ export default function Report() {
               {/* Status Badge & Reporter */}
               <View style={styles.modalMetaRow}>
                 <View style={styles.reporterInfo}>
-                  <Image source={{ uri: selectedReport?.avatar }} style={styles.modalAvatar} />
+                  <InitialsAvatar
+                    name={selectedReport?.name}
+                    avatarUri={selectedReport?.avatar}
+                    size={44}
+                    style={styles.modalAvatar}
+                  />
                   <View style={{ marginLeft: 8 }}>
                     <Text style={styles.modalReporterName}>{selectedReport?.name}</Text>
                     <Text style={styles.modalTime}>{selectedReport?.time}</Text>
@@ -326,10 +340,10 @@ export default function Report() {
               {selectedReport?.imageUrl ? (
                 <View style={{ marginTop: 14 }}>
                   <Text style={styles.modalSectionLabel}>Photo Evidence</Text>
-                  <Image
-                    source={{ uri: selectedReport.imageUrl }}
-                    style={styles.modalFullImage}
-                    resizeMode="cover"
+                  <ReportEvidenceImage
+                    uri={selectedReport.imageUrl}
+                    imageHeight={220}
+                    onPressFullScreen={(url) => setFullScreenPhoto(url)}
                   />
                 </View>
               ) : null}
@@ -346,7 +360,28 @@ export default function Report() {
         </View>
       </Modal>
 
-      {/* 7. BOTTOM NAVIGATION BAR */}
+      {/* 7. FULL-SCREEN IMAGE VIEWER MODAL */}
+      <Modal visible={!!fullScreenPhoto} transparent animationType="fade">
+        <View style={styles.fullScreenBackdrop}>
+          <TouchableOpacity
+            style={styles.fullScreenCloseBtn}
+            onPress={() => setFullScreenPhoto(null)}
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          >
+            <MaterialCommunityIcons name="close" size={26} color="#FFFFFF" />
+          </TouchableOpacity>
+
+          {fullScreenPhoto && (
+            <Image
+              source={{ uri: fullScreenPhoto }}
+              style={styles.fullScreenImage}
+              resizeMode="contain"
+            />
+          )}
+        </View>
+      </Modal>
+
+      {/* 8. BOTTOM NAVIGATION BAR */}
       <View style={styles.bottomNav}>
         <TouchableOpacity
           style={styles.navItem}
@@ -803,8 +838,27 @@ const styles = StyleSheet.create({
     marginTop: 2,
     fontWeight: "600",
   },
-  navItemTextActive: {
-    color: "#2E7D32",
-    fontWeight: "800",
+  fullScreenBackdrop: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.94)",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 10,
+  },
+  fullScreenCloseBtn: {
+    position: "absolute",
+    top: 50,
+    right: 20,
+    zIndex: 99,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  fullScreenImage: {
+    width: "100%",
+    height: "85%",
   },
 });

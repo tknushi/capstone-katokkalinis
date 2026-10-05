@@ -55,6 +55,24 @@ class AttendanceController extends Controller
             $query->where('status', $request->status);
         }
 
+        /*
+        |--------------------------------------------------------------------------
+        | ARCHIVE / ACTIVE FILTER
+        |--------------------------------------------------------------------------
+        */
+
+        if ($request->has('status_filter')) {
+            $statusFilter = strtolower($request->status_filter);
+            if ($statusFilter === 'active') {
+                $query->where('is_archived', false);
+            } elseif ($statusFilter === 'archived') {
+                $query->where('is_archived', true);
+            }
+        } elseif ($request->has('archived')) {
+            $isArchived = filter_var($request->archived, FILTER_VALIDATE_BOOLEAN);
+            $query->where('is_archived', $isArchived);
+        }
+
         $attendance = $query
             ->latest('date')
             ->latest('time_in')
@@ -315,6 +333,257 @@ class AttendanceController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Attendance deleted successfully.',
+        ]);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | AUTOMATED CHECK-IN / CHECK-OUT (SELF)
+    |--------------------------------------------------------------------------
+    */
+
+    public function checkIn(Request $request)
+    {
+        $user = $request->user();
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'Unauthenticated.'], 401);
+        }
+
+        $today = now()->toDateString();
+        $nowTime = now()->format('H:i:s');
+
+        $attendance = Attendance::firstOrCreate(
+            ['user_id' => $user->id, 'date' => $today],
+            [
+                'time_in' => $nowTime,
+                'status' => 'present',
+                'remarks' => $request->remarks ?? 'Self check-in',
+            ]
+        );
+
+        $attendance->load('user');
+
+        ActivityLog::record(
+            'attendance.check_in',
+            "{$user->name} recorded check-in for {$today} at {$nowTime}.",
+            $attendance,
+            $user->id
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Check-in recorded successfully.',
+            'attendance' => $attendance,
+        ]);
+    }
+
+    public function checkOut(Request $request)
+    {
+        $user = $request->user();
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'Unauthenticated.'], 401);
+        }
+
+        $today = now()->toDateString();
+        $nowTime = now()->format('H:i:s');
+
+        $attendance = Attendance::where('user_id', $user->id)
+            ->where('date', $today)
+            ->first();
+
+        if (!$attendance) {
+            $attendance = Attendance::create([
+                'user_id' => $user->id,
+                'date' => $today,
+                'time_in' => $nowTime,
+                'time_out' => $nowTime,
+                'status' => 'present',
+                'remarks' => $request->remarks ?? 'Self check-out',
+            ]);
+        } else {
+            $attendance->time_out = $nowTime;
+            $attendance->save();
+        }
+
+        $attendance->load('user');
+
+        ActivityLog::record(
+            'attendance.check_out',
+            "{$user->name} recorded check-out for {$today} at {$nowTime}.",
+            $attendance,
+            $user->id
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Check-out recorded successfully.',
+            'attendance' => $attendance,
+        ]);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | ARCHIVE ATTENDANCE RECORD (SOFT-DELETE)
+    |--------------------------------------------------------------------------
+    */
+
+    public function archive(Request $request, $id)
+    {
+        $attendance = Attendance::with('user')->find($id);
+
+        if (!$attendance) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Attendance record not found.',
+            ], 404);
+        }
+
+        $attendance->is_archived = true;
+        $attendance->archived_at = now();
+        $attendance->save();
+
+        ActivityLog::record(
+            'attendance.archived',
+            "Archived attendance record #{$attendance->id} (" . ($attendance->user->name ?? 'User') . " on {$attendance->date}).",
+            $attendance
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Attendance record archived successfully.',
+            'attendance' => $attendance,
+        ]);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | RESTORE ATTENDANCE RECORD (UNARCHIVE)
+    |--------------------------------------------------------------------------
+    */
+
+    public function restore(Request $request, $id)
+    {
+        $attendance = Attendance::with('user')->find($id);
+
+        if (!$attendance) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Attendance record not found.',
+            ], 404);
+        }
+
+        $attendance->is_archived = false;
+        $attendance->archived_at = null;
+        $attendance->save();
+
+        ActivityLog::record(
+            'attendance.restored',
+            "Restored attendance record #{$attendance->id} (" . ($attendance->user->name ?? 'User') . " on {$attendance->date}).",
+            $attendance
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Attendance record restored successfully.',
+            'attendance' => $attendance,
+        ]);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | BULK ARCHIVE ATTENDANCE RECORDS (SOFT-DELETE)
+    |--------------------------------------------------------------------------
+    */
+
+    public function bulkArchive(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'ids' => 'required|array|min:1',
+            'ids.*' => 'integer|exists:attendances,id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Please provide a valid array of attendance record IDs to archive.',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $records = Attendance::whereIn('id', $request->ids)->get();
+
+        if ($records->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No matching attendance records found to archive.',
+            ], 404);
+        }
+
+        foreach ($records as $record) {
+            $record->is_archived = true;
+            $record->archived_at = now();
+            $record->save();
+        }
+
+        $count = $records->count();
+        ActivityLog::record(
+            'attendance.bulk_archived',
+            "Bulk archived {$count} attendance record(s)."
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => "{$count} attendance " . ($count === 1 ? 'record' : 'records') . " archived successfully.",
+            'archived_count' => $count,
+        ]);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | BULK RESTORE ATTENDANCE RECORDS
+    |--------------------------------------------------------------------------
+    */
+
+    public function bulkRestore(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'ids' => 'required|array|min:1',
+            'ids.*' => 'integer|exists:attendances,id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Please provide a valid array of attendance record IDs to restore.',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $records = Attendance::whereIn('id', $request->ids)->get();
+
+        if ($records->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No matching attendance records found to restore.',
+            ], 404);
+        }
+
+        foreach ($records as $record) {
+            $record->is_archived = false;
+            $record->archived_at = null;
+            $record->save();
+        }
+
+        $count = $records->count();
+        ActivityLog::record(
+            'attendance.bulk_restored',
+            "Bulk restored {$count} attendance record(s)."
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => "{$count} attendance " . ($count === 1 ? 'record' : 'records') . " restored successfully.",
+            'restored_count' => $count,
         ]);
     }
 }

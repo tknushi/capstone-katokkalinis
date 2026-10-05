@@ -6,24 +6,135 @@
     <title>Barangay Overview - KatokKalinis</title>
     <link rel="stylesheet" href="css/style.css">
     <style>
+        /* Single-viewport height and responsive grid optimizations */
+        .overview-stats-grid-6 {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        @media (max-width: 1200px) {
+            .overview-stats-grid-6 {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        @media (max-width: 680px) {
+            .overview-stats-grid-6 {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        /* Compact Two-column layout */
         .two-col {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 20px;
+            gap: 8px;
         }
-        @media (max-width: 900px) {
+        @media (max-width: 980px) {
             .two-col { grid-template-columns: 1fr; }
         }
-        .list-item {
-            display: flex;
-            justify-content: space-between;
+
+        /* Compact action buttons */
+        .overview-panel-btn {
+            width: auto;
+            padding: 3px 8px;
+            font-size: 11.5px;
+            font-weight: 600;
+            border-radius: 6px;
+            display: inline-flex;
             align-items: center;
-            padding: 10px 0;
-            border-bottom: 1px solid var(--border);
-            font-size: 14px;
+            gap: 4px;
+            text-decoration: none;
         }
-        .list-item:last-child { border-bottom: none; }
-        .list-item .meta { color: var(--text-muted); font-size: 12px; }
+
+        /* Compact thumbnail preview */
+        .issue-thumb {
+            width: 34px;
+            height: 34px;
+            border-radius: 6px;
+            object-fit: cover;
+            border: 1px solid var(--border);
+            flex-shrink: 0;
+            transition: transform 0.15s ease;
+        }
+        .issue-thumb:hover {
+            transform: scale(1.05);
+        }
+
+        .issue-thumb-fallback {
+            width: 34px;
+            height: 34px;
+            border-radius: 6px;
+            background: var(--surface-alt);
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 15px;
+            color: var(--text-muted);
+        }
+
+        /* Viewport compactness refinements */
+        .card.overview-card {
+            padding: 10px 14px;
+            margin-bottom: 0;
+            border-radius: 10px;
+        }
+        .card.overview-card .card-header {
+            margin-bottom: 6px;
+            padding-bottom: 6px;
+        }
+        .card.overview-card .card-header h3 {
+            font-size: 14.5px;
+        }
+        .overview-section-header {
+            margin: 7px 0 5px 0;
+        }
+        .overview-stat-card {
+            padding: 8px 12px;
+        }
+        .overview-stat-num {
+            font-size: 24px;
+            margin: 0 0 1px;
+        }
+        .overview-stat-label {
+            font-size: 12.5px;
+        }
+        .overview-stat-meta {
+            font-size: 11px;
+        }
+        .scannable-item {
+            padding: 6px 0;
+        }
+        .scannable-title {
+            font-size: 13.5px;
+            margin-bottom: 1px;
+        }
+        .scannable-row {
+            font-size: 11.5px;
+            gap: 4px 8px;
+        }
+        .compliance-simple-grid {
+            margin: 2px 0 6px;
+            gap: 6px;
+        }
+        .compliance-card-simple {
+            padding: 6px 4px;
+        }
+        .compliance-card-simple .c-num {
+            font-size: 20px;
+        }
+        .compliance-card-simple .c-label {
+            font-size: 11.5px;
+        }
+        .progress-big-number {
+            font-size: 22px;
+        }
+        .progress-plain-sentence {
+            font-size: 12.5px;
+            margin-top: 4px;
+        }
     </style>
 </head>
 <body>
@@ -33,54 +144,267 @@
             <div class="sidebar-header">KatokKalinis</div>
             <div class="sidebar-role" id="sidebar-role"></div>
             <nav class="sidebar-nav" id="sidebar-nav"></nav>
-            <div class="sidebar-footer">
-                
-            </div>
+            <div class="sidebar-footer"></div>
         </aside>
 
         <main class="main-content">
-            <header class="topbar">
-                <h2>Barangay Overview</h2>
-                <div id="topbar-user"></div>
+            <!-- Minimal, clean topbar header -->
+            <header class="topbar" style="padding: 12px 24px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <h2 id="overview-title" style="margin: 0; font-size: 20px; font-weight: 800; color: var(--green-900);">Barangay Overview</h2>
+                </div>
+
+                <div class="topbar-right-area">
+                    <div id="topbar-user" class="topbar-user-greeting">Welcome, System Administrator (Barangay Admin)</div>
+
+                    <!-- Header Notification Bell with Dropdown Activity Feed -->
+                    <div class="notification-bell-wrap" id="notification-bell-wrap">
+                        <button type="button" class="btn-icon-topbar" id="btn-notification-bell" onclick="toggleActivityDropdown(event)" title="Recent Activity &amp; Notifications" aria-label="Notifications" aria-expanded="false">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                            </svg>
+                            <span class="bell-count-badge" id="bell-count-badge">0</span>
+                        </button>
+
+                        <!-- Activity Notifications Dropdown Panel -->
+                        <div class="activity-dropdown-menu" id="activity-dropdown-menu">
+                            <div class="activity-dropdown-header">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                                    </svg>
+                                    <span>Recent Activity</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span class="live-sync-badge-mini" title="Auto-sync active in background">
+                                        <span class="live-sync-dot"></span> Live
+                                    </span>
+                                    <button type="button" class="btn-close-dropdown" onclick="closeActivityDropdown(event)" title="Close">&times;</button>
+                                </div>
+                            </div>
+                            <div class="activity-dropdown-body" id="recent-activities">
+                                <div class="empty-state-box">Loading activity feed...</div>
+                            </div>
+                            <div class="activity-dropdown-footer">
+                                <a href="activity-logs.html" class="activity-view-all-link">View Full System Audit Logs &rarr;</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Small icon-only refresh button -->
+                    <button type="button" class="btn-icon-topbar" id="btn-refresh" onclick="triggerManualRefresh()" title="Refresh Dashboard Data" aria-label="Refresh Data">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+                        </svg>
+                    </button>
+                </div>
             </header>
 
-            <section class="content">
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <h3>Total Residents</h3>
-                        <div class="value" id="stat-residents">...</div>
+            <section class="content" style="padding: 10px 24px 14px;">
+
+                <!-- SECTION 1: Key Numbers at a Glance -->
+                <div class="overview-section-header">
+                    <div class="overview-section-title">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                            <line x1="8" y1="21" x2="16" y2="21"></line>
+                            <line x1="12" y1="17" x2="12" y2="21"></line>
+                        </svg>
+                        Key Numbers at a Glance
                     </div>
-                    <div class="stat-card">
-                        <h3>Registered Vendors</h3>
-                        <div class="value" id="stat-vendors">...</div>
+                    <span class="overview-section-desc">Live counts from mobile accounts and field records</span>
+                </div>
+
+                <!-- 6 Accessible & Compact Stat Cards -->
+                <div class="stats-grid overview-stats-grid-6">
+                    <div class="overview-stat-card">
+                        <div class="overview-stat-label">Total Residents</div>
+                        <div class="overview-stat-num" id="stat-residents">...</div>
+                        <div class="overview-stat-meta" id="stat-residents-sub">Registered mobile accounts</div>
                     </div>
-                    <div class="stat-card">
-                        <h3>Weekly Collections</h3>
-                        <div class="value" id="stat-collections">...</div>
+
+                    <div class="overview-stat-card">
+                        <div class="overview-stat-label">Registered Vendors</div>
+                        <div class="overview-stat-num" id="stat-vendors">...</div>
+                        <div class="overview-stat-meta" id="stat-vendors-sub">Active market stalls</div>
                     </div>
-                    <div class="stat-card">
-                        <h3>Avg. Collection Time</h3>
-                        <div class="value" id="stat-avg-time">...</div>
+
+                    <div class="overview-stat-card">
+                        <div class="overview-stat-label">Field Personnel</div>
+                        <div class="overview-stat-num" id="stat-personnel">...</div>
+                        <div class="overview-stat-meta" id="stat-personnel-sub">Drivers &amp; Inspectors</div>
+                    </div>
+
+                    <div class="overview-stat-card">
+                        <div class="overview-stat-label">Weekly Collections</div>
+                        <div class="overview-stat-num" id="stat-collections">...</div>
+                        <div class="overview-stat-meta" id="stat-collections-sub">Completed in past 7 days</div>
+                    </div>
+
+                    <div class="overview-stat-card">
+                        <div class="overview-stat-label">Avg. Collection Time</div>
+                        <div class="overview-stat-num" id="stat-avg-time">...</div>
+                        <div class="overview-stat-meta" id="stat-avg-time-sub">Average route duration</div>
+                    </div>
+
+                    <div class="overview-stat-card">
+                        <div class="overview-stat-label">Pending Reports</div>
+                        <div class="overview-stat-num" id="stat-pending-reports" style="color: #d97706;">...</div>
+                        <div class="overview-stat-meta" id="stat-pending-reports-sub">Awaiting admin review</div>
                     </div>
                 </div>
 
-                <div class="two-col">
-                    <div class="card">
+                <!-- SECTION 2: Operations & Activity (Unified Single Header) -->
+                <div class="overview-section-header">
+                    <div class="overview-section-title">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                        </svg>
+                        Operations &amp; Activity
+                    </div>
+                    <span class="overview-section-desc">Real-time route progress, compliance audits, and community reports</span>
+                </div>
+
+                <!-- Continuous Layout: Operations Row 1 (Progress & Compliance) -->
+                <div class="two-col" style="margin-bottom: 8px; gap: 8px;">
+                    <!-- Today's Collection Progress Panel -->
+                    <div class="card overview-card" style="margin-bottom: 0;">
                         <div class="card-header">
-                            <h3>Recent Collections</h3>
-                            <a href="schedule.html" class="btn" style="width: auto; padding: 6px 14px;">View All</a>
+                            <div>
+                                <h3>Today's Collection Progress</h3>
+                                <p style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">Completed vs. scheduled collection stops for today</p>
+                            </div>
+                            <span id="today-progress-badge">
+                                <span class="status-chip status-chip-progress">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                                    In Progress
+                                </span>
+                            </span>
                         </div>
-                        <div id="recent-collections">Loading...</div>
+
+                        <div class="progress-simple-box">
+                            <div class="progress-summary-row">
+                                <div class="progress-big-stat">
+                                    <span class="progress-big-number" id="today-progress-ratio">0 of 0</span>
+                                    <span class="progress-big-pct" id="today-progress-pct">(0%)</span>
+                                </div>
+                                <span class="progress-pct-badge" id="today-progress-badge-small">0% Done</span>
+                            </div>
+
+                            <!-- High-contrast compact progress bar -->
+                            <div class="progress-container">
+                                <div class="progress-track" style="height: 10px;">
+                                    <div class="progress-fill" id="today-progress-bar" style="width: 0%;"></div>
+                                </div>
+                            </div>
+
+                            <!-- Single, plain-language sentence -->
+                            <div class="progress-plain-sentence" id="today-progress-sentence">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                                </svg>
+                                <span id="today-sentence-text">Checking today's scheduled collection routes...</span>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="card">
+                    <!-- Vendor Compliance Summary Panel -->
+                    <div class="card overview-card" style="margin-bottom: 0;">
                         <div class="card-header">
-                            <h3>Active Issues</h3>
-                            <a href="reports.html" class="btn" style="width: auto; padding: 6px 14px;">View All</a>
+                            <div>
+                                <h3>Vendor Compliance Summary</h3>
+                                <p style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">Waste segregation audits conducted by inspectors</p>
+                            </div>
+                            <a href="vendors.html" class="btn overview-panel-btn">
+                                <span>View Vendors</span>
+                                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                            </a>
                         </div>
-                        <div id="active-issues">Loading...</div>
+
+                        <!-- 3 Clear status breakdown cards -->
+                        <div class="compliance-simple-grid">
+                            <div class="compliance-card-simple status-good">
+                                <div class="c-num" id="compliance-excellent">0</div>
+                                <div class="c-label">
+                                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#15803d" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                    Compliant
+                                </div>
+                                <div class="c-hint">90%+ Score</div>
+                            </div>
+
+                            <div class="compliance-card-simple status-warn">
+                                <div class="c-num" id="compliance-attention">0</div>
+                                <div class="c-label">
+                                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#b45309" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                                    Follow-up
+                                </div>
+                                <div class="c-hint">Needs review</div>
+                            </div>
+
+                            <div class="compliance-card-simple status-bad">
+                                <div class="c-num" id="compliance-non-compliant">0</div>
+                                <div class="c-label">
+                                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#b91c1c" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                    Failed
+                                </div>
+                                <div class="c-hint">Non-compliant</div>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--text-muted); padding-top: 4px; border-top: 1px solid var(--border);">
+                            <span>Total Audits: <strong id="compliance-total-audits" style="color: var(--text);">0 stalls</strong></span>
+                            <span>Overall Rate: <strong id="compliance-rate" style="color: var(--green-700); font-weight: 700;">100%</strong></span>
+                        </div>
                     </div>
                 </div>
+
+                <!-- Continuous Layout: Operations Row 2 (3 Columns: Recent Collections, Upcoming Schedules, Active Issues) -->
+                <div class="three-col" style="gap: 8px;">
+                    <!-- Column 1: Recent Collections (3 items) -->
+                    <div class="card overview-card" style="margin-bottom: 0;">
+                        <div class="card-header">
+                            <div>
+                                <h3>Recent Collections</h3>
+                                <p style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">Latest driver runs</p>
+                            </div>
+                            <a href="schedule.html" class="btn overview-panel-btn">View All</a>
+                        </div>
+                        <div id="recent-collections">
+                            <div class="empty-state-box">Loading recent collections...</div>
+                        </div>
+                    </div>
+
+                    <!-- Column 2: Upcoming Scheduled Collections (3 items) -->
+                    <div class="card overview-card" style="margin-bottom: 0;">
+                        <div class="card-header">
+                            <div>
+                                <h3>Upcoming Collections</h3>
+                                <p style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">Next scheduled runs</p>
+                            </div>
+                            <a href="schedule.html" class="btn overview-panel-btn">View Schedule</a>
+                        </div>
+                        <div id="upcoming-schedules">
+                            <div class="empty-state-box">Loading upcoming schedules...</div>
+                        </div>
+                    </div>
+
+                    <!-- Column 3: Active Issues (3 items) -->
+                    <div class="card overview-card" style="margin-bottom: 0;">
+                        <div class="card-header">
+                            <div>
+                                <h3>Active Issues</h3>
+                                <p style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">Resident waste reports</p>
+                            </div>
+                            <a href="reports.html" class="btn overview-panel-btn">View All</a>
+                        </div>
+                        <div id="active-issues">
+                            <div class="empty-state-box">Loading active issues...</div>
+                        </div>
+                    </div>
+                </div>
+
             </section>
         </main>
     </div>
@@ -88,112 +412,551 @@
     <script src="js/app.js"></script>
     <script>
         // Read URL params: ?barangay=<id>&name=<name>
-        const urlParams   = new URLSearchParams(window.location.search);
-        const barangayId  = urlParams.get('barangay');
+        const urlParams    = new URLSearchParams(window.location.search);
+        const barangayId   = urlParams.get('barangay');
         const barangayName = urlParams.get('name') ? decodeURIComponent(urlParams.get('name')) : null;
 
-        // Update page title and header dynamically
+        // Dynamic header update if filtered by barangay
         if (barangayName) {
-            document.title = `${barangayName} - KatokKalinis`;
-            const h2 = document.querySelector('.topbar h2');
-            if (h2) h2.textContent = barangayName;
+            document.title = `${barangayName} - Overview - KatokKalinis`;
+            const h2 = document.getElementById('overview-title');
+            if (h2) h2.textContent = `${barangayName} Overview`;
         }
 
-        function timeDiffHours(start, end) {
-            if (!start || !end) return null;
-            const [sh, sm] = start.split(':').map(Number);
-            const [eh, em] = end.split(':').map(Number);
-            const minutes = (eh * 60 + em) - (sh * 60 + sm);
-            return minutes > 0 ? minutes / 60 : null;
+        // Relative time helper (simple, elder-friendly wording)
+        function formatRelativeTime(dateStr) {
+            if (!dateStr) return 'Recently';
+            const date = new Date(dateStr);
+            if (isNaN(date.getTime())) return dateStr;
+            const diffSeconds = Math.floor((new Date() - date) / 1000);
+            if (diffSeconds < 45) return 'Just now';
+            const diffMinutes = Math.floor(diffSeconds / 60);
+            if (diffMinutes < 60) return `${diffMinutes}m ago`;
+            const diffHours = Math.floor(diffMinutes / 60);
+            if (diffHours < 24) return `${diffHours}h ago`;
+            const diffDays = Math.floor(diffHours / 24);
+            if (diffDays < 7) return `${diffDays}d ago`;
+            return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
         }
+
+        // Short date helper
+        function formatShortDate(dateStr) {
+            if (!dateStr) return '-';
+            const d = new Date(dateStr);
+            if (isNaN(d.getTime())) return dateStr.substring(0, 10);
+            return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+        }
+
+        /**
+         * Render accessible status badge combining COLOR + SVG ICON + SHORT WORD
+         * Ensures non-readers and colorblind staff can recognize meaning instantly.
+         */
+        function renderStatusBadge(status) {
+            const s = (status || '').toLowerCase();
+            if (s === 'completed' || s === 'done' || s === 'approved') {
+                return `
+                    <span class="status-chip status-chip-done" title="Status: Completed">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        Done
+                    </span>
+                `;
+            }
+            if (s === 'in_progress' || s === 'on_route' || s === 'active') {
+                return `
+                    <span class="status-chip status-chip-progress" title="Status: In Progress">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                        In Progress
+                    </span>
+                `;
+            }
+            if (s === 'pending') {
+                return `
+                    <span class="status-chip status-chip-pending" title="Status: Pending Action">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                        Pending
+                    </span>
+                `;
+            }
+            if (s === 'reviewed') {
+                return `
+                    <span class="status-chip status-chip-progress" title="Status: Reviewed">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                        Reviewed
+                    </span>
+                `;
+            }
+            if (s === 'cancelled' || s === 'rejected') {
+                return `
+                    <span class="status-chip status-chip-alert" title="Status: Cancelled">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                        Cancelled
+                    </span>
+                `;
+            }
+            // Default: Scheduled / Frequency
+            const label = s === 'weekly' ? 'Weekly' : (s === 'daily' ? 'Daily' : 'Scheduled');
+            return `
+                <span class="status-chip status-chip-scheduled" title="Status: ${label}">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                    ${label}
+                </span>
+            `;
+        }
+
+        /**
+         * Simplify raw activity logs into one short, plain-language sentence
+         * e.g. "Driver Juan finished Barangay 1 route"
+         */
+        function simplifyActivitySentence(a) {
+            const action = (a.action || '').toLowerCase();
+            const raw = a.description || '';
+            const actor = a.actor || a.user?.name || '';
+
+            if (action.includes('collection_route.completed') || action.includes('schedule.completed')) {
+                return raw.replace(/Driver\s+/i, 'Driver ').replace(/\.$/, '');
+            }
+            if (action.includes('report.created')) {
+                return actor ? `${actor} reported an uncollected waste issue` : 'A resident submitted a waste report';
+            }
+            if (action.includes('inspection.created')) {
+                return raw.replace(/\.$/, '');
+            }
+            if (action.includes('vendor.registered')) {
+                return raw.replace(/\.$/, '');
+            }
+            if (action.includes('auth.login')) {
+                return `${actor || 'Staff member'} logged into the dashboard`;
+            }
+            if (action.includes('user.registered')) {
+                return raw.replace(/\.$/, '');
+            }
+            return raw || 'System activity recorded';
+        }
+
+        // Pick icon and style based on activity log action
+        function getActivityIcon(action) {
+            const act = (action || '').toLowerCase();
+            if (act.includes('collection') || act.includes('route') || act.includes('driver')) {
+                return {
+                    className: 'activity-icon-collection',
+                    svg: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>'
+                };
+            }
+            if (act.includes('inspection') || act.includes('inspector') || act.includes('audit')) {
+                return {
+                    className: 'activity-icon-inspection',
+                    svg: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>'
+                };
+            }
+            if (act.includes('report') || act.includes('issue') || act.includes('dump')) {
+                return {
+                    className: 'activity-icon-report',
+                    svg: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>'
+                };
+            }
+            if (act.includes('vendor')) {
+                return {
+                    className: 'activity-icon-vendor',
+                    svg: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>'
+                };
+            }
+            if (act.includes('user') || act.includes('resident') || act.includes('register')) {
+                return {
+                    className: 'activity-icon-user',
+                    svg: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>'
+                };
+            }
+            return {
+                className: 'activity-icon-general',
+                svg: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>'
+            };
+        }
+
+        let isRefreshing = false;
+        let refreshTimer = null;
 
         async function loadOverview() {
+            if (isRefreshing) return;
+            isRefreshing = true;
+
+            const refreshBtn = document.getElementById('btn-refresh');
+            if (refreshBtn) refreshBtn.classList.add('spinning');
+
             try {
-                // Build query suffix for barangay filter
-                const brgyQ = barangayId ? `&barangay_id=${barangayId}` : '';
-
-                const [residentsRes, vendorsRes, routesRes, reportsRes] = await Promise.all([
-                    apiRequest('/users?role=resident').catch(() => ({ users: [] })),
-                    apiRequest(`/vendors${barangayId ? `?barangay_id=${barangayId}` : ''}`).catch(() => ({ vendors: [] })),
-                    apiRequest(`/collection-routes${barangayId ? `?barangay_id=${barangayId}` : ''}`).catch(() => ({ routes: [] })),
-                    apiRequest(`/reports${barangayId ? `?barangay_id=${barangayId}` : ''}`).catch(() => ({ reports: [] })),
-                ]);
-
-                const residents = residentsRes.users || [];
-                const vendors   = vendorsRes.vendors || [];
-                const routes    = routesRes.routes || [];
-                const reports   = reportsRes.reports || [];
-
-                document.getElementById('stat-residents').textContent = residents.length;
-                document.getElementById('stat-vendors').textContent   = vendors.length;
-
-                // "This week" = collection routes within the last 7 days.
-                const now     = new Date();
-                const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-                const weeklyRoutes = routes.filter(r => new Date(r.collection_date) >= weekAgo);
-                document.getElementById('stat-collections').textContent = weeklyRoutes.length;
-
-                const completedWithTimes = routes.filter(r => r.status === 'completed' && r.start_time && r.end_time);
-                const durations = completedWithTimes.map(r => timeDiffHours(r.start_time, r.end_time)).filter(d => d !== null);
-                const avgHours  = durations.length ? (durations.reduce((a, b) => a + b, 0) / durations.length).toFixed(1) : 'N/A';
-                document.getElementById('stat-avg-time').textContent = durations.length ? `${avgHours} hrs` : 'N/A';
-
-                // Recent collections (latest 5)
-                const recentContainer = document.getElementById('recent-collections');
-                if (routes.length === 0) {
-                    recentContainer.innerHTML = '<p>No collection runs recorded yet.</p>';
-                } else {
-                    recentContainer.innerHTML = routes.slice(0, 5).map(r => `
-                        <div class="list-item">
-                            <div>
-                                <strong>${(r.barangay && r.barangay.name) || barangayName || 'Unknown Barangay'}</strong><br>
-                                <span class="meta">Truck ${(r.truck && r.truck.truck_number) || '-'} &middot; ${r.collection_date ? r.collection_date.substring(0, 10) : '-'}</span>
-                            </div>
-                            <span class="pill pill-${r.status === 'completed' ? 'green' : (r.status === 'cancelled' ? 'red' : 'blue')}">${r.status}</span>
-                        </div>
-                    `).join('');
+                // Primary backend endpoint: /overview/summary
+                const endpoint = `/overview/summary${barangayId ? `?barangay_id=${barangayId}` : ''}`;
+                let res;
+                try {
+                    res = await apiRequest(endpoint);
+                } catch (primaryErr) {
+                    console.warn('Authenticated /overview/summary failed, trying fallback', primaryErr);
+                    res = await apiRequest(`/public/overview/summary${barangayId ? `?barangay_id=${barangayId}` : ''}`);
                 }
 
-                // Active issues (pending / reviewed reports)
-                const activeContainer = document.getElementById('active-issues');
-                const activeReports   = reports.filter(r => r.status === 'pending' || r.status === 'reviewed');
-                if (activeReports.length === 0) {
-                    activeContainer.innerHTML = '<p>No active issues right now.</p>';
-                } else {
-                    activeContainer.innerHTML = activeReports.slice(0, 5).map(r => {
-                        const imgUrl = resolveMediaUrl(r.image_url || r.image);
-                        const safeTitle = escapeHtml(r.title || 'Untitled report');
-                        const safeBarangay = (r.barangay && escapeHtml(r.barangay.name)) || escapeHtml(barangayName) || '-';
-                        const safeAuthor = (r.user && escapeHtml(r.user.name)) || 'Anonymous';
-                        const safeStatus = escapeHtml(r.status || 'pending');
+                if (!res || !res.stats) {
+                    throw new Error('Invalid overview payload received');
+                }
 
-                        return `
-                        <div class="list-item" style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
-                            <div style="display:flex;align-items:center;gap:10px;">
-                                ${imgUrl ? `
-                                    <a href="${imgUrl}" target="_blank" rel="noopener noreferrer" title="View attached photo" style="flex-shrink:0;">
-                                        <img src="${imgUrl}" alt="Photo" style="width:38px;height:38px;object-fit:cover;border-radius:6px;border:1px solid var(--border);" onerror="this.style.display='none'">
-                                    </a>
-                                ` : ''}
-                                <div>
-                                    <div style="display:flex;align-items:center;gap:6px;">
-                                        <strong>${safeTitle}</strong>
-                                        ${imgUrl ? '<span style="font-size:10px;background:rgba(46,125,50,0.12);color:#2e7d32;padding:1px 5px;border-radius:3px;font-weight:600;">📷 Photo</span>' : ''}
-                                    </div>
-                                    <span class="meta">${safeBarangay} &middot; ${safeAuthor}</span>
-                                </div>
-                            </div>
-                            <span class="pill pill-${r.status === 'pending' ? 'orange' : 'blue'}">${safeStatus}</span>
+                const stats = res.stats;
+
+                // 1. STAT CARDS (Clear numbers & legible sub-captions)
+                document.getElementById('stat-residents').textContent = stats.total_residents ?? 0;
+                document.getElementById('stat-residents-sub').textContent = `${stats.total_residents ?? 0} registered mobile accounts`;
+
+                document.getElementById('stat-vendors').textContent   = stats.registered_vendors ?? 0;
+                document.getElementById('stat-vendors-sub').textContent   = `${stats.registered_vendors ?? 0} active market stalls`;
+
+                const personnel = stats.personnel || {};
+                const totalPersonnel = personnel.total_personnel ?? personnel.total ?? 0;
+                const drivers = personnel.drivers_count ?? personnel.drivers ?? 0;
+                const inspectors = personnel.inspectors_count ?? personnel.inspectors ?? 0;
+                document.getElementById('stat-personnel').textContent = totalPersonnel;
+                document.getElementById('stat-personnel-sub').textContent = `${drivers} Drivers &bull; ${inspectors} Inspectors`;
+
+                document.getElementById('stat-collections').textContent = stats.weekly_collections ?? 0;
+                document.getElementById('stat-collections-sub').textContent = `${stats.weekly_collections ?? 0} routes completed this week`;
+
+                document.getElementById('stat-avg-time').textContent    = stats.avg_collection_time_formatted || (stats.avg_collection_time_hours ? `${stats.avg_collection_time_hours} hrs` : 'N/A');
+                document.getElementById('stat-avg-time-sub').textContent    = 'Average time per route';
+
+                const pendingCount = stats.pending_reports_count ?? 0;
+                document.getElementById('stat-pending-reports').textContent = pendingCount;
+                document.getElementById('stat-pending-reports-sub').textContent = pendingCount === 1 ? '1 issue needs review' : `${pendingCount} issues need review`;
+
+                // 2. TODAY'S COLLECTION PROGRESS
+                const progress = stats.today_progress || {};
+                const completedStops = progress.completed_stops ?? progress.completed_routes ?? 0;
+                const totalStops = progress.total_stops ?? progress.total_scheduled ?? 0;
+                const progressPct = progress.percentage ?? progress.pct ?? (totalStops > 0 ? Math.round((completedStops / totalStops) * 100) : 0);
+
+                document.getElementById('today-progress-ratio').textContent = `${completedStops} of ${totalStops} areas`;
+                document.getElementById('today-progress-pct').textContent   = `(${progressPct}%)`;
+                document.getElementById('today-progress-bar').style.width   = `${progressPct}%`;
+                document.getElementById('today-progress-badge-small').textContent = `${progressPct}% Done`;
+
+                // One short, plain-language sentence
+                const sentenceText = document.getElementById('today-sentence-text');
+                const progressBadge = document.getElementById('today-progress-badge');
+
+                if (totalStops === 0) {
+                    sentenceText.textContent = 'No collection routes are scheduled for today.';
+                    progressBadge.innerHTML = `
+                        <span class="status-chip status-chip-scheduled">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+                            No Run Today
+                        </span>
+                    `;
+                } else if (completedStops >= totalStops) {
+                    sentenceText.textContent = `All ${totalStops} scheduled areas have been collected today!`;
+                    progressBadge.innerHTML = `
+                        <span class="status-chip status-chip-done">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            All Completed
+                        </span>
+                    `;
+                } else {
+                    sentenceText.textContent = `${completedStops} out of ${totalStops} scheduled areas collected today.`;
+                    progressBadge.innerHTML = `
+                        <span class="status-chip status-chip-progress">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                            In Progress
+                        </span>
+                    `;
+                }
+
+                // 3. VENDOR COMPLIANCE SUMMARY
+                const compliance = stats.vendor_compliance || {};
+                const totalAudits = compliance.total_inspected ?? compliance.total_inspections ?? 0;
+                const complianceRate = compliance.compliance_rate ?? 100;
+                document.getElementById('compliance-excellent').textContent     = compliance.excellent ?? 0;
+                document.getElementById('compliance-attention').textContent     = compliance.needs_attention ?? 0;
+                document.getElementById('compliance-non-compliant').textContent = compliance.non_compliant ?? 0;
+                document.getElementById('compliance-total-audits').textContent  = `${totalAudits} stalls`;
+                document.getElementById('compliance-rate').textContent          = `${complianceRate}% compliant`;
+
+                // 4. RECENT COLLECTIONS (Top 3 items for compact single-viewport fit)
+                const recentContainer = document.getElementById('recent-collections');
+                const recentList = (res.recent_collections || []).slice(0, 3);
+                if (recentList.length === 0) {
+                    recentContainer.innerHTML = `
+                        <div class="empty-state-box">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="1" y="3" width="15" height="13"></rect>
+                                <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon>
+                                <circle cx="5.5" cy="18.5" r="2.5"></circle>
+                                <circle cx="18.5" cy="18.5" r="2.5"></circle>
+                            </svg>
+                            <div style="font-weight: 600; font-size: 15px; margin-bottom: 4px;">No collection runs recorded yet</div>
+                            <div style="font-size: 13px;">Completed driver routes will appear here automatically.</div>
                         </div>
                     `;
+                } else {
+                    recentContainer.innerHTML = recentList.map(r => {
+                        const bName = escapeHtml(r.barangay?.name || r.barangay || barangayName || 'Assigned Area');
+                        const truckNo = escapeHtml(r.truck_number || r.truck?.truck_number || 'Truck -');
+                        const driverName = escapeHtml(r.driver_name || r.driver?.name || 'Assigned Driver');
+                        const dateStr = formatShortDate(r.collection_date || r.date);
+                        const timeWindow = r.start_time ? `${r.start_time}${r.end_time ? ' - ' + r.end_time : ''}` : '';
+
+                        return `
+                            <div class="scannable-item">
+                                <div style="min-width: 0;">
+                                    <div class="scannable-title">${bName}</div>
+                                    <div class="scannable-row">
+                                        <span class="scannable-badge-detail">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+                                            <strong>${truckNo}</strong> &bull; ${driverName}
+                                        </span>
+                                        <span class="scannable-badge-detail">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                                            ${dateStr}${timeWindow ? ' &bull; ' + timeWindow : ''}
+                                        </span>
+                                    </div>
+                                </div>
+                                ${renderStatusBadge(r.status)}
+                            </div>
+                        `;
                     }).join('');
                 }
+
+                // 5. UPCOMING SCHEDULED COLLECTIONS (Top 3 items for compact single-viewport fit)
+                const upcomingContainer = document.getElementById('upcoming-schedules');
+                const upcomingList = (res.upcoming_schedules || []).slice(0, 3);
+                if (upcomingList.length === 0) {
+                    upcomingContainer.innerHTML = `
+                        <div class="empty-state-box">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polyline points="12 6 12 12 16 14"></polyline>
+                            </svg>
+                            <div style="font-weight: 600; font-size: 15px; margin-bottom: 4px;">No upcoming runs scheduled</div>
+                            <div style="font-size: 13px;">Check the Schedule Manager to plan new collection routes.</div>
+                        </div>
+                    `;
+                } else {
+                    upcomingContainer.innerHTML = upcomingList.map(s => {
+                        const bName = escapeHtml(s.barangay?.name || s.barangay || barangayName || 'Scheduled Area');
+                        const truckNo = escapeHtml(s.truck_number || s.truck?.truck_number || s.truck || '-');
+                        const driverName = escapeHtml(s.driver_name || s.driver?.name || s.driver || 'Driver unassigned');
+                        const dateStr = formatShortDate(s.collection_date || s.date);
+                        const timeRange = s.pickup_time || ((s.start_time && s.end_time) ? `${s.start_time} - ${s.end_time}` : (s.start_time || 'Regular Run'));
+
+                        return `
+                            <div class="scannable-item">
+                                <div style="min-width: 0;">
+                                    <div class="scannable-title">${bName}</div>
+                                    <div class="scannable-row">
+                                        <span class="scannable-badge-detail">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                                            ${dateStr} &bull; ${timeRange}
+                                        </span>
+                                        <span class="scannable-badge-detail">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+                                            <strong>${truckNo}</strong> &bull; ${driverName}
+                                        </span>
+                                    </div>
+                                </div>
+                                ${renderStatusBadge(s.status || s.frequency || 'scheduled')}
+                            </div>
+                        `;
+                    }).join('');
+                }
+
+                // 6. ACTIVE ISSUES (Top 3 items for compact single-viewport fit)
+                const activeContainer = document.getElementById('active-issues');
+                const activeList = (res.active_issues || []).slice(0, 3);
+                if (activeList.length === 0) {
+                    activeContainer.innerHTML = `
+                        <div class="empty-state-box">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                            </svg>
+                            <div style="font-weight: 600; font-size: 15px; margin-bottom: 4px; color: var(--green-800);">No active issues reported</div>
+                            <div style="font-size: 13px;">All resident reports have been addressed and cleared.</div>
+                        </div>
+                    `;
+                } else {
+                    activeContainer.innerHTML = activeList.map(r => {
+                        const imgUrl = resolveMediaUrl(r.image_url || r.image);
+                        const safeTitle = escapeHtml(r.title || 'Waste Report');
+                        const safeBarangay = escapeHtml(r.barangay?.name || r.barangay || barangayName || 'Unassigned Area');
+                        const safeAuthor = escapeHtml(r.author || r.user?.name || 'Resident');
+                        const timeAgoText = formatRelativeTime(r.created_at);
+
+                        return `
+                            <div class="scannable-item">
+                                <div style="display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1;">
+                                    ${imgUrl ? `
+                                        <a href="${imgUrl}" target="_blank" rel="noopener noreferrer" title="Click to view attached photo" style="flex-shrink:0;">
+                                            <img src="${imgUrl}" alt="Photo" class="issue-thumb" onerror="this.style.display='none'">
+                                        </a>
+                                    ` : `
+                                        <div class="issue-thumb-fallback" title="No photo attached">
+                                            📋
+                                        </div>
+                                    `}
+                                    <div style="min-width: 0; flex: 1;">
+                                        <div class="scannable-title" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                            ${safeTitle}
+                                        </div>
+                                        <div class="scannable-row">
+                                            <span>📍 ${safeBarangay}</span>
+                                            <span>&bull;</span>
+                                            <span>👤 ${safeAuthor}</span>
+                                            <span>&bull;</span>
+                                            <span>🕒 ${timeAgoText}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                ${renderStatusBadge(r.status || 'pending')}
+                            </div>
+                        `;
+                    }).join('');
+                }
+
+                // 7. RECENT ACTIVITY FEED (In Header Notification Dropdown)
+                const activitiesContainer = document.getElementById('recent-activities');
+                const activityList = res.recent_activities || [];
+
+                // Update Bell Badge Count
+                const bellBadge = document.getElementById('bell-count-badge');
+                if (bellBadge) {
+                    if (activityList.length > 0) {
+                        bellBadge.textContent = activityList.length > 99 ? '99+' : activityList.length;
+                        bellBadge.classList.remove('empty');
+                    } else {
+                        bellBadge.textContent = '0';
+                        bellBadge.classList.add('empty');
+                    }
+                }
+
+                if (activityList.length === 0) {
+                    activitiesContainer.innerHTML = `
+                        <div class="empty-state-box" style="padding: 24px 12px;">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-muted); margin-bottom: 6px;">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="12" y1="8" x2="12" y2="12"></line>
+                                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                            </svg>
+                            <div style="font-weight: 600; font-size: 13.5px; margin-bottom: 2px;">No recent activity</div>
+                            <div style="font-size: 12px; color: var(--text-muted);">Actions from mobile apps and web admin will stream here.</div>
+                        </div>
+                    `;
+                } else {
+                    activitiesContainer.innerHTML = `
+                        <div style="display: flex; flex-direction: column;">
+                            ${activityList.map(a => {
+                                const iconMeta = getActivityIcon(a.action);
+                                const actorName = escapeHtml(a.actor || a.user?.name || 'System');
+                                const cleanSentence = escapeHtml(simplifyActivitySentence(a));
+                                const relTime = formatRelativeTime(a.created_at);
+
+                                return `
+                                    <div class="activity-simple-item">
+                                        <div class="activity-icon-wrap ${iconMeta.className}">
+                                            ${iconMeta.svg}
+                                        </div>
+                                        <div style="flex: 1; min-width: 0;">
+                                            <div class="activity-simple-sentence">${cleanSentence}</div>
+                                            <div class="activity-simple-meta">
+                                                <strong style="color: var(--green-700);">${actorName}</strong>
+                                                <span>&bull;</span>
+                                                <span>${relTime}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    `;
+                }
+
+                // Safely update "Last updated" timestamp if element exists
+                const updatedTimeEl = document.getElementById('last-updated-time');
+                if (updatedTimeEl) {
+                    const now = new Date();
+                    const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                    updatedTimeEl.textContent = `Updated: ${timeString}`;
+                }
+
             } catch (error) {
-                console.error('Failed to load barangay overview', error);
+                console.error('Failed to load barangay overview:', error);
+            } finally {
+                isRefreshing = false;
+                if (refreshBtn) refreshBtn.classList.remove('spinning');
             }
         }
 
-        document.addEventListener('DOMContentLoaded', loadOverview);
+        /**
+         * Notification Bell & Activity Dropdown Controls
+         */
+        function toggleActivityDropdown(event) {
+            if (event) {
+                event.stopPropagation();
+                event.preventDefault();
+            }
+            const menu = document.getElementById('activity-dropdown-menu');
+            const btn = document.getElementById('btn-notification-bell');
+            if (!menu) return;
+            const isExpanded = menu.classList.toggle('active');
+            if (btn) btn.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
+        }
+
+        function closeActivityDropdown(event) {
+            if (event) {
+                event.stopPropagation();
+                event.preventDefault();
+            }
+            const menu = document.getElementById('activity-dropdown-menu');
+            const btn = document.getElementById('btn-notification-bell');
+            if (menu) menu.classList.remove('active');
+            if (btn) btn.setAttribute('aria-expanded', 'false');
+        }
+
+        window.toggleActivityDropdown = toggleActivityDropdown;
+        window.closeActivityDropdown = closeActivityDropdown;
+        window.triggerManualRefresh = triggerManualRefresh;
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            const wrap = document.getElementById('notification-bell-wrap');
+            if (wrap && !wrap.contains(e.target)) {
+                closeActivityDropdown();
+            }
+        });
+
+        // Close dropdown on Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeActivityDropdown();
+            }
+        });
+
+        // Trigger manual refresh via icon button
+        function triggerManualRefresh() {
+            loadOverview();
+        }
+
+        // Initialize and setup 30s auto-refresh in silent background
+        document.addEventListener('DOMContentLoaded', () => {
+            loadOverview();
+
+            // Auto-refresh silently every 30 seconds
+            if (refreshTimer) clearInterval(refreshTimer);
+            refreshTimer = setInterval(() => {
+                if (document.visibilityState === 'visible') {
+                    loadOverview();
+                }
+            }, 30000);
+
+            // Immediate silent sync when returning to active tab
+            document.addEventListener('visibilitychange', () => {
+                if (document.visibilityState === 'visible') {
+                    loadOverview();
+                }
+            });
+        });
     </script>
 </body>
 </html>

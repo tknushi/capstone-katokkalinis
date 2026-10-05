@@ -6,6 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
 use App\Models\User;
 use App\Models\Role;
+use App\Models\Vendor;
+use App\Models\Barangay;
+use App\Models\Attendance;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -55,6 +58,30 @@ class AuthController extends Controller
             $user,
             $user->id
         );
+
+        // Automated Attendance capture on login (mobile & web)
+        try {
+            $today = now()->toDateString();
+            $nowTime = now()->format('H:i:s');
+            $existingAttendance = Attendance::where('user_id', $user->id)
+                ->where('date', $today)
+                ->first();
+
+            if (!$existingAttendance) {
+                Attendance::create([
+                    'user_id' => $user->id,
+                    'date' => $today,
+                    'time_in' => $nowTime,
+                    'status' => 'present',
+                    'remarks' => 'Automated check-in on login',
+                ]);
+            } else {
+                $existingAttendance->time_out = $nowTime;
+                $existingAttendance->save();
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning("Automated attendance recording failed for user {$user->id}: " . $e->getMessage());
+        }
 
         return response()->json([
             'success' => true,
@@ -116,6 +143,9 @@ class AuthController extends Controller
             ], 422);
         }
 
+        $phone = $request->phone ?? $request->contact_number;
+        $address = $request->address ?? $request->barangay;
+
         $barangayId = $request->barangay_id;
         if (!$barangayId && $request->filled('barangay')) {
             $b = \App\Models\Barangay::where('name', 'like', "%{$request->barangay}%")->first();
@@ -129,8 +159,8 @@ class AuthController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'phone' => $request->phone ?? $request->contact_number,
-            'address' => $request->address ?? $request->barangay,
+            'phone' => $phone,
+            'address' => $address,
             'barangay_id' => $barangayId,
             'joined_at' => now(),
         ]);
@@ -147,6 +177,53 @@ class AuthController extends Controller
         }
 
         $user->roles()->attach($role->id);
+
+        // If vendor registration, automatically initialize the Vendor model profile
+        if ($request->role === 'vendor') {
+            $barangayId = null;
+            if ($address) {
+                $matchedBrgy = Barangay::where('name', 'like', "%{$address}%")
+                    ->orWhere('code', 'like', "%{$address}%")
+                    ->first();
+                if ($matchedBrgy) {
+                    $barangayId = $matchedBrgy->id;
+                }
+            }
+            if (!$barangayId) {
+                $barangayId = Barangay::value('id') ?: 1;
+            }
+
+            $vendorCode = '2026' . str_pad((string) $user->id, 6, '0', STR_PAD_LEFT);
+            $businessName = $request->business_name ?? ($user->name . "'s Stall");
+
+            $vendor = Vendor::create([
+                'user_id' => $user->id,
+                'barangay_id' => $barangayId,
+                'vendor_code' => $vendorCode,
+                'business_name' => $businessName,
+                'owner_name' => $user->name,
+                'market' => $request->market ?? 'Divisoria Public Market',
+                'stall_number' => $request->stall_number ?? 'Stall #' . $user->id,
+                'contact_number' => $phone,
+                'address' => $address ?: 'Cagayan de Oro City',
+                'qr_code' => $vendorCode,
+                'status' => 'active',
+            ]);
+
+            ActivityLog::record(
+                'vendor.registered',
+                "New vendor {$businessName} ({$vendorCode}) registered by {$user->name}.",
+                $vendor,
+                $user->id
+            );
+        } else {
+            ActivityLog::record(
+                'user.registered',
+                "New resident registered: {$user->name} (" . ($address ?: 'Cagayan de Oro') . ").",
+                $user,
+                $user->id
+            );
+        }
 
         $token = $user
             ->createToken('katokkalinis-mobile')

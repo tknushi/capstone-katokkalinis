@@ -45,6 +45,15 @@ class UserController extends Controller
             });
         }
 
+        if ($request->has('status')) {
+            $status = strtolower($request->status);
+            if ($status === 'active') {
+                $query->where('is_archived', false);
+            } elseif ($status === 'archived') {
+                $query->where('is_archived', true);
+            }
+        }
+
         $users = $query
             ->orderBy('id', 'desc')
             ->get();
@@ -102,7 +111,7 @@ class UserController extends Controller
         if ($this->isSuperAdmin($user) && !$this->isSuperAdmin($request->user())) {
             return response()->json([
                 'success' => false,
-                'message' => 'Only the Super Admin can edit a Super Admin account.',
+                'message' => 'Access Denied: Super Administrator accounts cannot be modified by lower hierarchy roles.',
             ], 403);
         }
 
@@ -176,7 +185,7 @@ class UserController extends Controller
         if ($this->isSuperAdmin($user) && !$this->isSuperAdmin($request->user())) {
             return response()->json([
                 'success' => false,
-                'message' => 'Only the Super Admin can edit Super Admin permissions.',
+                'message' => 'Access Denied: Only Super Administrators can modify Super Admin permissions.',
             ], 403);
         }
 
@@ -199,7 +208,7 @@ class UserController extends Controller
             && in_array($superAdminRole->id, $request->role_ids, true)) {
             return response()->json([
                 'success' => false,
-                'message' => 'Only the Super Admin can assign the Super Admin role.',
+                'message' => 'Access Denied: Only Super Administrators can grant Super Admin privileges.',
             ], 403);
         }
 
@@ -247,7 +256,7 @@ class UserController extends Controller
         if ($this->isSuperAdmin($user) && !$this->isSuperAdmin($request->user())) {
             return response()->json([
                 'success' => false,
-                'message' => 'Only the Super Admin can delete a Super Admin account.',
+                'message' => 'Access Denied: Only Super Administrators can delete a Super Admin account.',
             ], 403);
         }
 
@@ -265,6 +274,453 @@ class UserController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'User deleted successfully.',
+        ]);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | BULK DELETE USERS
+    |--------------------------------------------------------------------------
+    */
+
+    public function bulkDestroy(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'ids' => 'required|array|min:1',
+            'ids.*' => 'integer|exists:users,id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Please provide a valid array of user IDs to delete.',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $currentUserId = $request->user()?->id;
+        $isSuperAdmin = $this->isSuperAdmin($request->user());
+
+        $users = User::with('roles')->whereIn('id', $request->ids)->get();
+
+        if ($users->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No matching users found to delete.',
+            ], 404);
+        }
+
+        if (!$isSuperAdmin) {
+            foreach ($users as $user) {
+                if ($this->isSuperAdmin($user)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Access Denied: Lower hierarchy roles cannot delete Super Administrator accounts.',
+                        'errors' => ['ids' => ["Cannot delete protected Super Admin user '{$user->name}'."]],
+                    ], 403);
+                }
+            }
+        }
+
+        $deletedCount = 0;
+        $deletedNames = [];
+
+        foreach ($users as $user) {
+            // Cannot delete own account
+            if ($currentUserId && $user->id === $currentUserId) {
+                continue;
+            }
+
+            // Only Super Admin can delete a Super Admin account
+            if ($this->isSuperAdmin($user) && !$isSuperAdmin) {
+                continue;
+            }
+
+            $name = $user->name;
+            $email = $user->email;
+
+            $user->roles()->detach();
+            $user->delete();
+
+            $deletedNames[] = "{$name} ({$email})";
+            $deletedCount++;
+        }
+
+        if ($deletedCount === 0) {
+            return response()->json([
+                'success' => false,
+                'message' => 'None of the selected users could be deleted (they may be protected or your own account).',
+            ], 403);
+        }
+
+        ActivityLog::record(
+            'user.bulk_deleted',
+            "Bulk deleted {$deletedCount} user(s): " . implode(', ', array_slice($deletedNames, 0, 5)) . ($deletedCount > 5 ? ' and more.' : '.')
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => "{$deletedCount} " . ($deletedCount === 1 ? 'user' : 'users') . " deleted successfully.",
+            'deleted_count' => $deletedCount,
+        ]);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | ARCHIVE USER (SOFT-DELETE)
+    |--------------------------------------------------------------------------
+    */
+
+    public function archive(Request $request, $id)
+    {
+        $user = User::with('roles')->find($id);
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User not found.',
+            ], 404);
+        }
+
+        if ($request->user() && $request->user()->id === $user->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You cannot archive your own account.',
+            ], 422);
+        }
+
+        if ($this->isSuperAdmin($user) && !$this->isSuperAdmin($request->user())) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Access Denied: Super Administrator accounts cannot be archived by lower hierarchy roles.',
+            ], 403);
+        }
+
+        $user->is_archived = true;
+        $user->archived_at = now();
+        $user->save();
+        $user->load('roles');
+
+        ActivityLog::record(
+            'user.archived',
+            "Archived user {$user->name} ({$user->email}).",
+            $user
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => 'User archived successfully.',
+            'user' => $user,
+        ]);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | RESTORE USER (UNARCHIVE)
+    |--------------------------------------------------------------------------
+    */
+
+    public function restore(Request $request, $id)
+    {
+        $user = User::with('roles')->find($id);
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User not found.',
+            ], 404);
+        }
+
+        if ($this->isSuperAdmin($user) && !$this->isSuperAdmin($request->user())) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Access Denied: Super Administrator accounts cannot be restored by lower hierarchy roles.',
+            ], 403);
+        }
+
+        $user->is_archived = false;
+        $user->archived_at = null;
+        $user->save();
+        $user->load('roles');
+
+        ActivityLog::record(
+            'user.restored',
+            "Restored user {$user->name} ({$user->email}).",
+            $user
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => 'User restored successfully.',
+            'user' => $user,
+        ]);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | BULK ARCHIVE USERS (SOFT-DELETE)
+    |--------------------------------------------------------------------------
+    */
+
+    public function bulkArchive(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'ids' => 'required|array|min:1',
+            'ids.*' => 'integer|exists:users,id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Please provide a valid array of user IDs to archive.',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $currentUserId = $request->user()?->id;
+        $isSuperAdmin = $this->isSuperAdmin($request->user());
+
+        $users = User::with('roles')->whereIn('id', $request->ids)->get();
+
+        if ($users->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No matching users found to archive.',
+            ], 404);
+        }
+
+        if (!$isSuperAdmin) {
+            foreach ($users as $user) {
+                if ($this->isSuperAdmin($user)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Access Denied: Lower hierarchy roles cannot archive Super Administrator accounts.',
+                        'errors' => ['ids' => ["Cannot archive protected Super Admin user '{$user->name}'."]],
+                    ], 403);
+                }
+            }
+        }
+
+        $archivedCount = 0;
+        $archivedNames = [];
+
+        foreach ($users as $user) {
+            // Cannot archive own account
+            if ($currentUserId && $user->id === $currentUserId) {
+                continue;
+            }
+
+            // Only Super Admin can archive a Super Admin account
+            if ($this->isSuperAdmin($user) && !$isSuperAdmin) {
+                continue;
+            }
+
+            $user->is_archived = true;
+            $user->archived_at = now();
+            $user->save();
+
+            $archivedNames[] = "{$user->name} ({$user->email})";
+            $archivedCount++;
+        }
+
+        if ($archivedCount === 0) {
+            return response()->json([
+                'success' => false,
+                'message' => 'None of the selected users could be archived (they may be protected or your own account).',
+                'errors' => ['ids' => ['None of the selected users could be archived.']],
+            ], 403);
+        }
+
+        ActivityLog::record(
+            'user.bulk_archived',
+            "Bulk archived {$archivedCount} user(s): " . implode(', ', array_slice($archivedNames, 0, 5)) . ($archivedCount > 5 ? ' and more.' : '.')
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => "{$archivedCount} " . ($archivedCount === 1 ? 'user' : 'users') . " archived successfully.",
+            'archived_count' => $archivedCount,
+        ]);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | BULK RESTORE USERS
+    |--------------------------------------------------------------------------
+    */
+
+    public function bulkRestore(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'ids' => 'required|array|min:1',
+            'ids.*' => 'integer|exists:users,id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Please provide a valid array of user IDs to restore.',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $isSuperAdmin = $this->isSuperAdmin($request->user());
+
+        $users = User::with('roles')->whereIn('id', $request->ids)->get();
+
+        if ($users->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No matching users found to restore.',
+            ], 404);
+        }
+
+        if (!$isSuperAdmin) {
+            foreach ($users as $user) {
+                if ($this->isSuperAdmin($user)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Access Denied: Lower hierarchy roles cannot restore Super Administrator accounts.',
+                        'errors' => ['ids' => ["Cannot restore protected Super Admin user '{$user->name}'."]],
+                    ], 403);
+                }
+            }
+        }
+
+        $restoredCount = 0;
+        $restoredNames = [];
+
+        foreach ($users as $user) {
+            // Only Super Admin can restore a Super Admin account
+            if ($this->isSuperAdmin($user) && !$isSuperAdmin) {
+                continue;
+            }
+
+            $user->is_archived = false;
+            $user->archived_at = null;
+            $user->save();
+
+            $restoredNames[] = "{$user->name} ({$user->email})";
+            $restoredCount++;
+        }
+
+        if ($restoredCount === 0) {
+            return response()->json([
+                'success' => false,
+                'message' => 'None of the selected users could be restored (they may be protected accounts).',
+                'errors' => ['ids' => ['None of the selected users could be restored.']],
+            ], 403);
+        }
+
+        ActivityLog::record(
+            'user.bulk_restored',
+            "Bulk restored {$restoredCount} user(s): " . implode(', ', array_slice($restoredNames, 0, 5)) . ($restoredCount > 5 ? ' and more.' : '.')
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => "{$restoredCount} " . ($restoredCount === 1 ? 'user' : 'users') . " restored successfully.",
+            'restored_count' => $restoredCount,
+        ]);
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | BULK REASSIGN ROLE
+    |--------------------------------------------------------------------------
+    */
+
+    public function bulkUpdateRole(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'ids' => 'required|array|min:1',
+            'ids.*' => 'integer|exists:users,id',
+            'role' => 'required|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Please provide valid user IDs and a target role.',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $targetRoleName = strtolower(trim($request->role));
+        $targetRole = Role::where('name', $targetRoleName)->first();
+
+        if (!$targetRole) {
+            return response()->json([
+                'success' => false,
+                'message' => "Role '{$request->role}' does not exist.",
+            ], 404);
+        }
+
+        $isSuperAdmin = $this->isSuperAdmin($request->user());
+
+        // Only super admin can assign the super_admin role
+        if ($targetRoleName === 'super_admin' && !$isSuperAdmin) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Access Denied: Only Super Administrators can assign the Super Admin role.',
+            ], 403);
+        }
+
+        $users = User::with('roles')->whereIn('id', $request->ids)->get();
+
+        if ($users->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No matching users found to reassign.',
+            ], 404);
+        }
+
+        if (!$isSuperAdmin) {
+            foreach ($users as $user) {
+                if ($this->isSuperAdmin($user)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Access Denied: Lower hierarchy roles cannot reassign Super Administrator accounts.',
+                        'errors' => ['ids' => ["Cannot modify protected Super Admin user '{$user->name}'."]],
+                    ], 403);
+                }
+            }
+        }
+
+        $updatedCount = 0;
+        $updatedNames = [];
+
+        foreach ($users as $user) {
+            // Non-super-admins cannot alter super_admin accounts
+            if ($this->isSuperAdmin($user) && !$isSuperAdmin) {
+                continue;
+            }
+
+            // Sync with the target role
+            $user->roles()->sync([$targetRole->id]);
+            $updatedNames[] = $user->name;
+            $updatedCount++;
+        }
+
+        if ($updatedCount === 0) {
+            return response()->json([
+                'success' => false,
+                'message' => 'None of the selected users could be reassigned (protected accounts).',
+            ], 403);
+        }
+
+        $roleLabel = ucfirst($targetRole->name);
+        ActivityLog::record(
+            'user.bulk_role_updated',
+            "Reassigned {$updatedCount} user(s) to role '{$roleLabel}': " . implode(', ', array_slice($updatedNames, 0, 5)) . ($updatedCount > 5 ? ' and more.' : '.')
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => "{$updatedCount} " . ($updatedCount === 1 ? 'user' : 'users') . " reassigned to {$roleLabel} successfully.",
+            'updated_count' => $updatedCount,
+            'role' => $targetRole->name,
         ]);
     }
 

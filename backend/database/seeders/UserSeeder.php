@@ -61,6 +61,53 @@ class UserSeeder extends Seeder
             password: 'Inspector@123',
             roleName: 'inspector'
         );
+
+        /*
+        |--------------------------------------------------------------------------
+        | VENDOR
+        |--------------------------------------------------------------------------
+        */
+
+        $this->createUserWithRole(
+            name: 'Juan Dela Cruz',
+            email: 'vendor@katokkalinis.com',
+            password: 'Vendor@123',
+            roleName: 'vendor'
+        );
+
+        $vendorUser = DB::table('users')->where('email', 'vendor@katokkalinis.com')->first();
+
+        if ($vendorUser) {
+            $barangay = DB::table('barangays')->first();
+            if (!$barangay) {
+                $barangayId = DB::table('barangays')->insertGetId([
+                    'name' => 'Barangay 1',
+                    'code' => 'BRGY-001',
+                    'city' => 'Cagayan de Oro City',
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            } else {
+                $barangayId = $barangay->id;
+            }
+
+            DB::table('vendors')->updateOrInsert(
+                ['vendor_code' => '2026012345'],
+                [
+                    'user_id' => $vendorUser->id,
+                    'barangay_id' => $barangayId,
+                    'business_name' => 'KatokKalimpyo',
+                    'owner_name' => 'Juan Dela Cruz',
+                    'market' => 'Divi Public Market',
+                    'stall_number' => 'Stall #12',
+                    'contact_number' => '09467802940',
+                    'address' => 'Barangay 123, Divi',
+                    'qr_code' => '2026012345',
+                    'status' => 'active',
+                    'updated_at' => now(),
+                ]
+            );
+        }
     }
 
 

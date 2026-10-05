@@ -14,16 +14,26 @@
             background: #eaf2fb;
             color: #2c3e50;
             font-size: 12px;
+            font-weight: 600;
         }
         .filter-bar {
             display: flex;
+            align-items: center;
             gap: 10px;
             margin-bottom: 15px;
+            flex-wrap: wrap;
         }
         .filter-bar select, .filter-bar input {
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--surface);
+            color: var(--text);
+            font-size: 13.5px;
+        }
+        .filter-bar input {
+            min-width: 240px;
+            flex: 1;
         }
         .checkbox-list label {
             display: block;
@@ -44,9 +54,7 @@
             <div class="sidebar-header">KatokKalinis</div>
             <div class="sidebar-role" id="sidebar-role"></div>
             <nav class="sidebar-nav" id="sidebar-nav"></nav>
-            <div class="sidebar-footer">
-                
-            </div>
+            <div class="sidebar-footer"></div>
         </aside>
 
         <!-- Main Content -->
@@ -58,37 +66,89 @@
             
             <section class="content">
                 <div class="card">
-                    <div class="card-header">
-                        <h3>Users (Residents, Vendors, Drivers, Inspectors, Staff)</h3>
+                    <div class="card-header" style="display: flex; align-items: center; justify-content: space-between;">
+                        <h3 class="users-section-title">Users</h3>
                     </div>
+
+                    <!-- Search, Status, and Role Filter Bar -->
                     <div class="filter-bar">
-                        <select id="role-filter">
+                        <select id="status-filter" aria-label="Filter by Status" onchange="onFilterChange()">
+                            <option value="all" selected>All Users</option>
+                            <option value="active">Active Users</option>
+                            <option value="archived">Archived Users</option>
+                        </select>
+                        <select id="role-filter" aria-label="Filter by Role">
                             <option value="">All Roles</option>
                         </select>
-                        <input type="text" id="search-box" placeholder="Search by name or email...">
-                        <button class="btn" onclick="loadData()" style="width: auto;">Search</button>
+                        <input type="text" id="search-box" placeholder="Search by name or email..." aria-label="Search users">
+                        <button type="button" class="btn" onclick="handleSearchClick()" style="width: auto;">Search</button>
                     </div>
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Name</th>
-                                <th>Email</th>
-                                <th>Roles</th>
-                                <th>Joined</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="table-body">
-                            <tr><td colspan="6">Loading...</td></tr>
-                        </tbody>
-                    </table>
+
+                    <!-- Contextual Bulk Actions Bar -->
+                    <div id="bulk-actions-bar" class="bulk-actions-bar" aria-live="polite">
+                        <div class="bulk-left-info">
+                            <span class="bulk-selected-badge">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                <span id="bulk-selected-count">0 users selected</span>
+                            </span>
+                            <button type="button" class="bulk-clear-btn" onclick="clearSelection()">Clear selection</button>
+                        </div>
+                        <div class="bulk-right-actions">
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <select id="bulk-role-target" class="bulk-role-select" aria-label="Target Role">
+                                    <!-- Populated dynamically via JS -->
+                                </select>
+                                <button type="button" class="btn-bulk-role" onclick="openBulkRoleModal()">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><polyline points="16 11 18 13 22 9"></polyline></svg>
+                                    Reassign Role
+                                </button>
+                            </div>
+                            <button type="button" id="btn-bulk-archive-trigger" class="btn-bulk-archive" onclick="openBulkArchiveModal()">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><polyline points="21 8 21 21 3 21 3 8"></polyline><rect x="1" y="3" width="22" height="5"></rect><line x1="10" y1="12" x2="14" y2="12"></line></svg>
+                                Bulk Archive
+                            </button>
+                            <button type="button" id="btn-bulk-restore-trigger" class="btn-bulk-restore" style="display: none;" onclick="openBulkRestoreModal()">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+                                Bulk Restore
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- User Table (Hidden ID column, sortable headers, checkbox selection) -->
+                    <div style="overflow-x: auto;">
+                        <table class="table" id="users-table">
+                            <thead>
+                                <tr>
+                                    <th class="col-checkbox">
+                                        <input type="checkbox" id="select-all-checkbox" aria-label="Select all on current page" onchange="handleSelectAllToggle(event)">
+                                    </th>
+                                    <th class="sortable" id="th-name" onclick="handleSort('name')">
+                                        Name <span class="sort-icon" id="sort-icon-name">&#8597;</span>
+                                    </th>
+                                    <th>Email</th>
+                                    <th class="sortable" id="th-roles" onclick="handleSort('roles')">
+                                        Roles <span class="sort-icon" id="sort-icon-roles">&#8597;</span>
+                                    </th>
+                                    <th class="sortable" id="th-joined" onclick="handleSort('joined')">
+                                        Joined <span class="sort-icon" id="sort-icon-joined">&#8597;</span>
+                                    </th>
+                                    <th style="min-width: 140px;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-body">
+                                <tr><td colspan="6" style="text-align: center; padding: 24px;">Loading users...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Reusable Pagination Bar -->
+                    <div id="pagination-container" class="pagination-container"></div>
                 </div>
             </section>
         </main>
     </div>
 
-    <!-- Edit Profile + Permissions Modal -->
+    <!-- Edit Profile + Permissions Modal (Existing) -->
     <div id="form-modal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -118,10 +178,278 @@
         </div>
     </div>
 
+    <!-- Bulk Archive Confirmation Modal -->
+    <div id="bulk-archive-modal" class="modal">
+        <div class="modal-content" style="max-width: 440px;">
+            <div class="modal-header">
+                <h3 style="color: var(--green-800);">Confirm Bulk Archive</h3>
+                <span class="close-btn" onclick="closeBulkArchiveModal()">&times;</span>
+            </div>
+            <div style="padding: 16px 0;">
+                <p style="font-size: 14.5px; line-height: 1.5; color: var(--text);">
+                    Are you sure you want to archive <strong id="bulk-archive-count-text">0 users</strong>?
+                </p>
+                <p style="font-size: 13px; color: var(--text-muted); margin-top: 8px;">
+                    Archived accounts will be hidden from the active user list. You can review or restore them at any time from the "Archived Users" filter view.
+                </p>
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--border); padding-top: 14px;">
+                <button type="button" class="btn" style="width: auto; background: var(--surface-alt); color: var(--text); border: 1px solid var(--border);" onclick="closeBulkArchiveModal()">Cancel</button>
+                <button type="button" class="btn btn-bulk-archive" style="width: auto;" id="btn-confirm-bulk-archive" onclick="executeBulkArchive()">Confirm &amp; Archive</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bulk Restore Confirmation Modal -->
+    <div id="bulk-restore-modal" class="modal">
+        <div class="modal-content" style="max-width: 440px;">
+            <div class="modal-header">
+                <h3 style="color: #0d9488;">Confirm Bulk Restore</h3>
+                <span class="close-btn" onclick="closeBulkRestoreModal()">&times;</span>
+            </div>
+            <div style="padding: 16px 0;">
+                <p style="font-size: 14.5px; line-height: 1.5; color: var(--text);">
+                    Restore <strong id="bulk-restore-count-text">0 users</strong> to active status?
+                </p>
+                <p style="font-size: 13px; color: var(--text-muted); margin-top: 8px;">
+                    Restored accounts will immediately return to the Active Users list with full permissions.
+                </p>
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--border); padding-top: 14px;">
+                <button type="button" class="btn" style="width: auto; background: var(--surface-alt); color: var(--text); border: 1px solid var(--border);" onclick="closeBulkRestoreModal()">Cancel</button>
+                <button type="button" class="btn btn-bulk-restore" style="width: auto;" id="btn-confirm-bulk-restore" onclick="executeBulkRestore()">Confirm &amp; Restore</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Single User Archive Modal -->
+    <div id="single-archive-modal" class="modal">
+        <div class="modal-content" style="max-width: 420px;">
+            <div class="modal-header">
+                <h3 style="color: var(--green-800);">Archive User</h3>
+                <span class="close-btn" onclick="closeSingleArchiveModal()">&times;</span>
+            </div>
+            <div style="padding: 16px 0;">
+                <p style="font-size: 14.5px; line-height: 1.5; color: var(--text);">
+                    Are you sure you want to archive <strong id="single-archive-user-name">this user</strong>?
+                </p>
+                <p style="font-size: 13px; color: var(--text-muted); margin-top: 8px;">
+                    This account will be archived and hidden from the active user table. You can restore it whenever needed from "Archived Users".
+                </p>
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--border); padding-top: 14px;">
+                <button type="button" class="btn" style="width: auto; background: var(--surface-alt); color: var(--text); border: 1px solid var(--border);" onclick="closeSingleArchiveModal()">Cancel</button>
+                <button type="button" class="btn btn-bulk-archive" style="width: auto;" id="btn-confirm-single-archive" onclick="confirmSingleArchive()">Archive User</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Single User Restore Modal -->
+    <div id="single-restore-modal" class="modal">
+        <div class="modal-content" style="max-width: 420px;">
+            <div class="modal-header">
+                <h3 style="color: #0d9488;">Restore User</h3>
+                <span class="close-btn" onclick="closeSingleRestoreModal()">&times;</span>
+            </div>
+            <div style="padding: 16px 0;">
+                <p style="font-size: 14.5px; line-height: 1.5; color: var(--text);">
+                    Restore <strong id="single-restore-user-name">this user</strong> to active status?
+                </p>
+                <p style="font-size: 13px; color: var(--text-muted); margin-top: 8px;">
+                    The user will become active again immediately and appear in the default user directory.
+                </p>
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--border); padding-top: 14px;">
+                <button type="button" class="btn" style="width: auto; background: var(--surface-alt); color: var(--text); border: 1px solid var(--border);" onclick="closeSingleRestoreModal()">Cancel</button>
+                <button type="button" class="btn btn-bulk-restore" style="width: auto;" id="btn-confirm-single-restore" onclick="confirmSingleRestore()">Restore User</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bulk Reassign Role Confirmation Modal -->
+    <div id="bulk-role-modal" class="modal">
+        <div class="modal-content" style="max-width: 440px;">
+            <div class="modal-header">
+                <h3>Confirm Role Reassignment</h3>
+                <span class="close-btn" onclick="closeBulkRoleModal()">&times;</span>
+            </div>
+            <div style="padding: 16px 0;">
+                <p style="font-size: 14.5px; line-height: 1.5; color: var(--text);">
+                    Reassign <strong id="bulk-role-count-text">0 users</strong> to role <strong id="bulk-role-target-text" style="color: var(--green-700);">[Role]</strong>?
+                </p>
+                <p style="font-size: 13px; color: var(--text-muted); margin-top: 8px;">
+                    This will update access permissions for all selected user accounts.
+                </p>
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--border); padding-top: 14px;">
+                <button type="button" class="btn" style="width: auto; background: var(--surface-alt); color: var(--text); border: 1px solid var(--border);" onclick="closeBulkRoleModal()">Cancel</button>
+                <button type="button" class="btn" style="width: auto; background: #0284c7; color: #fff;" id="btn-confirm-bulk-role" onclick="executeBulkRoleReassign()">Confirm &amp; Reassign</button>
+            </div>
+        </div>
+    </div>
+
     <script src="js/app.js"></script>
     <script>
         const endpoint = '/users';
         let allRoles = [];
+        let rawUsers = [];
+        let selectedUserIds = new Set();
+
+        // Storage keys for retaining pagination & filter state across reloads
+        const STORAGE_PAGE = 'katok_users_page';
+        const STORAGE_ROWS = 'katok_users_rows';
+        const STORAGE_STATUS = 'katok_users_status';
+        const STORAGE_ROLE = 'katok_users_role';
+        const STORAGE_SEARCH = 'katok_users_search';
+        const STORAGE_SORT = 'katok_users_sort';
+
+        function getInitialState() {
+            const urlParams = new URLSearchParams(window.location.search);
+
+            let page = parseInt(urlParams.get('page') || localStorage.getItem(STORAGE_PAGE) || '1', 10);
+            if (isNaN(page) || page < 1) page = 1;
+
+            let rows = parseInt(urlParams.get('rows') || localStorage.getItem(STORAGE_ROWS) || '10', 10);
+            if (![10, 20, 50, 100].includes(rows)) rows = 10;
+
+            let status = urlParams.get('status') || localStorage.getItem(STORAGE_STATUS) || 'all';
+            if (!['all', 'active', 'archived'].includes(status)) status = 'all';
+
+            let role = urlParams.get('role') || localStorage.getItem(STORAGE_ROLE) || '';
+            let search = urlParams.get('search') || localStorage.getItem(STORAGE_SEARCH) || '';
+
+            let sort = { column: null, direction: 'asc' };
+            const paramSortCol = urlParams.get('sort');
+            const paramSortDir = urlParams.get('dir');
+            if (paramSortCol) {
+                sort = { column: paramSortCol, direction: paramSortDir === 'desc' ? 'desc' : 'asc' };
+            } else {
+                try {
+                    const saved = JSON.parse(localStorage.getItem(STORAGE_SORT) || '{}');
+                    if (saved && saved.column) {
+                        sort = { column: saved.column, direction: saved.direction === 'desc' ? 'desc' : 'asc' };
+                    }
+                } catch (e) {}
+            }
+
+            return { page, rows, status, role, search, sort };
+        }
+
+        const initialState = getInitialState();
+        let currentPage = initialState.page;
+        let rowsPerPage = initialState.rows;
+        let currentSort = initialState.sort;
+        let paginationHelper = null;
+        let pagedUsers = [];
+
+        function persistState() {
+            try {
+                localStorage.setItem(STORAGE_PAGE, String(currentPage));
+                localStorage.setItem(STORAGE_ROWS, String(rowsPerPage));
+
+                const statusVal = document.getElementById('status-filter')?.value || 'all';
+                localStorage.setItem(STORAGE_STATUS, statusVal);
+
+                const roleVal = document.getElementById('role-filter')?.value || '';
+                localStorage.setItem(STORAGE_ROLE, roleVal);
+
+                const searchVal = document.getElementById('search-box')?.value || '';
+                localStorage.setItem(STORAGE_SEARCH, searchVal);
+
+                localStorage.setItem(STORAGE_SORT, JSON.stringify(currentSort));
+
+                // Sync URL query parameters without reloading
+                const url = new URL(window.location.href);
+                if (currentPage > 1) {
+                    url.searchParams.set('page', String(currentPage));
+                } else {
+                    url.searchParams.delete('page');
+                }
+
+                if (rowsPerPage !== 10) {
+                    url.searchParams.set('rows', String(rowsPerPage));
+                } else {
+                    url.searchParams.delete('rows');
+                }
+
+                if (statusVal && statusVal !== 'all') {
+                    url.searchParams.set('status', statusVal);
+                } else {
+                    url.searchParams.delete('status');
+                }
+
+                if (roleVal) {
+                    url.searchParams.set('role', roleVal);
+                } else {
+                    url.searchParams.delete('role');
+                }
+
+                if (searchVal) {
+                    url.searchParams.set('search', searchVal);
+                } else {
+                    url.searchParams.delete('search');
+                }
+
+                if (currentSort.column) {
+                    url.searchParams.set('sort', currentSort.column);
+                    url.searchParams.set('dir', currentSort.direction);
+                } else {
+                    url.searchParams.delete('sort');
+                    url.searchParams.delete('dir');
+                }
+
+                window.history.replaceState({}, '', url.toString());
+            } catch (err) {
+                console.warn('Could not persist pagination/filter state:', err);
+            }
+        }
+
+        // Current user hierarchy helper
+        function isCurrentUserSuperAdmin() {
+            const role = (getUserRole() || '').toLowerCase();
+            if (role === 'super_admin') return true;
+            try {
+                const userStr = localStorage.getItem('user');
+                if (userStr) {
+                    const u = JSON.parse(userStr);
+                    if (Array.isArray(u.roles) && u.roles.some(r => (r.name || '').toLowerCase() === 'super_admin')) {
+                        return true;
+                    }
+                }
+            } catch (e) {}
+            return false;
+        }
+
+        function showSuperAdminBlockedToast() {
+            showToast('Access Denied: Super Administrator accounts cannot be modified by lower hierarchy roles.', 'error');
+        }
+
+        // Hierarchy category sequence in descending rank order
+        const ROLE_CATEGORIES = [
+            'System & Administration',
+            'Operations & Compliance',
+            'Logistics & Fleet',
+            'Community & Public'
+        ];
+
+        const ROLE_CATEGORY_MAP = {
+            'super_admin': { category: 'System & Administration', title: 'Super Admin', rank: 1 },
+            'admin': { category: 'System & Administration', title: 'Barangay Admin', rank: 2 },
+            'barangay_admin': { category: 'System & Administration', title: 'Barangay Admin', rank: 2 },
+            'inspector': { category: 'Operations & Compliance', title: 'Inspector', rank: 3 },
+            'contractor': { category: 'Operations & Compliance', title: 'Contractor', rank: 4 },
+            'employee': { category: 'Operations & Compliance', title: 'Employee', rank: 5 },
+            'driver': { category: 'Logistics & Fleet', title: 'Driver', rank: 6 },
+            'vendor': { category: 'Community & Public', title: 'Vendor', rank: 7 },
+            'resident': { category: 'Community & Public', title: 'Resident', rank: 8 }
+        };
+
+        // Friendly role name helper
+        function formatRoleTitle(roleName) {
+            if (!roleName) return '';
+            const key = roleName.toLowerCase();
+            return ROLE_CATEGORY_MAP[key]?.title || (roleName.charAt(0).toUpperCase() + roleName.slice(1));
+        }
 
         async function loadRoles() {
             try {
@@ -129,11 +457,75 @@
                 allRoles = res.roles || [];
 
                 const filterSelect = document.getElementById('role-filter');
+                const bulkRoleSelect = document.getElementById('bulk-role-target');
+
+                filterSelect.innerHTML = '<option value="">All Roles</option>';
+                bulkRoleSelect.innerHTML = '';
+
+                const isSuperCaller = isCurrentUserSuperAdmin();
+
+                // Group roles by hierarchy category and deduplicate display titles
+                const groups = {};
+                ROLE_CATEGORIES.forEach(cat => { groups[cat] = []; });
+
+                const seenInFilter = new Set();
+
                 allRoles.forEach(r => {
-                    const opt = document.createElement('option');
-                    opt.value = r.name;
-                    opt.textContent = r.name;
-                    filterSelect.appendChild(opt);
+                    const key = (r.name || '').toLowerCase();
+                    const meta = ROLE_CATEGORY_MAP[key] || {
+                        category: r.category || 'Other Roles',
+                        title: r.display_title || formatRoleTitle(r.name),
+                        rank: r.hierarchy_rank || 99
+                    };
+                    const category = meta.category;
+                    const title = meta.title;
+
+                    if (!groups[category]) groups[category] = [];
+
+                    // Deduplicate so "Barangay Admin" appears once
+                    if (!seenInFilter.has(title)) {
+                        seenInFilter.add(title);
+                        groups[category].push({
+                            id: r.id,
+                            name: r.name,
+                            title: title,
+                            rank: meta.rank
+                        });
+                    }
+                });
+
+                // Build categorized <optgroup> for #role-filter
+                ROLE_CATEGORIES.forEach(cat => {
+                    const list = groups[cat] || [];
+                    if (list.length > 0) {
+                        const optgroup = document.createElement('optgroup');
+                        optgroup.label = cat;
+                        list.sort((a, b) => a.rank - b.rank).forEach(r => {
+                            const opt = document.createElement('option');
+                            opt.value = r.name;
+                            opt.textContent = r.title;
+                            optgroup.appendChild(opt);
+                        });
+                        filterSelect.appendChild(optgroup);
+                    }
+                });
+
+                // Build categorized <optgroup> for #bulk-role-target
+                ROLE_CATEGORIES.forEach(cat => {
+                    const list = groups[cat] || [];
+                    // Exclude Super Admin role for non-super-admins
+                    const eligibleList = list.filter(r => r.name !== 'super_admin' || isSuperCaller);
+                    if (eligibleList.length > 0) {
+                        const optgroup = document.createElement('optgroup');
+                        optgroup.label = cat;
+                        eligibleList.sort((a, b) => a.rank - b.rank).forEach(r => {
+                            const opt = document.createElement('option');
+                            opt.value = r.name;
+                            opt.textContent = r.title;
+                            optgroup.appendChild(opt);
+                        });
+                        bulkRoleSelect.appendChild(optgroup);
+                    }
                 });
             } catch (error) {
                 console.error('Failed to load roles', error);
@@ -141,53 +533,607 @@
         }
 
         async function loadData() {
-            const tbody = document.getElementById('table-body');
-            const role = document.getElementById('role-filter').value;
-            const search = document.getElementById('search-box').value;
-
-            let query = [];
-            if (role) query.push(`role=${encodeURIComponent(role)}`);
-            if (search) query.push(`search=${encodeURIComponent(search)}`);
-            const qs = query.length ? `?${query.join('&')}` : '';
-
             try {
-                const res = await apiRequest(endpoint + qs);
-                const data = res.users || [];
+                const tbody = document.getElementById('table-body');
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 24px;">Loading users...</td></tr>';
 
-                if (data.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="6">No users found.</td></tr>';
-                    return;
-                }
+                const res = await apiRequest(endpoint);
+                rawUsers = res.users || [];
 
-                tbody.innerHTML = data.map(item => {
-                    const roleBadges = (item.roles || []).map(r => `<span class="role-badge">${r.name}</span>`).join('');
-                    const joined = item.created_at ? item.created_at.substring(0, 10) : '-';
-                    return `
-                    <tr>
-                        <td>${item.id}</td>
-                        <td>${item.name}</td>
-                        <td>${item.email}</td>
-                        <td>${roleBadges || '-'}</td>
-                        <td>${joined}</td>
-                        <td>
-                            ${getUserRole() === 'super_admin' || !(item.roles || []).some(role => role.name === 'super_admin') ? `<button class="btn" style="padding: 5px 10px; width: auto; background: #f39c12;" onclick='editItem(${JSON.stringify(item).replace(/'/g, "&#39;")})'>Edit</button>` : '<span class="protected-user">Protected</span>'}
-                            ${getUserRole() === 'super_admin' ? `<button class="btn" style="padding: 5px 10px; width: auto; background: #e74c3c;" onclick="deleteItem(${item.id})">Delete</button>` : ''}
-                        </td>
-                    </tr>
-                `;}).join('');
+                applyPipeline();
             } catch (error) {
-                tbody.innerHTML = `<tr><td colspan="6">Error loading data: ${error.message}</td></tr>`;
+                console.error('Failed to load users:', error);
+                document.getElementById('table-body').innerHTML = `<tr><td colspan="6" style="text-align: center; color: #b91c1c; padding: 24px;">Error loading users: ${escapeHtml(error.message)}</td></tr>`;
             }
         }
 
+        /**
+         * Strict processing order:
+         * 1. Filter (search query + role filter)
+         * 2. Sort (active column asc/desc)
+         * 3. Paginate (slice by currentPage & rowsPerPage)
+         * 4. Render (with checkbox state from selectedUserIds)
+         */
+        function applyPipeline() {
+            const statusFilterVal = (document.getElementById('status-filter')?.value || 'all').toLowerCase().trim();
+            const roleFilterVal = (document.getElementById('role-filter')?.value || '').toLowerCase().trim();
+            const searchVal = (document.getElementById('search-box')?.value || '').toLowerCase().trim();
+
+            // 1. STATUS FILTER (First: All / Active / Archived)
+            let filtered = rawUsers.filter(user => {
+                const isArchived = Boolean(user.is_archived || user.archived_at);
+                if (statusFilterVal === 'active') return !isArchived;
+                if (statusFilterVal === 'archived') return isArchived;
+                return true; // 'all'
+            });
+
+            // 2. ROLE FILTER (Matches unified titles e.g. admin & barangay_admin)
+            if (roleFilterVal) {
+                filtered = filtered.filter(user => {
+                    return (user.roles || []).some(r => {
+                        const rName = (r.name || '').toLowerCase();
+                        if ((roleFilterVal === 'admin' || roleFilterVal === 'barangay_admin') &&
+                            (rName === 'admin' || rName === 'barangay_admin')) {
+                            return true;
+                        }
+                        return rName === roleFilterVal;
+                    });
+                });
+            }
+
+            // 3. SEARCH FILTER
+            if (searchVal) {
+                filtered = filtered.filter(user => {
+                    const nameMatch = (user.name || '').toLowerCase().includes(searchVal);
+                    const emailMatch = (user.email || '').toLowerCase().includes(searchVal);
+                    return nameMatch || emailMatch;
+                });
+            }
+
+            // 4. SORT
+            if (currentSort.column) {
+                filtered.sort((a, b) => {
+                    let valA = '';
+                    let valB = '';
+
+                    if (currentSort.column === 'name') {
+                        valA = (a.name || '').toLowerCase();
+                        valB = (b.name || '').toLowerCase();
+                        return currentSort.direction === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
+                    }
+                    if (currentSort.column === 'roles') {
+                        valA = (a.roles || []).map(r => r.name || '').sort().join(', ').toLowerCase();
+                        valB = (b.roles || []).map(r => r.name || '').sort().join(', ').toLowerCase();
+                        return currentSort.direction === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
+                    }
+                    if (currentSort.column === 'joined') {
+                        const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
+                        const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
+                        return currentSort.direction === 'asc' ? dateA - dateB : dateB - dateA;
+                    }
+                    return 0;
+                });
+            }
+
+            // 5. PAGINATE
+            const totalItems = filtered.length;
+            const totalPages = Math.max(1, Math.ceil(totalItems / rowsPerPage));
+            if (currentPage > totalPages) currentPage = totalPages;
+            if (currentPage < 1) currentPage = 1;
+            persistState();
+
+            const startIndex = (currentPage - 1) * rowsPerPage;
+            pagedUsers = filtered.slice(startIndex, startIndex + rowsPerPage);
+
+            // 6. RENDER TABLE
+            const tbody = document.getElementById('table-body');
+            const isCallerSuper = isCurrentUserSuperAdmin();
+
+            if (pagedUsers.length === 0) {
+                const emptyMsg = statusFilterVal === 'archived'
+                    ? 'No archived users found.'
+                    : 'No users found matching your criteria.';
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 24px; color: var(--text-muted);">${emptyMsg}</td></tr>`;
+            } else {
+                tbody.innerHTML = pagedUsers.map(item => {
+                    const isSelected = selectedUserIds.has(item.id);
+                    const roleBadges = (item.roles || []).map(r => `<span class="role-badge">${escapeHtml(formatRoleTitle(r.name))}</span>`).join('');
+                    const joined = item.created_at ? item.created_at.substring(0, 10) : '-';
+                    const isSuper = (item.roles || []).some(role => role.name === 'super_admin');
+                    const isProtected = isSuper && !isCallerSuper;
+                    const isArchived = Boolean(item.is_archived || item.archived_at);
+
+                    return `
+                        <tr class="${isSelected ? 'selected-row' : ''}">
+                            <td class="col-checkbox">
+                                ${isProtected ? `
+                                    <input type="checkbox" class="row-select-checkbox is-protected" disabled title="Super Admin accounts cannot be selected by lower hierarchy roles" aria-label="Protected Super Admin account">
+                                ` : `
+                                    <input type="checkbox" class="row-select-checkbox" data-id="${item.id}" ${isSelected ? 'checked' : ''} onchange="toggleRowSelection(${item.id}, event)" aria-label="Select ${escapeHtml(item.name)}">
+                                `}
+                            </td>
+                            <td><strong>${escapeHtml(item.name)}</strong></td>
+                            <td>${escapeHtml(item.email)}</td>
+                            <td>${roleBadges || '-'}</td>
+                            <td>${joined}</td>
+                            <td>
+                                <div class="row-actions-cell">
+                                    ${isProtected ? `
+                                        <button type="button" class="action-icon-btn is-disabled has-tooltip" data-tooltip="Protected Super Admin" aria-label="Protected Super Admin" onclick="showSuperAdminBlockedToast()">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity: 0.45;">
+                                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                                            </svg>
+                                        </button>
+                                    ` : `
+                                        <button type="button" class="action-icon-btn has-tooltip" data-tooltip="Edit User" aria-label="Edit User" onclick='editItem(${JSON.stringify(item).replace(/'/g, "&#39;")})'>
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
+                                            </svg>
+                                        </button>
+                                        ${!isArchived ? `
+                                            <button type="button" class="action-icon-btn has-tooltip" data-tooltip="Archive User" aria-label="Archive User" onclick="promptArchiveUser(${item.id}, '${escapeHtml(item.name).replace(/'/g, "\\'")}')">
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <polyline points="21 8 21 21 3 21 3 8"></polyline>
+                                                    <rect x="1" y="3" width="22" height="5"></rect>
+                                                    <line x1="10" y1="12" x2="14" y2="12"></line>
+                                                </svg>
+                                            </button>
+                                        ` : `
+                                            <button type="button" class="action-icon-btn has-tooltip" data-tooltip="Restore User" aria-label="Restore User" onclick="promptRestoreUser(${item.id}, '${escapeHtml(item.name).replace(/'/g, "\\'")}')">
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <polyline points="1 4 1 10 7 10"></polyline>
+                                                    <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+                                                </svg>
+                                            </button>
+                                        `}
+                                    `}
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+
+            // Update Select All Checkbox state on current page
+            updateSelectAllCheckboxState();
+
+            // Update Bulk Actions Bar
+            updateBulkActionBar();
+
+            // Update Pagination Controls
+            if (!paginationHelper) {
+                paginationHelper = new PaginationControls({
+                    containerId: 'pagination-container',
+                    currentPage,
+                    rowsPerPage,
+                    rowsPerPageOptions: [10, 20, 50, 100],
+                    totalItems,
+                    itemLabel: 'users',
+                    onPageChange: (newPage) => {
+                        currentPage = newPage;
+                        persistState();
+                        applyPipeline();
+                    },
+                    onRowsPerPageChange: (newRows) => {
+                        rowsPerPage = newRows;
+                        currentPage = 1;
+                        persistState();
+                        applyPipeline();
+                    }
+                });
+            } else {
+                paginationHelper.update({ currentPage, totalItems, rowsPerPage });
+            }
+        }
+
+        function updateSortHeaderIcons() {
+            ['name', 'roles', 'joined'].forEach(col => {
+                const th = document.getElementById(`th-${col}`);
+                const icon = document.getElementById(`sort-icon-${col}`);
+                if (th && icon) {
+                    if (col === currentSort.column) {
+                        th.classList.add('active');
+                        icon.textContent = currentSort.direction === 'asc' ? '▲' : '▼';
+                    } else {
+                        th.classList.remove('active');
+                        icon.textContent = '↕';
+                    }
+                }
+            });
+        }
+
+        /**
+         * Column Sorting Handler
+         */
+        function handleSort(column) {
+            if (currentSort.column === column) {
+                currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+            } else {
+                currentSort.column = column;
+                currentSort.direction = 'asc';
+            }
+
+            updateSortHeaderIcons();
+            persistState();
+            applyPipeline();
+        }
+
+        /**
+         * Bulk Selection Handlers
+         */
+        function handleSelectAllToggle(event) {
+            const isChecked = event.target.checked;
+            const isCallerSuper = isCurrentUserSuperAdmin();
+            pagedUsers.forEach(u => {
+                const isSuper = (u.roles || []).some(role => role.name === 'super_admin');
+                if (isSuper && !isCallerSuper) {
+                    return; // Skip protected Super Admin rows
+                }
+                if (isChecked) {
+                    selectedUserIds.add(u.id);
+                } else {
+                    selectedUserIds.delete(u.id);
+                }
+            });
+
+            applyPipeline();
+        }
+
+        function toggleRowSelection(userId, event) {
+            if (event.target.checked) {
+                selectedUserIds.add(userId);
+            } else {
+                selectedUserIds.delete(userId);
+            }
+
+            updateSelectAllCheckboxState();
+            updateBulkActionBar();
+
+            // Highlight tr
+            const tr = event.target.closest('tr');
+            if (tr) {
+                if (event.target.checked) tr.classList.add('selected-row');
+                else tr.classList.remove('selected-row');
+            }
+        }
+
+        function updateSelectAllCheckboxState() {
+            const selectAll = document.getElementById('select-all-checkbox');
+            if (!selectAll) return;
+
+            if (pagedUsers.length === 0) {
+                selectAll.checked = false;
+                selectAll.indeterminate = false;
+                selectAll.disabled = true;
+                return;
+            }
+
+            selectAll.disabled = false;
+            const selectedOnPageCount = pagedUsers.filter(u => selectedUserIds.has(u.id)).length;
+
+            if (selectedOnPageCount === pagedUsers.length) {
+                selectAll.checked = true;
+                selectAll.indeterminate = false;
+            } else if (selectedOnPageCount > 0) {
+                selectAll.checked = false;
+                selectAll.indeterminate = true;
+            } else {
+                selectAll.checked = false;
+                selectAll.indeterminate = false;
+            }
+        }
+
+        function updateBulkActionBar() {
+            const bar = document.getElementById('bulk-actions-bar');
+            const countEl = document.getElementById('bulk-selected-count');
+            const count = selectedUserIds.size;
+
+            const statusFilterVal = (document.getElementById('status-filter')?.value || 'active').toLowerCase().trim();
+            const btnArchive = document.getElementById('btn-bulk-archive-trigger');
+            const btnRestore = document.getElementById('btn-bulk-restore-trigger');
+
+            if (statusFilterVal === 'archived') {
+                if (btnArchive) btnArchive.style.display = 'none';
+                if (btnRestore) btnRestore.style.display = 'inline-flex';
+            } else {
+                if (btnArchive) btnArchive.style.display = 'inline-flex';
+                if (btnRestore) btnRestore.style.display = 'none';
+            }
+
+            if (count > 0) {
+                bar.classList.add('active');
+                countEl.textContent = count === 1 ? '1 user selected' : `${count} users selected`;
+            } else {
+                bar.classList.remove('active');
+            }
+        }
+
+        function clearSelection() {
+            selectedUserIds.clear();
+            applyPipeline();
+        }
+
+        /**
+         * Search and Filter Listeners
+         * Automatically clears selection and alerts the user if filter/search changes.
+         */
+        function onFilterChange() {
+            if (selectedUserIds.size > 0) {
+                selectedUserIds.clear();
+                showToast('Selection cleared due to filter change', 'info');
+            }
+            currentPage = 1;
+            persistState();
+            applyPipeline();
+        }
+
+        function handleSearchClick() {
+            onFilterChange();
+        }
+
+        document.getElementById('search-box').addEventListener('input', () => {
+            onFilterChange();
+        });
+
+        document.getElementById('role-filter').addEventListener('change', () => {
+            onFilterChange();
+        });
+
+        const statusSelectEl = document.getElementById('status-filter');
+        if (statusSelectEl) {
+            statusSelectEl.addEventListener('change', () => {
+                onFilterChange();
+            });
+        }
+
+        /**
+         * Bulk Archive Modal and Action
+         */
+        function openBulkArchiveModal() {
+            if (selectedUserIds.size === 0) return;
+            const count = selectedUserIds.size;
+            document.getElementById('bulk-archive-count-text').textContent = `${count} ${count === 1 ? 'user' : 'users'}`;
+            document.getElementById('bulk-archive-modal').classList.add('active');
+        }
+
+        function closeBulkArchiveModal() {
+            document.getElementById('bulk-archive-modal').classList.remove('active');
+        }
+
+        async function executeBulkArchive() {
+            const btn = document.getElementById('btn-confirm-bulk-archive');
+            const ids = Array.from(selectedUserIds);
+            if (ids.length === 0) return;
+
+            btn.disabled = true;
+            btn.textContent = 'Archiving...';
+
+            try {
+                const res = await apiRequest('/users/bulk-archive', 'PATCH', { ids });
+                closeBulkArchiveModal();
+                selectedUserIds.clear();
+                showToast(res.message || `${ids.length} users archived successfully.`, 'success');
+                await loadData();
+            } catch (err) {
+                console.error('Bulk archive failed:', err);
+                showToast('Bulk archive failed: ' + (err.message || 'Server error'), 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Confirm & Archive';
+            }
+        }
+
+        /**
+         * Bulk Restore Modal and Action
+         */
+        function openBulkRestoreModal() {
+            if (selectedUserIds.size === 0) return;
+            const count = selectedUserIds.size;
+            document.getElementById('bulk-restore-count-text').textContent = `${count} ${count === 1 ? 'user' : 'users'}`;
+            document.getElementById('bulk-restore-modal').classList.add('active');
+        }
+
+        function closeBulkRestoreModal() {
+            document.getElementById('bulk-restore-modal').classList.remove('active');
+        }
+
+        async function executeBulkRestore() {
+            const btn = document.getElementById('btn-confirm-bulk-restore');
+            const ids = Array.from(selectedUserIds);
+            if (ids.length === 0) return;
+
+            btn.disabled = true;
+            btn.textContent = 'Restoring...';
+
+            try {
+                const res = await apiRequest('/users/bulk-restore', 'PATCH', { ids });
+                closeBulkRestoreModal();
+                selectedUserIds.clear();
+                showToast(res.message || `${ids.length} users restored successfully.`, 'success');
+                await loadData();
+            } catch (err) {
+                console.error('Bulk restore failed:', err);
+                showToast('Bulk restore failed: ' + (err.message || 'Server error'), 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Confirm & Restore';
+            }
+        }
+
+        /**
+         * Bulk Role Reassign Modal and Action
+         */
+        function openBulkRoleModal() {
+            if (selectedUserIds.size === 0) return;
+            const count = selectedUserIds.size;
+            const targetRole = document.getElementById('bulk-role-target').value;
+            document.getElementById('bulk-role-count-text').textContent = `${count} ${count === 1 ? 'user' : 'users'}`;
+            document.getElementById('bulk-role-target-text').textContent = formatRoleTitle(targetRole);
+            document.getElementById('bulk-role-modal').classList.add('active');
+        }
+
+        function closeBulkRoleModal() {
+            document.getElementById('bulk-role-modal').classList.remove('active');
+        }
+
+        async function executeBulkRoleReassign() {
+            const btn = document.getElementById('btn-confirm-bulk-role');
+            const ids = Array.from(selectedUserIds);
+            const targetRole = document.getElementById('bulk-role-target').value;
+            if (ids.length === 0 || !targetRole) return;
+
+            btn.disabled = true;
+            btn.textContent = 'Reassigning...';
+
+            try {
+                const res = await apiRequest('/users/bulk-role', 'PATCH', { ids, role: targetRole });
+                closeBulkRoleModal();
+                selectedUserIds.clear();
+                showToast(res.message || `${ids.length} users reassigned successfully.`, 'success');
+                await loadData();
+            } catch (err) {
+                console.error('Bulk role reassign failed:', err);
+                showToast('Role reassign failed: ' + (err.message || 'Server error'), 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Confirm & Reassign';
+            }
+        }
+
+        /**
+         * Single User Edit, Archive & Restore (Soft-Delete Only)
+         */
+        let pendingActionUserId = null;
+
+        function promptArchiveUser(userId, userName) {
+            const user = rawUsers.find(u => u.id === userId);
+            if (user && (user.roles || []).some(r => r.name === 'super_admin') && !isCurrentUserSuperAdmin()) {
+                showSuperAdminBlockedToast();
+                return;
+            }
+            pendingActionUserId = userId;
+            document.getElementById('single-archive-user-name').textContent = userName || 'this user';
+            document.getElementById('single-archive-modal').classList.add('active');
+        }
+
+        function closeSingleArchiveModal() {
+            pendingActionUserId = null;
+            document.getElementById('single-archive-modal').classList.remove('active');
+        }
+
+        async function confirmSingleArchive() {
+            if (!pendingActionUserId) return;
+            const btn = document.getElementById('btn-confirm-single-archive');
+            btn.disabled = true;
+            btn.textContent = 'Archiving...';
+            try {
+                const res = await apiRequest(`${endpoint}/${pendingActionUserId}/archive`, 'PATCH');
+                closeSingleArchiveModal();
+                selectedUserIds.delete(pendingActionUserId);
+                showToast(res.message || 'User archived successfully.', 'success');
+                await loadData();
+            } catch (err) {
+                console.error('Failed to archive user:', err);
+                showToast('Failed to archive user: ' + (err.message || 'Server error'), 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Archive User';
+            }
+        }
+
+        function promptRestoreUser(userId, userName) {
+            const user = rawUsers.find(u => u.id === userId);
+            if (user && (user.roles || []).some(r => r.name === 'super_admin') && !isCurrentUserSuperAdmin()) {
+                showSuperAdminBlockedToast();
+                return;
+            }
+            pendingActionUserId = userId;
+            document.getElementById('single-restore-user-name').textContent = userName || 'this user';
+            document.getElementById('single-restore-modal').classList.add('active');
+        }
+
+        function closeSingleRestoreModal() {
+            pendingActionUserId = null;
+            document.getElementById('single-restore-modal').classList.remove('active');
+        }
+
+        async function confirmSingleRestore() {
+            if (!pendingActionUserId) return;
+            const btn = document.getElementById('btn-confirm-single-restore');
+            btn.disabled = true;
+            btn.textContent = 'Restoring...';
+            try {
+                const res = await apiRequest(`${endpoint}/${pendingActionUserId}/restore`, 'PATCH');
+                closeSingleRestoreModal();
+                selectedUserIds.delete(pendingActionUserId);
+                showToast(res.message || 'User restored successfully.', 'success');
+                await loadData();
+            } catch (err) {
+                console.error('Failed to restore user:', err);
+                showToast('Failed to restore user: ' + (err.message || 'Server error'), 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Restore User';
+            }
+        }
+
+        /**
+         * Edit User Profile & Permissions Modal Handlers
+         */
         function renderRolesChecklist(userRoleIds) {
             const container = document.getElementById('roles-checklist');
-            container.innerHTML = allRoles.map(r => `
-                <label>
-                    <input type="checkbox" value="${r.id}" ${userRoleIds.includes(r.id) ? 'checked' : ''}>
-                    ${r.name}
-                </label>
-            `).join('');
+            const isSuperCaller = isCurrentUserSuperAdmin();
+
+            // Group roles by category
+            const groups = {};
+            ROLE_CATEGORIES.forEach(cat => { groups[cat] = []; });
+
+            allRoles.forEach(r => {
+                const key = (r.name || '').toLowerCase();
+                const meta = ROLE_CATEGORY_MAP[key] || {
+                    category: r.category || 'Other Roles',
+                    title: r.display_title || formatRoleTitle(r.name),
+                    rank: r.hierarchy_rank || 99
+                };
+                const cat = meta.category;
+                if (!groups[cat]) groups[cat] = [];
+                groups[cat].push({
+                    id: r.id,
+                    name: r.name,
+                    title: meta.title,
+                    rank: meta.rank
+                });
+            });
+
+            let html = '';
+            ROLE_CATEGORIES.forEach(cat => {
+                const list = groups[cat] || [];
+                if (list.length > 0) {
+                    html += `<div style="font-weight: 700; font-size: 11px; text-transform: uppercase; color: var(--text-muted); margin: 10px 0 4px 0; letter-spacing: 0.5px;">${cat}</div>`;
+                    list.sort((a, b) => a.rank - b.rank).forEach(r => {
+                        const isSuperRole = r.name === 'super_admin';
+                        const isChecked = userRoleIds.includes(r.id);
+                        if (isSuperRole && !isSuperCaller) {
+                            html += `
+                                <label style="opacity: 0.65; cursor: not-allowed;" title="Super Admin privileges can only be assigned by a Super Administrator">
+                                    <input type="checkbox" value="${r.id}" ${isChecked ? 'checked' : ''} disabled>
+                                    <span>🔒 ${r.title} <small style="color: var(--text-muted); font-size: 11px;">(Requires Super Admin)</small></span>
+                                </label>
+                            `;
+                        } else {
+                            html += `
+                                <label>
+                                    <input type="checkbox" value="${r.id}" ${isChecked ? 'checked' : ''}>
+                                    ${r.title}
+                                </label>
+                            `;
+                        }
+                    });
+                }
+            });
+
+            container.innerHTML = html;
         }
 
         function closeModal() {
@@ -195,6 +1141,11 @@
         }
 
         function editItem(item) {
+            const isSuper = (item.roles || []).some(role => role.name === 'super_admin');
+            if (isSuper && !isCurrentUserSuperAdmin()) {
+                showSuperAdminBlockedToast();
+                return;
+            }
             document.getElementById('form-modal').classList.add('active');
             document.getElementById('item-id').value = item.id;
             document.getElementById('name').value = item.name;
@@ -202,16 +1153,6 @@
             document.getElementById('password').value = '';
             const userRoleIds = (item.roles || []).map(r => r.id);
             renderRolesChecklist(userRoleIds);
-        }
-
-        async function deleteItem(id) {
-            if(!confirm('Are you sure you want to delete this user? This cannot be undone.')) return;
-            try {
-                await apiRequest(`${endpoint}/${id}`, 'DELETE');
-                loadData();
-            } catch(e) {
-                alert('Error deleting: ' + e.message);
-            }
         }
 
         document.getElementById('data-form').addEventListener('submit', async (e) => {
@@ -230,15 +1171,36 @@
                 await apiRequest(`${endpoint}/${id}`, 'PUT', payload);
                 await apiRequest(`${endpoint}/${id}/roles`, 'PUT', { role_ids: roleIds });
                 closeModal();
+                showToast('User updated successfully.', 'success');
                 loadData();
-            } catch(e) {
-                alert('Error saving: ' + e.message);
+            } catch (e) {
+                showToast('Error saving user: ' + e.message, 'error');
             }
         });
 
+        // Initialize Page
         document.addEventListener('DOMContentLoaded', async () => {
+            // Restore filter and search UI inputs from persisted state
+            const statusEl = document.getElementById('status-filter');
+            if (statusEl && initialState.status) {
+                statusEl.value = initialState.status;
+            }
+
+            const searchEl = document.getElementById('search-box');
+            if (searchEl && initialState.search) {
+                searchEl.value = initialState.search;
+            }
+
+            updateSortHeaderIcons();
+
             await loadRoles();
-            loadData();
+
+            const roleEl = document.getElementById('role-filter');
+            if (roleEl && initialState.role) {
+                roleEl.value = initialState.role;
+            }
+
+            await loadData();
         });
     </script>
 </body>

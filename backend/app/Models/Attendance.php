@@ -17,10 +17,14 @@ class Attendance extends Model
         'time_out',
         'status',
         'remarks',
+        'is_archived',
+        'archived_at',
     ];
 
     protected $casts = [
         'date' => 'date',
+        'is_archived' => 'boolean',
+        'archived_at' => 'datetime',
     ];
 
     public function user(): BelongsTo

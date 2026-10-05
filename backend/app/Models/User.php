@@ -21,6 +21,8 @@ class User extends Authenticatable
         'barangay_id',
         'joined_at',
         'password',
+        'is_archived',
+        'archived_at',
     ];
 
     protected $hidden = [
@@ -33,6 +35,8 @@ class User extends Authenticatable
         'password' => 'hashed',
         'joined_at' => 'date:Y-m-d',
         'barangay_id' => 'integer',
+        'is_archived' => 'boolean',
+        'archived_at' => 'datetime',
     ];
 
     protected $appends = [

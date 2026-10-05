@@ -5,6 +5,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Attendance - KatokKalinis</title>
     <link rel="stylesheet" href="css/style.css">
+    <style>
+        .filter-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        .filter-bar select, .filter-bar input {
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--surface);
+            color: var(--text);
+            font-size: 13.5px;
+        }
+        .filter-bar input[type="text"] {
+            min-width: 220px;
+            flex: 1;
+        }
+        .filter-bar input[type="date"] {
+            min-width: 140px;
+        }
+    </style>
 </head>
 <body>
 
@@ -14,9 +38,7 @@
             <div class="sidebar-header">KatokKalinis</div>
             <div class="sidebar-role" id="sidebar-role"></div>
             <nav class="sidebar-nav" id="sidebar-nav"></nav>
-            <div class="sidebar-footer">
-                
-            </div>
+            <div class="sidebar-footer"></div>
         </aside>
 
         <!-- Main Content -->
@@ -28,26 +50,86 @@
             
             <section class="content">
                 <div class="card">
-                    <div class="card-header">
-                        <h3>Attendance Log</h3>
-                        <button class="btn" onclick="openModal()" style="width: auto;">Add Attendance</button>
+                    <div class="card-header" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+                        <h3 class="users-section-title">Attendance Log</h3>
+                        <button class="btn" onclick="openModal()" style="width: auto;">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 4px;"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                            Add Attendance
+                        </button>
                     </div>
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Employee</th>
-                                <th>Date</th>
-                                <th>Time In</th>
-                                <th>Time Out</th>
-                                <th>Status</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="table-body">
-                            <tr><td colspan="7">Loading...</td></tr>
-                        </tbody>
-                    </table>
+
+                    <!-- Search, Archive Status, and Attendance Status Filter Bar -->
+                    <div class="filter-bar">
+                        <select id="status-filter" aria-label="Filter by Archive Status" onchange="onFilterChange()">
+                            <option value="all" selected>All Records</option>
+                            <option value="active">Active Records</option>
+                            <option value="archived">Archived Records</option>
+                        </select>
+                        <select id="attendance-status-filter" aria-label="Filter by Status" onchange="onFilterChange()">
+                            <option value="">All Statuses</option>
+                            <option value="present">Present</option>
+                            <option value="late">Late</option>
+                            <option value="absent">Absent</option>
+                            <option value="on_leave">On Leave</option>
+                        </select>
+                        <input type="date" id="date-filter" aria-label="Filter by Date" onchange="onFilterChange()" title="Filter by Date">
+                        <input type="text" id="search-box" placeholder="Search by employee name or email..." aria-label="Search attendance">
+                        <button type="button" class="btn" onclick="handleSearchClick()" style="width: auto;">Search</button>
+                    </div>
+
+                    <!-- Contextual Bulk Actions Bar -->
+                    <div id="bulk-actions-bar" class="bulk-actions-bar" aria-live="polite">
+                        <div class="bulk-left-info">
+                            <span class="bulk-selected-badge">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                <span id="bulk-selected-count">0 records selected</span>
+                            </span>
+                            <button type="button" class="bulk-clear-btn" onclick="clearSelection()">Clear selection</button>
+                        </div>
+                        <div class="bulk-right-actions">
+                            <button type="button" id="btn-bulk-archive-trigger" class="btn-bulk-archive" onclick="openBulkArchiveModal()">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><polyline points="21 8 21 21 3 21 3 8"></polyline><rect x="1" y="3" width="22" height="5"></rect><line x1="10" y1="12" x2="14" y2="12"></line></svg>
+                                Bulk Archive
+                            </button>
+                            <button type="button" id="btn-bulk-restore-trigger" class="btn-bulk-restore" style="display: none;" onclick="openBulkRestoreModal()">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+                                Bulk Restore
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Attendance Table (Hidden ID column, sortable headers, checkbox selection) -->
+                    <div style="overflow-x: auto;">
+                        <table class="table" id="attendance-table">
+                            <thead>
+                                <tr>
+                                    <th class="col-checkbox">
+                                        <input type="checkbox" id="select-all-checkbox" aria-label="Select all on current page" onchange="handleSelectAllToggle(event)">
+                                    </th>
+                                    <th class="sortable" id="th-employee" onclick="handleSort('employee')">
+                                        Employee <span class="sort-icon" id="sort-icon-employee">&#8597;</span>
+                                    </th>
+                                    <th class="sortable" id="th-date" onclick="handleSort('date')">
+                                        Date <span class="sort-icon" id="sort-icon-date">&#8597;</span>
+                                    </th>
+                                    <th class="sortable" id="th-time_in" onclick="handleSort('time_in')">
+                                        Time In <span class="sort-icon" id="sort-icon-time_in">&#8597;</span>
+                                    </th>
+                                    <th>Time Out</th>
+                                    <th class="sortable" id="th-status" onclick="handleSort('status')">
+                                        Status <span class="sort-icon" id="sort-icon-status">&#8597;</span>
+                                    </th>
+                                    <th style="min-width: 110px;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-body">
+                                <tr><td colspan="7" style="text-align: center; padding: 24px;">Loading attendance records...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Reusable Pagination Bar -->
+                    <div id="pagination-container" class="pagination-container"></div>
                 </div>
             </section>
         </main>
@@ -62,7 +144,7 @@
             </div>
             <form id="data-form">
                 <div class="form-group">
-                    <label>Employee</label>
+                    <label>Employee / User</label>
                     <select id="user_id" class="form-control" required>
                         <option value="">-- Select Employee --</option>
                     </select>
@@ -90,16 +172,16 @@
                 </div>
                 <div class="form-group">
                     <label>Remarks</label>
-                    <input type="text" id="remarks" class="form-control">
+                    <input type="text" id="remarks" class="form-control" placeholder="Optional notes or remarks">
                 </div>
-                <button type="submit" class="btn">Save</button>
+                <button type="submit" class="btn">Save Attendance</button>
             </form>
         </div>
     </div>
 
     <!-- Update Status Modal -->
     <div id="status-modal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content" style="max-width: 440px;">
             <div class="modal-header">
                 <h3>Update Attendance Status</h3>
                 <span class="close-btn" onclick="closeStatusModal()">&times;</span>
@@ -115,25 +197,256 @@
                         <option value="on_leave">On Leave</option>
                     </select>
                 </div>
-                <button type="submit" class="btn">Update Status</button>
+                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px;">
+                    <button type="button" class="btn" style="width: auto; background: var(--surface-alt); color: var(--text); border: 1px solid var(--border);" onclick="closeStatusModal()">Cancel</button>
+                    <button type="submit" class="btn" style="width: auto;">Update Status</button>
+                </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Bulk Archive Confirmation Modal -->
+    <div id="bulk-archive-modal" class="modal">
+        <div class="modal-content" style="max-width: 440px;">
+            <div class="modal-header">
+                <h3 style="color: var(--green-800);">Confirm Bulk Archive</h3>
+                <span class="close-btn" onclick="closeBulkArchiveModal()">&times;</span>
+            </div>
+            <div style="padding: 16px 0;">
+                <p style="font-size: 14.5px; line-height: 1.5; color: var(--text);">
+                    Are you sure you want to archive <strong id="bulk-archive-count-text">0 records</strong>?
+                </p>
+                <p style="font-size: 13px; color: var(--text-muted); margin-top: 8px;">
+                    Archived attendance records will be hidden from the active log. You can review or restore them at any time from the "Archived Records" filter view.
+                </p>
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--border); padding-top: 14px;">
+                <button type="button" class="btn" style="width: auto; background: var(--surface-alt); color: var(--text); border: 1px solid var(--border);" onclick="closeBulkArchiveModal()">Cancel</button>
+                <button type="button" class="btn btn-bulk-archive" style="width: auto;" id="btn-confirm-bulk-archive" onclick="executeBulkArchive()">Confirm &amp; Archive</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bulk Restore Confirmation Modal -->
+    <div id="bulk-restore-modal" class="modal">
+        <div class="modal-content" style="max-width: 440px;">
+            <div class="modal-header">
+                <h3 style="color: #0d9488;">Confirm Bulk Restore</h3>
+                <span class="close-btn" onclick="closeBulkRestoreModal()">&times;</span>
+            </div>
+            <div style="padding: 16px 0;">
+                <p style="font-size: 14.5px; line-height: 1.5; color: var(--text);">
+                    Restore <strong id="bulk-restore-count-text">0 records</strong> to active status?
+                </p>
+                <p style="font-size: 13px; color: var(--text-muted); margin-top: 8px;">
+                    Restored records will immediately return to the Active Attendance Log.
+                </p>
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--border); padding-top: 14px;">
+                <button type="button" class="btn" style="width: auto; background: var(--surface-alt); color: var(--text); border: 1px solid var(--border);" onclick="closeBulkRestoreModal()">Cancel</button>
+                <button type="button" class="btn btn-bulk-restore" style="width: auto;" id="btn-confirm-bulk-restore" onclick="executeBulkRestore()">Confirm &amp; Restore</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Single Record Archive Modal -->
+    <div id="single-archive-modal" class="modal">
+        <div class="modal-content" style="max-width: 420px;">
+            <div class="modal-header">
+                <h3 style="color: var(--green-800);">Archive Attendance Record</h3>
+                <span class="close-btn" onclick="closeSingleArchiveModal()">&times;</span>
+            </div>
+            <div style="padding: 16px 0;">
+                <p style="font-size: 14.5px; line-height: 1.5; color: var(--text);">
+                    Are you sure you want to archive the attendance record for <strong id="single-archive-employee-name">this employee</strong>?
+                </p>
+                <p style="font-size: 13px; color: var(--text-muted); margin-top: 8px;">
+                    This record will be moved to the archives and can be restored whenever needed.
+                </p>
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--border); padding-top: 14px;">
+                <button type="button" class="btn" style="width: auto; background: var(--surface-alt); color: var(--text); border: 1px solid var(--border);" onclick="closeSingleArchiveModal()">Cancel</button>
+                <button type="button" class="btn btn-bulk-archive" style="width: auto;" id="btn-confirm-single-archive" onclick="confirmSingleArchive()">Archive Record</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Single Record Restore Modal -->
+    <div id="single-restore-modal" class="modal">
+        <div class="modal-content" style="max-width: 420px;">
+            <div class="modal-header">
+                <h3 style="color: #0d9488;">Restore Attendance Record</h3>
+                <span class="close-btn" onclick="closeSingleRestoreModal()">&times;</span>
+            </div>
+            <div style="padding: 16px 0;">
+                <p style="font-size: 14.5px; line-height: 1.5; color: var(--text);">
+                    Restore the attendance record for <strong id="single-restore-employee-name">this employee</strong> to active status?
+                </p>
+                <p style="font-size: 13px; color: var(--text-muted); margin-top: 8px;">
+                    The record will immediately return to the active attendance log.
+                </p>
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--border); padding-top: 14px;">
+                <button type="button" class="btn" style="width: auto; background: var(--surface-alt); color: var(--text); border: 1px solid var(--border);" onclick="closeSingleRestoreModal()">Cancel</button>
+                <button type="button" class="btn btn-bulk-restore" style="width: auto;" id="btn-confirm-single-restore" onclick="confirmSingleRestore()">Restore Record</button>
+            </div>
         </div>
     </div>
 
     <script src="js/app.js"></script>
     <script>
         const endpoint = '/attendance';
-        let employees = [];
+        let rawAttendance = [];
+        let selectedRecordIds = new Set();
+
+        // Storage keys for retaining pagination & filter state across reloads
+        const STORAGE_PAGE = 'katok_attendance_page';
+        const STORAGE_ROWS = 'katok_attendance_rows';
+        const STORAGE_STATUS = 'katok_attendance_status';
+        const STORAGE_ATT_STATUS = 'katok_attendance_att_status';
+        const STORAGE_DATE = 'katok_attendance_date';
+        const STORAGE_SEARCH = 'katok_attendance_search';
+        const STORAGE_SORT = 'katok_attendance_sort';
+
+        function getInitialState() {
+            const urlParams = new URLSearchParams(window.location.search);
+
+            let page = parseInt(urlParams.get('page') || localStorage.getItem(STORAGE_PAGE) || '1', 10);
+            if (isNaN(page) || page < 1) page = 1;
+
+            let rows = parseInt(urlParams.get('rows') || localStorage.getItem(STORAGE_ROWS) || '10', 10);
+            if (![10, 20, 50, 100].includes(rows)) rows = 10;
+
+            let status = urlParams.get('status') || localStorage.getItem(STORAGE_STATUS) || 'all';
+            if (!['all', 'active', 'archived'].includes(status)) status = 'all';
+
+            let attStatus = urlParams.get('att_status') || localStorage.getItem(STORAGE_ATT_STATUS) || '';
+            let date = urlParams.get('date') || localStorage.getItem(STORAGE_DATE) || '';
+            let search = urlParams.get('search') || localStorage.getItem(STORAGE_SEARCH) || '';
+
+            let sort = { column: null, direction: 'asc' };
+            const paramSortCol = urlParams.get('sort');
+            const paramSortDir = urlParams.get('dir');
+            if (paramSortCol) {
+                sort = { column: paramSortCol, direction: paramSortDir === 'desc' ? 'desc' : 'asc' };
+            } else {
+                try {
+                    const saved = JSON.parse(localStorage.getItem(STORAGE_SORT) || '{}');
+                    if (saved && saved.column) {
+                        sort = { column: saved.column, direction: saved.direction === 'desc' ? 'desc' : 'asc' };
+                    }
+                } catch (e) {}
+            }
+
+            return { page, rows, status, attStatus, date, search, sort };
+        }
+
+        const initialState = getInitialState();
+        let currentPage = initialState.page;
+        let rowsPerPage = initialState.rows;
+        let currentSort = initialState.sort;
+        let paginationHelper = null;
+        let pagedRecords = [];
+        let pendingActionId = null;
+
+        function persistState() {
+            try {
+                localStorage.setItem(STORAGE_PAGE, String(currentPage));
+                localStorage.setItem(STORAGE_ROWS, String(rowsPerPage));
+
+                const statusVal = document.getElementById('status-filter')?.value || 'all';
+                localStorage.setItem(STORAGE_STATUS, statusVal);
+
+                const attStatusVal = document.getElementById('attendance-status-filter')?.value || '';
+                localStorage.setItem(STORAGE_ATT_STATUS, attStatusVal);
+
+                const dateVal = document.getElementById('date-filter')?.value || '';
+                localStorage.setItem(STORAGE_DATE, dateVal);
+
+                const searchVal = document.getElementById('search-box')?.value || '';
+                localStorage.setItem(STORAGE_SEARCH, searchVal);
+
+                localStorage.setItem(STORAGE_SORT, JSON.stringify(currentSort));
+
+                // Sync URL query parameters without reloading
+                const url = new URL(window.location.href);
+                if (currentPage > 1) {
+                    url.searchParams.set('page', String(currentPage));
+                } else {
+                    url.searchParams.delete('page');
+                }
+
+                if (rowsPerPage !== 10) {
+                    url.searchParams.set('rows', String(rowsPerPage));
+                } else {
+                    url.searchParams.delete('rows');
+                }
+
+                if (statusVal && statusVal !== 'all') {
+                    url.searchParams.set('status', statusVal);
+                } else {
+                    url.searchParams.delete('status');
+                }
+
+                if (attStatusVal) {
+                    url.searchParams.set('att_status', attStatusVal);
+                } else {
+                    url.searchParams.delete('att_status');
+                }
+
+                if (dateVal) {
+                    url.searchParams.set('date', dateVal);
+                } else {
+                    url.searchParams.delete('date');
+                }
+
+                if (searchVal) {
+                    url.searchParams.set('search', searchVal);
+                } else {
+                    url.searchParams.delete('search');
+                }
+
+                if (currentSort.column) {
+                    url.searchParams.set('sort', currentSort.column);
+                    url.searchParams.set('dir', currentSort.direction);
+                } else {
+                    url.searchParams.delete('sort');
+                    url.searchParams.delete('dir');
+                }
+
+                window.history.replaceState({}, '', url.toString());
+            } catch (err) {
+                console.warn('Could not persist attendance pagination/filter state:', err);
+            }
+        }
+
+        function formatStatusBadge(status) {
+            const s = (status || 'present').toLowerCase();
+            switch (s) {
+                case 'present':
+                    return '<span class="pill pill-green">Present</span>';
+                case 'late':
+                    return '<span class="pill pill-orange">Late</span>';
+                case 'absent':
+                    return '<span class="pill pill-red">Absent</span>';
+                case 'on_leave':
+                    return '<span class="pill pill-blue">On Leave</span>';
+                default:
+                    return `<span class="pill pill-gray">${escapeHtml(s)}</span>`;
+            }
+        }
 
         async function loadEmployees() {
             try {
-                const res = await apiRequest('/users?role=driver').catch(() => ({ users: [] }));
-                employees = res.users || [];
+                const res = await apiRequest('/users').catch(() => ({ users: [] }));
+                const users = res.users || [];
                 const select = document.getElementById('user_id');
-                employees.forEach(emp => {
+                select.innerHTML = '<option value="">-- Select Employee / User --</option>';
+                users.forEach(u => {
+                    const rolesStr = (u.roles || []).map(r => r.name).join(', ') || 'User';
                     const opt = document.createElement('option');
-                    opt.value = emp.id;
-                    opt.textContent = `${emp.name} (${emp.email})`;
+                    opt.value = u.id;
+                    opt.textContent = `${u.name} (${rolesStr})`;
                     select.appendChild(opt);
                 });
             } catch (error) {
@@ -144,36 +457,470 @@
         async function loadData() {
             const tbody = document.getElementById('table-body');
             try {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 24px;">Loading attendance records...</td></tr>';
                 const res = await apiRequest(endpoint);
-                const data = res.attendance || [];
-
-                if (data.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="7">No attendance records found.</td></tr>';
-                    return;
-                }
-
-                tbody.innerHTML = data.map(item => `
-                    <tr>
-                        <td>${item.id}</td>
-                        <td>${(item.user && item.user.name) || '-'}</td>
-                        <td>${item.date ? item.date.substring(0, 10) : '-'}</td>
-                        <td>${item.time_in || '-'}</td>
-                        <td>${item.time_out || '-'}</td>
-                        <td>${item.status || 'present'}</td>
-                        <td>
-                            <button class="btn" style="padding: 5px 10px; width: auto; background: #3498db;" onclick="openStatusModal(${item.id}, '${item.status || 'present'}')">Update Status</button>
-                            <button class="btn" style="padding: 5px 10px; width: auto; background: #e74c3c;" onclick="deleteItem(${item.id})">Delete</button>
-                        </td>
-                    </tr>
-                `).join('');
+                rawAttendance = res.attendance || [];
+                applyPipeline();
             } catch (error) {
-                tbody.innerHTML = `<tr><td colspan="7">Error loading data: ${error.message}</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: #b91c1c; padding: 24px;">Error loading data: ${escapeHtml(error.message)}</td></tr>`;
             }
         }
 
+        /**
+         * Strict processing order:
+         * 1. Status Filter (Active / Archived / All)
+         * 2. Attendance Status Filter (Present / Late / Absent / On Leave)
+         * 3. Date Filter
+         * 4. Search Filter (Employee Name / Email)
+         * 5. Sort (Active Column asc/desc)
+         * 6. Paginate (slice)
+         * 7. Render (with checkbox state from selectedRecordIds)
+         */
+        function applyPipeline() {
+            const archiveFilterVal = (document.getElementById('status-filter')?.value || 'all').toLowerCase().trim();
+            const attendanceStatusVal = (document.getElementById('attendance-status-filter')?.value || '').toLowerCase().trim();
+            const dateVal = (document.getElementById('date-filter')?.value || '').trim();
+            const searchVal = (document.getElementById('search-box')?.value || '').toLowerCase().trim();
+
+            // 1. ARCHIVE / ACTIVE FILTER
+            let filtered = rawAttendance.filter(item => {
+                const isArchived = Boolean(item.is_archived || item.archived_at);
+                if (archiveFilterVal === 'active') return !isArchived;
+                if (archiveFilterVal === 'archived') return isArchived;
+                return true; // 'all'
+            });
+
+            // 2. ATTENDANCE STATUS FILTER
+            if (attendanceStatusVal) {
+                filtered = filtered.filter(item => (item.status || '').toLowerCase() === attendanceStatusVal);
+            }
+
+            // 3. DATE FILTER
+            if (dateVal) {
+                filtered = filtered.filter(item => {
+                    const itemDate = item.date ? item.date.substring(0, 10) : '';
+                    return itemDate === dateVal;
+                });
+            }
+
+            // 4. SEARCH FILTER
+            if (searchVal) {
+                filtered = filtered.filter(item => {
+                    const userName = (item.user && item.user.name) ? item.user.name.toLowerCase() : '';
+                    const userEmail = (item.user && item.user.email) ? item.user.email.toLowerCase() : '';
+                    const remarks = item.remarks ? item.remarks.toLowerCase() : '';
+                    return userName.includes(searchVal) || userEmail.includes(searchVal) || remarks.includes(searchVal);
+                });
+            }
+
+            // 5. SORT
+            if (currentSort.column) {
+                filtered.sort((a, b) => {
+                    if (currentSort.column === 'employee') {
+                        const nameA = (a.user?.name || '').toLowerCase();
+                        const nameB = (b.user?.name || '').toLowerCase();
+                        return currentSort.direction === 'asc' ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
+                    }
+                    if (currentSort.column === 'date') {
+                        const dateA = a.date ? new Date(a.date).getTime() : 0;
+                        const dateB = b.date ? new Date(b.date).getTime() : 0;
+                        return currentSort.direction === 'asc' ? dateA - dateB : dateB - dateA;
+                    }
+                    if (currentSort.column === 'time_in') {
+                        const timeA = a.time_in || '';
+                        const timeB = b.time_in || '';
+                        return currentSort.direction === 'asc' ? timeA.localeCompare(timeB) : timeB.localeCompare(timeA);
+                    }
+                    if (currentSort.column === 'status') {
+                        const statusA = (a.status || '').toLowerCase();
+                        const statusB = (b.status || '').toLowerCase();
+                        return currentSort.direction === 'asc' ? statusA.localeCompare(statusB) : statusB.localeCompare(statusA);
+                    }
+                    return 0;
+                });
+            }
+
+            // 6. PAGINATE
+            const totalItems = filtered.length;
+            const totalPages = Math.max(1, Math.ceil(totalItems / rowsPerPage));
+            if (currentPage > totalPages) currentPage = totalPages;
+            if (currentPage < 1) currentPage = 1;
+            persistState();
+
+            const startIndex = (currentPage - 1) * rowsPerPage;
+            pagedRecords = filtered.slice(startIndex, startIndex + rowsPerPage);
+
+            // 7. RENDER TABLE
+            const tbody = document.getElementById('table-body');
+            if (pagedRecords.length === 0) {
+                const emptyMsg = archiveFilterVal === 'archived'
+                    ? 'No archived attendance records found.'
+                    : 'No attendance records found matching your criteria.';
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 24px; color: var(--text-muted);">${emptyMsg}</td></tr>`;
+            } else {
+                tbody.innerHTML = pagedRecords.map(item => {
+                    const isSelected = selectedRecordIds.has(item.id);
+                    const employeeName = (item.user && item.user.name) || 'Unknown Employee';
+                    const employeeEmail = (item.user && item.user.email) ? `<br><small style="color: var(--text-muted); font-size: 11.5px;">${escapeHtml(item.user.email)}</small>` : '';
+                    const dateStr = item.date ? item.date.substring(0, 10) : '-';
+                    const isArchived = Boolean(item.is_archived || item.archived_at);
+
+                    return `
+                        <tr class="${isSelected ? 'selected-row' : ''}">
+                            <td class="col-checkbox">
+                                <input type="checkbox" class="row-select-checkbox" data-id="${item.id}" ${isSelected ? 'checked' : ''} onchange="toggleRowSelection(${item.id}, event)" aria-label="Select record for ${escapeHtml(employeeName)}">
+                            </td>
+                            <td><strong>${escapeHtml(employeeName)}</strong>${employeeEmail}</td>
+                            <td>${dateStr}</td>
+                            <td>${item.time_in ? item.time_in.substring(0, 5) : '-'}</td>
+                            <td>${item.time_out ? item.time_out.substring(0, 5) : '-'}</td>
+                            <td>${formatStatusBadge(item.status)}</td>
+                            <td>
+                                <div class="row-actions-cell">
+                                    <button type="button" class="action-icon-btn has-tooltip" data-tooltip="Update Status" aria-label="Update Status" onclick="openStatusModal(${item.id}, '${escapeHtml(item.status || 'present')}')">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
+                                        </svg>
+                                    </button>
+                                    ${!isArchived ? `
+                                        <button type="button" class="action-icon-btn has-tooltip" data-tooltip="Archive Record" aria-label="Archive Record" onclick="promptArchiveAttendance(${item.id}, '${escapeHtml(employeeName).replace(/'/g, "\\'")}')">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <polyline points="21 8 21 21 3 21 3 8"></polyline>
+                                                <rect x="1" y="3" width="22" height="5"></rect>
+                                                <line x1="10" y1="12" x2="14" y2="12"></line>
+                                            </svg>
+                                        </button>
+                                    ` : `
+                                        <button type="button" class="action-icon-btn has-tooltip" data-tooltip="Restore Record" aria-label="Restore Record" onclick="promptRestoreAttendance(${item.id}, '${escapeHtml(employeeName).replace(/'/g, "\\'")}')">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <polyline points="1 4 1 10 7 10"></polyline>
+                                                <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+                                            </svg>
+                                        </button>
+                                    `}
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+
+            // Update Select All Checkbox state
+            updateSelectAllCheckboxState();
+
+            // Update Bulk Actions Bar
+            updateBulkActionBar();
+
+            // Update Pagination Controls
+            if (!paginationHelper) {
+                paginationHelper = new PaginationControls({
+                    containerId: 'pagination-container',
+                    currentPage,
+                    rowsPerPage,
+                    rowsPerPageOptions: [10, 20, 50, 100],
+                    totalItems,
+                    itemLabel: 'records',
+                    onPageChange: (newPage) => {
+                        currentPage = newPage;
+                        persistState();
+                        applyPipeline();
+                    },
+                    onRowsPerPageChange: (newRows) => {
+                        rowsPerPage = newRows;
+                        currentPage = 1;
+                        persistState();
+                        applyPipeline();
+                    }
+                });
+            } else {
+                paginationHelper.update({ currentPage, totalItems, rowsPerPage });
+            }
+        }
+
+        function updateSortHeaderIcons() {
+            ['employee', 'date', 'time_in', 'status'].forEach(col => {
+                const th = document.getElementById(`th-${col}`);
+                const icon = document.getElementById(`sort-icon-${col}`);
+                if (!th || !icon) return;
+                if (col === currentSort.column) {
+                    th.classList.add('active');
+                    icon.textContent = currentSort.direction === 'asc' ? '▲' : '▼';
+                } else {
+                    th.classList.remove('active');
+                    icon.textContent = '↕';
+                }
+            });
+        }
+
+        /**
+         * Column Sorting Handler
+         */
+        function handleSort(column) {
+            if (currentSort.column === column) {
+                currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+            } else {
+                currentSort.column = column;
+                currentSort.direction = 'asc';
+            }
+
+            updateSortHeaderIcons();
+            persistState();
+            applyPipeline();
+        }
+
+        /**
+         * Bulk Selection Handlers
+         */
+        function handleSelectAllToggle(event) {
+            const isChecked = event.target.checked;
+            pagedRecords.forEach(r => {
+                if (isChecked) {
+                    selectedRecordIds.add(r.id);
+                } else {
+                    selectedRecordIds.delete(r.id);
+                }
+            });
+            applyPipeline();
+        }
+
+        function toggleRowSelection(recordId, event) {
+            if (event.target.checked) {
+                selectedRecordIds.add(recordId);
+            } else {
+                selectedRecordIds.delete(recordId);
+            }
+
+            updateSelectAllCheckboxState();
+            updateBulkActionBar();
+
+            const tr = event.target.closest('tr');
+            if (tr) {
+                if (event.target.checked) tr.classList.add('selected-row');
+                else tr.classList.remove('selected-row');
+            }
+        }
+
+        function updateSelectAllCheckboxState() {
+            const selectAll = document.getElementById('select-all-checkbox');
+            if (!selectAll) return;
+
+            if (pagedRecords.length === 0) {
+                selectAll.checked = false;
+                selectAll.indeterminate = false;
+                selectAll.disabled = true;
+                return;
+            }
+
+            selectAll.disabled = false;
+            const selectedOnPage = pagedRecords.filter(r => selectedRecordIds.has(r.id)).length;
+
+            if (selectedOnPage === pagedRecords.length) {
+                selectAll.checked = true;
+                selectAll.indeterminate = false;
+            } else if (selectedOnPage > 0) {
+                selectAll.checked = false;
+                selectAll.indeterminate = true;
+            } else {
+                selectAll.checked = false;
+                selectAll.indeterminate = false;
+            }
+        }
+
+        function updateBulkActionBar() {
+            const bar = document.getElementById('bulk-actions-bar');
+            const countEl = document.getElementById('bulk-selected-count');
+            const count = selectedRecordIds.size;
+
+            const archiveFilterVal = (document.getElementById('status-filter')?.value || 'active').toLowerCase().trim();
+            const btnArchive = document.getElementById('btn-bulk-archive-trigger');
+            const btnRestore = document.getElementById('btn-bulk-restore-trigger');
+
+            if (archiveFilterVal === 'archived') {
+                if (btnArchive) btnArchive.style.display = 'none';
+                if (btnRestore) btnRestore.style.display = 'inline-flex';
+            } else {
+                if (btnArchive) btnArchive.style.display = 'inline-flex';
+                if (btnRestore) btnRestore.style.display = 'none';
+            }
+
+            if (count > 0) {
+                bar.classList.add('active');
+                countEl.textContent = count === 1 ? '1 record selected' : `${count} records selected`;
+            } else {
+                bar.classList.remove('active');
+            }
+        }
+
+        function clearSelection() {
+            selectedRecordIds.clear();
+            applyPipeline();
+        }
+
+        function onFilterChange() {
+            if (selectedRecordIds.size > 0) {
+                selectedRecordIds.clear();
+                showToast('Selection cleared due to filter change', 'info');
+            }
+            currentPage = 1;
+            persistState();
+            applyPipeline();
+        }
+
+        function handleSearchClick() {
+            onFilterChange();
+        }
+
+        document.getElementById('search-box')?.addEventListener('input', onFilterChange);
+
+        /**
+         * Bulk Archive Modal and Action
+         */
+        function openBulkArchiveModal() {
+            if (selectedRecordIds.size === 0) return;
+            const count = selectedRecordIds.size;
+            document.getElementById('bulk-archive-count-text').textContent = `${count} ${count === 1 ? 'record' : 'records'}`;
+            document.getElementById('bulk-archive-modal').classList.add('active');
+        }
+
+        function closeBulkArchiveModal() {
+            document.getElementById('bulk-archive-modal').classList.remove('active');
+        }
+
+        async function executeBulkArchive() {
+            const btn = document.getElementById('btn-confirm-bulk-archive');
+            const ids = Array.from(selectedRecordIds);
+            if (ids.length === 0) return;
+
+            btn.disabled = true;
+            btn.textContent = 'Archiving...';
+
+            try {
+                const res = await apiRequest('/attendance/bulk-archive', 'PATCH', { ids });
+                closeBulkArchiveModal();
+                selectedRecordIds.clear();
+                showToast(res.message || `${ids.length} records archived successfully.`, 'success');
+                await loadData();
+            } catch (err) {
+                console.error('Bulk archive failed:', err);
+                showToast('Bulk archive failed: ' + (err.message || 'Server error'), 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Confirm & Archive';
+            }
+        }
+
+        /**
+         * Bulk Restore Modal and Action
+         */
+        function openBulkRestoreModal() {
+            if (selectedRecordIds.size === 0) return;
+            const count = selectedRecordIds.size;
+            document.getElementById('bulk-restore-count-text').textContent = `${count} ${count === 1 ? 'record' : 'records'}`;
+            document.getElementById('bulk-restore-modal').classList.add('active');
+        }
+
+        function closeBulkRestoreModal() {
+            document.getElementById('bulk-restore-modal').classList.remove('active');
+        }
+
+        async function executeBulkRestore() {
+            const btn = document.getElementById('btn-confirm-bulk-restore');
+            const ids = Array.from(selectedRecordIds);
+            if (ids.length === 0) return;
+
+            btn.disabled = true;
+            btn.textContent = 'Restoring...';
+
+            try {
+                const res = await apiRequest('/attendance/bulk-restore', 'PATCH', { ids });
+                closeBulkRestoreModal();
+                selectedRecordIds.clear();
+                showToast(res.message || `${ids.length} records restored successfully.`, 'success');
+                await loadData();
+            } catch (err) {
+                console.error('Bulk restore failed:', err);
+                showToast('Bulk restore failed: ' + (err.message || 'Server error'), 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Confirm & Restore';
+            }
+        }
+
+        /**
+         * Single Record Archive & Restore Modals
+         */
+        function promptArchiveAttendance(id, name) {
+            pendingActionId = id;
+            document.getElementById('single-archive-employee-name').textContent = name || 'this employee';
+            document.getElementById('single-archive-modal').classList.add('active');
+        }
+
+        function closeSingleArchiveModal() {
+            pendingActionId = null;
+            document.getElementById('single-archive-modal').classList.remove('active');
+        }
+
+        async function confirmSingleArchive() {
+            if (!pendingActionId) return;
+            const btn = document.getElementById('btn-confirm-single-archive');
+            btn.disabled = true;
+            btn.textContent = 'Archiving...';
+            try {
+                const res = await apiRequest(`${endpoint}/${pendingActionId}/archive`, 'PATCH');
+                closeSingleArchiveModal();
+                selectedRecordIds.delete(pendingActionId);
+                showToast(res.message || 'Record archived successfully.', 'success');
+                await loadData();
+            } catch (err) {
+                console.error('Failed to archive record:', err);
+                showToast('Failed to archive record: ' + (err.message || 'Server error'), 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Archive Record';
+            }
+        }
+
+        function promptRestoreAttendance(id, name) {
+            pendingActionId = id;
+            document.getElementById('single-restore-employee-name').textContent = name || 'this employee';
+            document.getElementById('single-restore-modal').classList.add('active');
+        }
+
+        function closeSingleRestoreModal() {
+            pendingActionId = null;
+            document.getElementById('single-restore-modal').classList.remove('active');
+        }
+
+        async function confirmSingleRestore() {
+            if (!pendingActionId) return;
+            const btn = document.getElementById('btn-confirm-single-restore');
+            btn.disabled = true;
+            btn.textContent = 'Restoring...';
+            try {
+                const res = await apiRequest(`${endpoint}/${pendingActionId}/restore`, 'PATCH');
+                closeSingleRestoreModal();
+                selectedRecordIds.delete(pendingActionId);
+                showToast(res.message || 'Record restored successfully.', 'success');
+                await loadData();
+            } catch (err) {
+                console.error('Failed to restore record:', err);
+                showToast('Failed to restore record: ' + (err.message || 'Server error'), 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Restore Record';
+            }
+        }
+
+        /**
+         * Add & Update Attendance Modals
+         */
         function openModal() {
             document.getElementById('form-modal').classList.add('active');
             document.getElementById('data-form').reset();
+            const dateInput = document.getElementById('date');
+            if (dateInput) {
+                dateInput.value = new Date().toISOString().substring(0, 10);
+            }
         }
 
         function closeFormModal() {
@@ -183,21 +930,11 @@
         function openStatusModal(id, currentStatus) {
             document.getElementById('status-modal').classList.add('active');
             document.getElementById('attendance-id').value = id;
-            document.getElementById('status-select').value = currentStatus.toLowerCase();
+            document.getElementById('status-select').value = (currentStatus || 'present').toLowerCase();
         }
 
         function closeStatusModal() {
             document.getElementById('status-modal').classList.remove('active');
-        }
-
-        async function deleteItem(id) {
-            if(!confirm('Are you sure you want to delete this record?')) return;
-            try {
-                await apiRequest(`${endpoint}/${id}`, 'DELETE');
-                loadData();
-            } catch(e) {
-                alert('Error deleting: ' + e.message);
-            }
         }
 
         document.getElementById('data-form').addEventListener('submit', async (e) => {
@@ -214,9 +951,10 @@
             try {
                 await apiRequest(endpoint, 'POST', payload);
                 closeFormModal();
-                loadData();
+                showToast('Attendance record saved successfully.', 'success');
+                await loadData();
             } catch(e) {
-                alert('Error saving: ' + e.message);
+                showToast('Error saving: ' + e.message, 'error');
             }
         });
 
@@ -228,13 +966,36 @@
             try {
                 await apiRequest(`${endpoint}/${id}/status`, 'PUT', { status });
                 closeStatusModal();
-                loadData();
+                showToast('Status updated successfully.', 'success');
+                await loadData();
             } catch(e) {
-                alert('Error updating: ' + e.message);
+                showToast('Error updating status: ' + e.message, 'error');
             }
         });
 
         document.addEventListener('DOMContentLoaded', () => {
+            const statusEl = document.getElementById('status-filter');
+            if (statusEl && initialState.status) {
+                statusEl.value = initialState.status;
+            }
+
+            const attStatusEl = document.getElementById('attendance-status-filter');
+            if (attStatusEl && initialState.attStatus) {
+                attStatusEl.value = initialState.attStatus;
+            }
+
+            const dateEl = document.getElementById('date-filter');
+            if (dateEl && initialState.date) {
+                dateEl.value = initialState.date;
+            }
+
+            const searchEl = document.getElementById('search-box');
+            if (searchEl && initialState.search) {
+                searchEl.value = initialState.search;
+            }
+
+            updateSortHeaderIcons();
+
             loadEmployees();
             loadData();
         });

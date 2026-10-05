@@ -66,24 +66,56 @@ class AnalyticsController extends Controller
     {
         $barangays = Barangay::withCount(['vendors', 'reports'])
             ->where('is_active', true)
-            ->orderBy('name')
+            ->orderBy('id')
             ->get();
 
-        $zones = [];
+        $zones = [
+            'All Barangays (Barangay 1-40)' => [
+                'zone'          => 'All Barangays (Barangay 1-40)',
+                'barangays'     => [],
+                'total_vendors' => 0,
+                'total_reports' => 0,
+            ],
+            'Sector North (Barangay 1-10)' => [
+                'zone'          => 'Sector North (Barangay 1-10)',
+                'barangays'     => [],
+                'total_vendors' => 0,
+                'total_reports' => 0,
+            ],
+            'Sector South (Barangay 11-20)' => [
+                'zone'          => 'Sector South (Barangay 11-20)',
+                'barangays'     => [],
+                'total_vendors' => 0,
+                'total_reports' => 0,
+            ],
+            'Sector East (Barangay 21-30)' => [
+                'zone'          => 'Sector East (Barangay 21-30)',
+                'barangays'     => [],
+                'total_vendors' => 0,
+                'total_reports' => 0,
+            ],
+            'Sector West (Barangay 31-40)' => [
+                'zone'          => 'Sector West (Barangay 31-40)',
+                'barangays'     => [],
+                'total_vendors' => 0,
+                'total_reports' => 0,
+            ],
+            'Cogon Market Zone' => [
+                'zone'          => 'Cogon Market Zone',
+                'barangays'     => [],
+                'total_vendors' => 0,
+                'total_reports' => 0,
+            ],
+            'Carmen Market Zone' => [
+                'zone'          => 'Carmen Market Zone',
+                'barangays'     => [],
+                'total_vendors' => 0,
+                'total_reports' => 0,
+            ],
+        ];
 
         foreach ($barangays as $brgy) {
-            $zone = $this->detectZone($brgy->name);
-
-            if (!isset($zones[$zone])) {
-                $zones[$zone] = [
-                    'zone'          => $zone,
-                    'barangays'     => [],
-                    'total_vendors' => 0,
-                    'total_reports' => 0,
-                ];
-            }
-
-            $zones[$zone]['barangays'][] = [
+            $item = [
                 'id'          => $brgy->id,
                 'name'        => $brgy->name,
                 'code'        => $brgy->code,
@@ -94,80 +126,58 @@ class AnalyticsController extends Controller
                 'description' => $brgy->description,
             ];
 
-            $zones[$zone]['total_vendors'] += $brgy->vendors_count;
-            $zones[$zone]['total_reports'] += $brgy->reports_count;
-        }
+            // Barangay 1 to 40 assignment
+            if (preg_match('/^Barangay\s+([1-9]|[1-3][0-9]|40)\b/i', $brgy->name, $m)) {
+                $num = (int) $m[1];
+                $zones['All Barangays (Barangay 1-40)']['barangays'][] = $item;
+                $zones['All Barangays (Barangay 1-40)']['total_vendors'] += $brgy->vendors_count;
+                $zones['All Barangays (Barangay 1-40)']['total_reports'] += $brgy->reports_count;
 
-        // Sort zones into the preferred CDO display order
-        $zoneOrder = [
-            'Cogon Market Zone',
-            'Carmen Market Zone',
-            'Sector North (Barangay 1-10)',
-            'Sector Central (Barangay 11-20)',
-            'Sector East (Barangay 21-30)',
-            'Sector Commercial (Barangay 31-40)',
-            'Other',
-        ];
+                if ($num >= 1 && $num <= 10) {
+                    $zones['Sector North (Barangay 1-10)']['barangays'][] = $item;
+                    $zones['Sector North (Barangay 1-10)']['total_vendors'] += $brgy->vendors_count;
+                    $zones['Sector North (Barangay 1-10)']['total_reports'] += $brgy->reports_count;
+                } elseif ($num >= 11 && $num <= 20) {
+                    $zones['Sector South (Barangay 11-20)']['barangays'][] = $item;
+                    $zones['Sector South (Barangay 11-20)']['total_vendors'] += $brgy->vendors_count;
+                    $zones['Sector South (Barangay 11-20)']['total_reports'] += $brgy->reports_count;
+                } elseif ($num >= 21 && $num <= 30) {
+                    $zones['Sector East (Barangay 21-30)']['barangays'][] = $item;
+                    $zones['Sector East (Barangay 21-30)']['total_vendors'] += $brgy->vendors_count;
+                    $zones['Sector East (Barangay 21-30)']['total_reports'] += $brgy->reports_count;
+                } elseif ($num >= 31 && $num <= 40) {
+                    $zones['Sector West (Barangay 31-40)']['barangays'][] = $item;
+                    $zones['Sector West (Barangay 31-40)']['total_vendors'] += $brgy->vendors_count;
+                    $zones['Sector West (Barangay 31-40)']['total_reports'] += $brgy->reports_count;
+                }
+            }
 
-        $sorted = [];
-        foreach ($zoneOrder as $zoneName) {
-            if (isset($zones[$zoneName])) {
-                $sorted[] = $zones[$zoneName];
+            // Markets assignment
+            $lower = strtolower($brgy->name);
+            if (str_contains($lower, 'cogon') || in_array($brgy->name, ['Barangay 33', 'Barangay 39', 'Barangay 40'])) {
+                $zones['Cogon Market Zone']['barangays'][] = $item;
+                $zones['Cogon Market Zone']['total_vendors'] += $brgy->vendors_count;
+                $zones['Cogon Market Zone']['total_reports'] += $brgy->reports_count;
+            }
+            if (str_contains($lower, 'carmen')) {
+                $zones['Carmen Market Zone']['barangays'][] = $item;
+                $zones['Carmen Market Zone']['total_vendors'] += $brgy->vendors_count;
+                $zones['Carmen Market Zone']['total_reports'] += $brgy->reports_count;
             }
         }
 
-        // Append any zones not in the preferred order
-        foreach ($zones as $zoneName => $zoneData) {
-            $alreadyAdded = array_filter($sorted, fn ($z) => $z['zone'] === $zoneName);
-            if (empty($alreadyAdded)) {
-                $sorted[] = $zoneData;
-            }
-        }
+        $filtered = array_values(array_filter($zones, fn ($z) => count($z['barangays']) > 0));
 
         return response()->json([
             'success' => true,
             'message' => 'Barangay analytics retrieved successfully.',
-            'zones'   => array_values($sorted),
+            'zones'   => $filtered,
             'totals'  => [
                 'barangays' => $barangays->count(),
                 'vendors'   => $barangays->sum('vendors_count'),
                 'reports'   => $barangays->sum('reports_count'),
             ],
         ]);
-    }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | DETECT CDO ZONE FROM BARANGAY NAME
-    |--------------------------------------------------------------------------
-    */
-
-    private function detectZone(string $name): string
-    {
-        $lower = strtolower($name);
-
-        if (str_contains($lower, 'cogon')) {
-            return 'Cogon Market Zone';
-        }
-        if (str_contains($lower, 'carmen')) {
-            return 'Carmen Market Zone';
-        }
-
-        if (preg_match('/\b([1-9]|10)\b/', $name) && preg_match('/barangay|brgy/i', $name)) {
-            return 'Sector North (Barangay 1-10)';
-        }
-        if (preg_match('/\b(1[1-9]|20)\b/', $name) && preg_match('/barangay|brgy/i', $name)) {
-            return 'Sector Central (Barangay 11-20)';
-        }
-        if (preg_match('/\b(2[1-9]|30)\b/', $name) && preg_match('/barangay|brgy/i', $name)) {
-            return 'Sector East (Barangay 21-30)';
-        }
-        if (preg_match('/\b(3[1-9]|40)\b/', $name) && preg_match('/barangay|brgy/i', $name)) {
-            return 'Sector Commercial (Barangay 31-40)';
-        }
-
-        return 'Other';
     }
 
 

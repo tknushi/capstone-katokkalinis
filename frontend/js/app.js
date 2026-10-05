@@ -349,6 +349,180 @@ function generateAutoCode(prefix = 'EMP') {
     return `CLENRO-${prefix}-${year}-${randNum}`;
 }
 
+/*
+|--------------------------------------------------------------------------
+| TOAST NOTIFICATIONS
+|--------------------------------------------------------------------------
+*/
+function showToast(message, type = 'info', duration = 3500) {
+    let container = document.getElementById('toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'toast-container';
+        container.className = 'toast-container';
+        document.body.appendChild(container);
+    }
+
+    const toast = document.createElement('div');
+    toast.className = `toast-item ${type}`;
+
+    let iconSvg = '';
+    if (type === 'success') {
+        iconSvg = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+    } else if (type === 'error') {
+        iconSvg = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>';
+    } else if (type === 'warning') {
+        iconSvg = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>';
+    } else {
+        iconSvg = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>';
+    }
+
+    toast.innerHTML = `
+        <span class="toast-icon">${iconSvg}</span>
+        <span class="toast-msg">${escapeHtml(message)}</span>
+    `;
+
+    container.appendChild(toast);
+
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(12px)';
+        setTimeout(() => toast.remove(), 260);
+    }, duration);
+}
+window.showToast = showToast;
+
+/*
+|--------------------------------------------------------------------------
+| REUSABLE PAGINATION CONTROLS
+|--------------------------------------------------------------------------
+*/
+class PaginationControls {
+    constructor(options = {}) {
+        this.containerId = options.containerId || 'pagination-container';
+        this.currentPage = options.currentPage || 1;
+        this.rowsPerPage = options.rowsPerPage || 10;
+        this.rowsPerPageOptions = options.rowsPerPageOptions || [10, 20, 50, 100];
+        this.totalItems = options.totalItems || 0;
+        this.itemLabel = options.itemLabel || 'users';
+        this.onPageChange = options.onPageChange || (() => {});
+        this.onRowsPerPageChange = options.onRowsPerPageChange || (() => {});
+    }
+
+    update({ currentPage, totalItems, rowsPerPage }) {
+        if (currentPage !== undefined) this.currentPage = currentPage;
+        if (totalItems !== undefined) this.totalItems = totalItems;
+        if (rowsPerPage !== undefined) this.rowsPerPage = rowsPerPage;
+        this.render();
+    }
+
+    getTotalPages() {
+        return Math.max(1, Math.ceil(this.totalItems / this.rowsPerPage));
+    }
+
+    render() {
+        const container = document.getElementById(this.containerId);
+        if (!container) return;
+
+        const totalPages = this.getTotalPages();
+        if (this.currentPage > totalPages) this.currentPage = totalPages;
+
+        const startItem = this.totalItems === 0 ? 0 : (this.currentPage - 1) * this.rowsPerPage + 1;
+        const endItem = Math.min(this.currentPage * this.rowsPerPage, this.totalItems);
+
+        // Build numeric page range (e.g. 1, 2, ..., 10)
+        const pages = [];
+        if (totalPages <= 7) {
+            for (let i = 1; i <= totalPages; i++) pages.push(i);
+        } else {
+            pages.push(1);
+            if (this.currentPage > 3) pages.push('...');
+            const start = Math.max(2, this.currentPage - 1);
+            const end = Math.min(totalPages - 1, this.currentPage + 1);
+            for (let i = start; i <= end; i++) {
+                if (!pages.includes(i)) pages.push(i);
+            }
+            if (this.currentPage < totalPages - 2) pages.push('...');
+            if (!pages.includes(totalPages)) pages.push(totalPages);
+        }
+
+        const optionsHtml = this.rowsPerPageOptions.map(opt =>
+            `<option value="${opt}" ${opt === this.rowsPerPage ? 'selected' : ''}>${opt}</option>`
+        ).join('');
+
+        const desktopButtonsHtml = pages.map(p => {
+            if (p === '...') return `<span class="page-ellipsis">&hellip;</span>`;
+            return `<button type="button" class="page-btn ${p === this.currentPage ? 'active' : ''}" data-page="${p}">${p}</button>`;
+        }).join('');
+
+        container.innerHTML = `
+            <div class="pagination-left">
+                <span class="pagination-summary">
+                    ${this.totalItems > 0 ? `Showing <strong>${startItem}–${endItem}</strong> of <strong>${this.totalItems}</strong> ${this.itemLabel}` : `No ${this.itemLabel} to display`}
+                </span>
+                <div class="rows-per-page-wrap">
+                    <label for="rows-per-page-select">Rows per page:</label>
+                    <select id="rows-per-page-select" class="rows-per-page-select">
+                        ${optionsHtml}
+                    </select>
+                </div>
+            </div>
+            <div class="pagination-controls">
+                <button type="button" class="page-btn prev-btn" ${this.currentPage <= 1 ? 'disabled' : ''} title="Previous Page" aria-label="Previous Page">&laquo; Prev</button>
+                <div class="pagination-pages-desktop">
+                    ${desktopButtonsHtml}
+                </div>
+                <div class="pagination-pages-mobile">
+                    Page ${this.currentPage} of ${totalPages}
+                </div>
+                <button type="button" class="page-btn next-btn" ${this.currentPage >= totalPages ? 'disabled' : ''} title="Next Page" aria-label="Next Page">Next &raquo;</button>
+            </div>
+        `;
+
+        // Event listeners
+        const prevBtn = container.querySelector('.prev-btn');
+        if (prevBtn) {
+            prevBtn.onclick = () => {
+                if (this.currentPage > 1) {
+                    this.currentPage--;
+                    this.onPageChange(this.currentPage);
+                }
+            };
+        }
+
+        const nextBtn = container.querySelector('.next-btn');
+        if (nextBtn) {
+            nextBtn.onclick = () => {
+                if (this.currentPage < totalPages) {
+                    this.currentPage++;
+                    this.onPageChange(this.currentPage);
+                }
+            };
+        }
+
+        container.querySelectorAll('.pagination-pages-desktop button[data-page]').forEach(btn => {
+            btn.onclick = () => {
+                const targetPage = parseInt(btn.getAttribute('data-page'), 10);
+                if (targetPage !== this.currentPage) {
+                    this.currentPage = targetPage;
+                    this.onPageChange(this.currentPage);
+                }
+            };
+        });
+
+        const rowsSelect = container.querySelector('#rows-per-page-select');
+        if (rowsSelect) {
+            rowsSelect.onchange = (e) => {
+                const newRows = parseInt(e.target.value, 10);
+                this.rowsPerPage = newRows;
+                this.currentPage = 1;
+                this.onRowsPerPageChange(newRows);
+            };
+        }
+    }
+}
+window.PaginationControls = PaginationControls;
+
 // Run auth check on load
 checkAuth();
 

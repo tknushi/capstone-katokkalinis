@@ -3,7 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Barangay Overview - KatokKalinis</title>
+    <meta name="description" content="Barangay administrative command center for local waste collection schedules, community reports, and active sanitation monitoring.">
+    <title>Barangay Overview | Katok Kalinis</title>
+    <link rel="icon" type="image/svg+xml" href="img/favicon.svg">
+    <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="img/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png">
+    <link rel="manifest" href="site.webmanifest">
     <link rel="stylesheet" href="css/style.css">
     <style>
         /* Single-viewport height and responsive grid optimizations */
@@ -21,6 +27,11 @@
         @media (max-width: 680px) {
             .overview-stats-grid-6 {
                 grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        @media (max-width: 380px) {
+            .overview-stats-grid-6 {
+                grid-template-columns: 1fr;
             }
         }
 
@@ -157,7 +168,7 @@
                 <div class="topbar-right-area">
                     <div id="topbar-user" class="topbar-user-greeting">Welcome, System Administrator (Barangay Admin)</div>
 
-                    <!-- Header Notification Bell with Dropdown Activity Feed -->
+                    <!-- Header Notification Bell (Portal Overlay) -->
                     <div class="notification-bell-wrap" id="notification-bell-wrap">
                         <button type="button" class="btn-icon-topbar" id="btn-notification-bell" onclick="toggleActivityDropdown(event)" title="Recent Activity &amp; Notifications" aria-label="Notifications" aria-expanded="false">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -166,30 +177,6 @@
                             </svg>
                             <span class="bell-count-badge" id="bell-count-badge">0</span>
                         </button>
-
-                        <!-- Activity Notifications Dropdown Panel -->
-                        <div class="activity-dropdown-menu" id="activity-dropdown-menu">
-                            <div class="activity-dropdown-header">
-                                <div style="display: flex; align-items: center; gap: 8px;">
-                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
-                                    </svg>
-                                    <span>Recent Activity</span>
-                                </div>
-                                <div style="display: flex; align-items: center; gap: 8px;">
-                                    <span class="live-sync-badge-mini" title="Auto-sync active in background">
-                                        <span class="live-sync-dot"></span> Live
-                                    </span>
-                                    <button type="button" class="btn-close-dropdown" onclick="closeActivityDropdown(event)" title="Close">&times;</button>
-                                </div>
-                            </div>
-                            <div class="activity-dropdown-body" id="recent-activities">
-                                <div class="empty-state-box">Loading activity feed...</div>
-                            </div>
-                            <div class="activity-dropdown-footer">
-                                <a href="activity-logs.html" class="activity-view-all-link">View Full System Audit Logs &rarr;</a>
-                            </div>
-                        </div>
                     </div>
 
                     <!-- Small icon-only refresh button -->
@@ -789,7 +776,7 @@
                                 <div style="display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1;">
                                     ${imgUrl ? `
                                         <a href="${imgUrl}" target="_blank" rel="noopener noreferrer" title="Click to view attached photo" style="flex-shrink:0;">
-                                            <img src="${imgUrl}" alt="Photo" class="issue-thumb" onerror="this.style.display='none'">
+                                            <img src="${imgUrl}" alt="Photo" class="issue-thumb" loading="lazy" decoding="async" onerror="this.style.display='none'">
                                         </a>
                                     ` : `
                                         <div class="issue-thumb-fallback" title="No photo attached">
@@ -816,60 +803,10 @@
                 }
 
                 // 7. RECENT ACTIVITY FEED (In Header Notification Dropdown)
-                const activitiesContainer = document.getElementById('recent-activities');
                 const activityList = res.recent_activities || [];
-
-                // Update Bell Badge Count
-                const bellBadge = document.getElementById('bell-count-badge');
-                if (bellBadge) {
-                    if (activityList.length > 0) {
-                        bellBadge.textContent = activityList.length > 99 ? '99+' : activityList.length;
-                        bellBadge.classList.remove('empty');
-                    } else {
-                        bellBadge.textContent = '0';
-                        bellBadge.classList.add('empty');
-                    }
-                }
-
-                if (activityList.length === 0) {
-                    activitiesContainer.innerHTML = `
-                        <div class="empty-state-box" style="padding: 24px 12px;">
-                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-muted); margin-bottom: 6px;">
-                                <circle cx="12" cy="12" r="10"></circle>
-                                <line x1="12" y1="8" x2="12" y2="12"></line>
-                                <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                            </svg>
-                            <div style="font-weight: 600; font-size: 13.5px; margin-bottom: 2px;">No recent activity</div>
-                            <div style="font-size: 12px; color: var(--text-muted);">Actions from mobile apps and web admin will stream here.</div>
-                        </div>
-                    `;
-                } else {
-                    activitiesContainer.innerHTML = `
-                        <div style="display: flex; flex-direction: column;">
-                            ${activityList.map(a => {
-                                const iconMeta = getActivityIcon(a.action);
-                                const actorName = escapeHtml(a.actor || a.user?.name || 'System');
-                                const cleanSentence = escapeHtml(simplifyActivitySentence(a));
-                                const relTime = formatRelativeTime(a.created_at);
-
-                                return `
-                                    <div class="activity-simple-item">
-                                        <div class="activity-icon-wrap ${iconMeta.className}">
-                                            ${iconMeta.svg}
-                                        </div>
-                                        <div style="flex: 1; min-width: 0;">
-                                            <div class="activity-simple-sentence">${cleanSentence}</div>
-                                            <div class="activity-simple-meta">
-                                                <strong style="color: var(--green-700);">${actorName}</strong>
-                                                <span>&bull;</span>
-                                                <span>${relTime}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                `;
-                            }).join('')}
-                        </div>
-                    `;
+                if (window.NotificationBell) {
+                    window.NotificationBell.renderActivities(activityList);
+                    window.NotificationBell.updateBadge(activityList.length);
                 }
 
                 // Safely update "Last updated" timestamp if element exists
@@ -889,18 +826,17 @@
         }
 
         /**
-         * Notification Bell & Activity Dropdown Controls
+         * Notification Bell & Activity Dropdown Controls (Delegated to Shared Portal NotificationBell)
          */
         function toggleActivityDropdown(event) {
             if (event) {
                 event.stopPropagation();
                 event.preventDefault();
             }
-            const menu = document.getElementById('activity-dropdown-menu');
-            const btn = document.getElementById('btn-notification-bell');
-            if (!menu) return;
-            const isExpanded = menu.classList.toggle('active');
-            if (btn) btn.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
+            const btn = (event && event.currentTarget) || document.getElementById('btn-notification-bell');
+            if (window.NotificationBell) {
+                window.NotificationBell.toggle(btn);
+            }
         }
 
         function closeActivityDropdown(event) {
@@ -908,30 +844,14 @@
                 event.stopPropagation();
                 event.preventDefault();
             }
-            const menu = document.getElementById('activity-dropdown-menu');
-            const btn = document.getElementById('btn-notification-bell');
-            if (menu) menu.classList.remove('active');
-            if (btn) btn.setAttribute('aria-expanded', 'false');
+            if (window.NotificationBell) {
+                window.NotificationBell.close();
+            }
         }
 
         window.toggleActivityDropdown = toggleActivityDropdown;
         window.closeActivityDropdown = closeActivityDropdown;
         window.triggerManualRefresh = triggerManualRefresh;
-
-        // Close dropdown when clicking outside
-        document.addEventListener('click', (e) => {
-            const wrap = document.getElementById('notification-bell-wrap');
-            if (wrap && !wrap.contains(e.target)) {
-                closeActivityDropdown();
-            }
-        });
-
-        // Close dropdown on Escape key
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                closeActivityDropdown();
-            }
-        });
 
         // Trigger manual refresh via icon button
         function triggerManualRefresh() {

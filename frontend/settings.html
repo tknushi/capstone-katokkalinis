@@ -2,13 +2,19 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Settings - KatokKalinis</title>
+    <title>Account Settings &amp; Preferences | Katok Kalinis</title>
+    <meta name="description" content="Manage personal profile settings, account credentials, appearance themes, and administrative configurations for Katok Kalinis.">
+    <link rel="icon" type="image/svg+xml" href="img/favicon.svg">
+    <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="img/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png">
+    <link rel="manifest" href="site.webmanifest">
+    <meta name="theme-color" content="#166534">
     <link rel="stylesheet" href="css/style.css">
     <style>
         .settings-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
             gap: 20px;
         }
         .success-msg {
@@ -141,12 +147,15 @@
                 // Keep localStorage in sync so the sidebar/topbar reflect changes.
                 localStorage.setItem('user', JSON.stringify(res.user));
 
-                successDiv.textContent = res.message || 'Profile updated successfully.';
+                const msg = res.message || 'Profile updated successfully.';
+                successDiv.textContent = msg;
                 successDiv.style.display = 'block';
+                showToast(msg, 'success');
                 loadSidebar();
             } catch (error) {
                 errorDiv.textContent = error.message;
                 errorDiv.style.display = 'block';
+                showToast(error.message, 'error');
             }
         });
 
@@ -161,8 +170,10 @@
             const confirmPassword = document.getElementById('new_password_confirmation').value;
 
             if (newPassword !== confirmPassword) {
-                errorDiv.textContent = 'New password and confirmation do not match.';
+                const msg = 'New password and confirmation do not match.';
+                errorDiv.textContent = msg;
                 errorDiv.style.display = 'block';
+                showToast(msg, 'error');
                 return;
             }
 
@@ -174,12 +185,15 @@
 
             try {
                 const res = await apiRequest('/change-password', 'PUT', payload);
-                successDiv.textContent = res.message || 'Password changed successfully.';
+                const msg = res.message || 'Password changed successfully.';
+                successDiv.textContent = msg;
                 successDiv.style.display = 'block';
+                showToast(msg, 'success');
                 document.getElementById('password-form').reset();
             } catch (error) {
                 errorDiv.textContent = error.message;
                 errorDiv.style.display = 'block';
+                showToast(error.message, 'error');
             }
         });
 

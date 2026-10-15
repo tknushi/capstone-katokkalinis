@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   Alert,
   Modal,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
@@ -18,11 +19,13 @@ import KatokLogo from "../../components/KatokLogo";
 import LeafletCdoMapView from "../../components/LeafletCdoMapView";
 import TopNotificationBanner from "../../components/TopNotificationBanner";
 import {
+  AssignedTruckData,
   BarangayItem,
   CollectionLogItem,
   correctTypoCollectionLog,
   finalizeCollectionLog,
   getBarangays1to40,
+  getDriverAssignedTruck,
   getDriverCollectionLogs,
   submitCollectionLog,
 } from "../../services/driver";
@@ -30,7 +33,9 @@ import {
 export default function DriverDashboard() {
   const router = useRouter();
   const [userName, setUserName] = useState("John Driver");
-  const truckPlate = "KAL-104";
+  const [assignedTruck, setAssignedTruck] = useState<AssignedTruckData | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+  const truckPlate = assignedTruck?.plate_number || "KAL-104";
   const [isCollecting, setIsCollecting] = useState(false);
   const [routeCompleted, setRouteCompleted] = useState(false);
 
@@ -72,6 +77,7 @@ export default function DriverDashboard() {
 
   useEffect(() => {
     loadUserData();
+    loadAssignedTruck(true);
     checkCollectionState();
     loadBarangays();
     loadCollectionLogs();
@@ -83,6 +89,43 @@ export default function DriverDashboard() {
       if (name) setUserName(name);
     } catch (e) {
       console.error(e);
+    }
+  };
+
+  const loadAssignedTruck = async (showNotification = false) => {
+    try {
+      const userId = await AsyncStorage.getItem("userId");
+      const truck = await getDriverAssignedTruck(userId || undefined);
+      if (truck) {
+        setAssignedTruck(truck);
+        if (showNotification) {
+          const routeLabel = truck.route?.name || truck.operating_zone || "Assigned Municipal Sector";
+          setBanner({
+            visible: true,
+            title: "Assigned Fleet Truck",
+            message: `You've been assigned to truck ${truck.truck_number} (${truck.plate_number}). Route: ${routeLabel}.`,
+            type: "truck",
+          });
+        }
+      }
+    } catch (err) {
+      console.warn("Could not load assigned truck:", err);
+    }
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([
+        loadUserData(),
+        loadAssignedTruck(false),
+        loadBarangays(),
+        loadCollectionLogs(),
+      ]);
+    } catch (e) {
+      console.warn("Refresh error:", e);
+    } finally {
+      setRefreshing(false);
     }
   };
 
@@ -169,6 +212,7 @@ export default function DriverDashboard() {
         barangay_name: selectedBrgy,
         barangay_id: selectedBrgyId,
         waste_type: wasteType,
+        truck_id: assignedTruck?.id,
         notes: notes.trim() || undefined,
       });
 
@@ -337,20 +381,34 @@ export default function DriverDashboard() {
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={["#2E7D32"]}
+            tintColor="#2E7D32"
+          />
+        }
       >
         {/* HERO CARD */}
         <View style={styles.heroCard}>
           <View style={styles.heroLeft}>
             <View style={styles.truckPlateBadge}>
               <MaterialCommunityIcons name="truck-check" size={14} color="#2E7D32" />
-              <Text style={styles.truckPlateText}>Truck {truckPlate}</Text>
+              <Text style={styles.truckPlateText}>Truck {assignedTruck?.plate_number || truckPlate}</Text>
             </View>
-            <Text style={styles.heroTitle}>Compactor Route #04</Text>
-            <Text style={styles.heroSubtitle}>Barangays 31 - 40 • South Poblacion CDO</Text>
+            <Text style={styles.heroTitle}>{assignedTruck?.route?.name || assignedTruck?.truck_type || "Compactor Route #04"}</Text>
+            <Text style={styles.heroSubtitle}>{assignedTruck?.operating_zone || (assignedTruck?.model ? `${assignedTruck.make || ""} ${assignedTruck.model}`.trim() : "Barangays 31 - 40 • South Poblacion CDO")}</Text>
             <View style={styles.stopsIndicatorRow}>
               <MaterialCommunityIcons name="map-marker-path" size={14} color="#1E5E22" />
               <Text style={styles.stopsIndicatorText}>
-                {routeCompleted ? "All Stops Cleared" : isCollecting ? "Active Collection Run" : "Standby for Run"}
+                {routeCompleted
+                  ? "All Stops Cleared"
+                  : isCollecting
+                  ? "Active Collection Run"
+                  : assignedTruck?.route
+                  ? `${assignedTruck.route.total_stops} Checkpoints Scheduled`
+                  : "Standby for Run"}
               </Text>
             </View>
           </View>

@@ -3,7 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vendors - KatokKalinis</title>
+    <meta name="description" content="Public market vendor registry, waste management fee verification, and sanitation compliance status.">
+    <title>Vendor Management &amp; Compliance | Katok Kalinis</title>
+    <link rel="icon" type="image/svg+xml" href="img/favicon.svg">
+    <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="img/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png">
+    <link rel="manifest" href="site.webmanifest">
     <link rel="stylesheet" href="css/style.css">
     <style>
         /* Scoped styles for Vendors & Market Compliance adhering to KatokKalinis system design */
@@ -755,7 +761,7 @@
                 showToast(res.message || 'Change request accepted successfully.', 'success');
                 await loadInspectionReviews();
             } catch (error) {
-                alert('Unable to accept change: ' + error.message);
+                showToast('Unable to accept change: ' + error.message, 'error');
             }
         }
 
@@ -767,7 +773,7 @@
                 showToast(res.message || 'Change request rejected.', 'info');
                 await loadInspectionReviews();
             } catch (error) {
-                alert('Unable to reject change: ' + error.message);
+                showToast('Unable to reject change: ' + error.message, 'error');
             }
         }
 
@@ -775,10 +781,11 @@
             if (!confirm('Are you sure you want to ' + decision + ' this inspection report?')) return;
             try {
                 await apiRequest('/inspections/' + id + '/decision', 'PUT', { decision: decision });
+                showToast('Inspection report ' + decision + ' successfully.', 'success');
                 loadInspectionReviews();
                 loadData();
             } catch (error) {
-                alert('Unable to save decision: ' + error.message);
+                showToast('Unable to save decision: ' + error.message, 'error');
             }
         }
 
@@ -968,7 +975,7 @@
                                     <td><strong>${escapeHtml(m.stall_number || m.vendor_code || '-')}</strong></td>
                                     <td>${escapeHtml(m.business_name || '-')}</td>
                                     <td>${escapeHtml(m.owner_name || '-')}</td>
-                                    <td>${escapeHtml(m.contact_number || '-')}</td>
+                                    <td>${formatPhoneLink(m.contact_number)}</td>
                                     <td>${getStatusPill(m.status === 'active' ? 'green' : 'gray', m.status || 'Active')}</td>
                                 </tr>
                             `).join('')}
@@ -986,7 +993,7 @@
         }
 
         function showMarketDocs(marketName) {
-            alert('Sanitation and Market Compliance documentation repository for ' + marketName + ' is up to date.');
+            showToast('Sanitation & Market Compliance documentation repository for ' + marketName + ' is verified and up to date.', 'info');
         }
 
         // Load Barangays for Modal
@@ -1037,9 +1044,10 @@
             if (!confirm('Are you sure you want to delete this vendor?')) return;
             try {
                 await apiRequest(`${endpoint}/${id}`, 'DELETE');
+                showToast('Vendor deleted successfully.', 'success');
                 loadData();
             } catch (e) {
-                alert('Error deleting: ' + e.message);
+                showToast('Error deleting vendor: ' + e.message, 'error');
             }
         }
 
@@ -1061,13 +1069,15 @@
             try {
                 if (id) {
                     await apiRequest(`${endpoint}/${id}`, 'PUT', payload);
+                    showToast('Vendor details updated successfully!', 'success');
                 } else {
                     await apiRequest(endpoint, 'POST', payload);
+                    showToast('New vendor registered successfully!', 'success');
                 }
                 closeModal();
                 loadData();
             } catch (e) {
-                alert('Error saving vendor: ' + e.message);
+                showToast('Error saving vendor: ' + e.message, 'error');
             }
         });
 

@@ -2,19 +2,35 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Activity Logs - KatokKalinis</title>
+    <title>System Activity &amp; Audit Logs | Katok Kalinis</title>
+    <meta name="description" content="Review administrative activity history, security events, database changes, and system audit trails for Katok Kalinis waste operations.">
+    <link rel="icon" type="image/svg+xml" href="img/favicon.svg">
+    <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="img/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png">
+    <link rel="manifest" href="site.webmanifest">
+    <meta name="theme-color" content="#166534">
     <link rel="stylesheet" href="css/style.css">
     <style>
         .filter-bar { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
-        .filter-bar input { padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+        .filter-bar input {
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--surface);
+            color: var(--text);
+            font-size: 13.5px;
+        }
+        .filter-bar input[type="text"] { flex: 1; min-width: 220px; }
         .action-tag {
             display: inline-block;
             padding: 2px 8px;
             border-radius: 4px;
-            background: #ecf0f1;
+            background: var(--surface-alt);
+            color: var(--text);
             font-family: monospace;
             font-size: 12px;
+            border: 1px solid var(--border);
         }
     </style>
 </head>
@@ -47,20 +63,22 @@
                         <input type="date" id="date-to">
                         <button class="btn" onclick="loadData()" style="width: auto;">Filter</button>
                     </div>
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Date/Time</th>
-                                <th>User</th>
-                                <th>Action</th>
-                                <th>Description</th>
-                            </tr>
-                        </thead>
-                        <tbody id="table-body">
-                            <tr><td colspan="5">Loading...</td></tr>
-                        </tbody>
-                    </table>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Date/Time</th>
+                                    <th>User</th>
+                                    <th>Action</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-body">
+                                <tr><td colspan="5">Loading...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </section>
         </main>
@@ -87,7 +105,7 @@
                 const data = res.logs || [];
 
                 if (data.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="5">No activity recorded.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 20px;">No activity recorded.</td></tr>';
                     return;
                 }
 
@@ -95,13 +113,13 @@
                     <tr>
                         <td>${item.id}</td>
                         <td>${item.created_at ? item.created_at.substring(0, 19).replace('T', ' ') : '-'}</td>
-                        <td>${(item.user && item.user.name) || 'System'}</td>
-                        <td><span class="action-tag">${item.action}</span></td>
-                        <td>${item.description || '-'}</td>
+                        <td><strong>${escapeHtml((item.user && item.user.name) || 'System')}</strong></td>
+                        <td><span class="action-tag">${escapeHtml(item.action)}</span></td>
+                        <td>${escapeHtml(item.description || '-')}</td>
                     </tr>
                 `).join('');
             } catch (error) {
-                tbody.innerHTML = `<tr><td colspan="5">Error loading data: ${error.message}</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #b91c1c; padding: 20px;">Error loading data: ${escapeHtml(error.message)}</td></tr>`;
             }
         }
 

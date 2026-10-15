@@ -1,3 +1,4 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { apiRequest } from "./api";
 
 export interface BarangayItem {
@@ -193,3 +194,82 @@ export async function finalizeCollectionLog(
 
   return res;
 }
+
+export interface RouteStopItem {
+  id: number;
+  stop_order: number;
+  name: string;
+  barangay_or_market: string;
+  latitude: number;
+  longitude: number;
+  scheduled_time?: string;
+}
+
+export interface AssignedRouteData {
+  id: number;
+  name: string;
+  code: string;
+  description?: string;
+  total_stops: number;
+  stops: RouteStopItem[];
+}
+
+export interface AssignedTruckData {
+  id: number;
+  truck_number: string;
+  plate_number: string;
+  truck_type?: string;
+  make?: string;
+  model?: string;
+  year?: number;
+  color?: string;
+  status: string;
+  payload_capacity?: number;
+  volume_capacity?: number;
+  operating_zone?: string;
+  default_schedule?: string;
+  telemetry_source_id?: string;
+  driver?: {
+    id: number;
+    name: string;
+    email: string;
+    phone?: string;
+  } | null;
+  route?: AssignedRouteData | null;
+}
+
+/**
+ * Fetch the authenticated driver's assigned truck & route schedule from the database
+ * with AsyncStorage caching for offline reliability.
+ */
+export async function getDriverAssignedTruck(driverId?: number | string): Promise<AssignedTruckData | null> {
+  const cacheKey = "katok_driver_assigned_truck";
+  const qs = driverId ? `?driver_id=${driverId}` : "";
+
+  try {
+    let res = await apiRequest(`/mobile/driver/assigned-truck${qs}`);
+    if (!res || !res.success) {
+      res = await apiRequest(`/public/mobile/driver/assigned-truck${qs}`);
+    }
+    if (res?.success && res.truck) {
+      // Cache for offline resilience
+      await AsyncStorage.setItem(cacheKey, JSON.stringify(res.truck));
+      return res.truck;
+    }
+  } catch (err) {
+    console.warn("Falling back to cached assigned truck...", err);
+  }
+
+  // Offline fallback: load from AsyncStorage cache
+  try {
+    const cached = await AsyncStorage.getItem(cacheKey);
+    if (cached) {
+      return JSON.parse(cached);
+    }
+  } catch (e) {
+    console.error("Error reading cached truck:", e);
+  }
+
+  return null;
+}
+

@@ -33,9 +33,13 @@ export async function loginUser(
   try {
     const data = await apiRequest("/login", {
       method: "POST",
+      headers: {
+        "X-Client-Platform": "mobile",
+      },
       body: JSON.stringify({
         email: email.trim(),
         password: password,
+        device: "mobile",
       }),
     });
 
@@ -228,11 +232,23 @@ export const AUTH_KEYS = [
 
 export async function logoutUser(router: any): Promise<void> {
   try {
-    // 1. Invalidate tokens and session keys from storage
+    // 1. Notify backend to record attendance check-out and revoke token
+    try {
+      await apiRequest("/logout", {
+        method: "POST",
+        headers: {
+          "X-Client-Platform": "mobile",
+        },
+      });
+    } catch (apiErr) {
+      console.warn("Backend logout attendance check-out notice:", apiErr);
+    }
+
+    // 2. Invalidate tokens and session keys from storage
     const AsyncStorage = (await import("@react-native-async-storage/async-storage")).default;
     await AsyncStorage.multiRemove(AUTH_KEYS);
 
-    // 2. Clear navigation stack and redirect to Welcome/Login
+    // 3. Clear navigation stack and redirect to Welcome/Login
     if (router) {
       if (typeof router.dismissAll === "function") {
         try {

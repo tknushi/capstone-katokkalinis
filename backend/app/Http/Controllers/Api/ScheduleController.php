@@ -21,7 +21,7 @@ class ScheduleController extends Controller
 
     public function index(Request $request)
     {
-        $query = CollectionSchedule::with('barangay');
+        $query = CollectionSchedule::with(['barangay', 'truck', 'driver']);
 
         if ($request->filled('barangay_id')) {
             $query->where('barangay_id', $request->barangay_id);
@@ -54,7 +54,7 @@ class ScheduleController extends Controller
     public function next(Request $request)
     {
         $today = Carbon::today()->toDateString();
-        $query = CollectionSchedule::with('barangay');
+        $query = CollectionSchedule::with(['barangay', 'truck', 'driver']);
 
         if ($request->filled('barangay_id')) {
             $query->where('barangay_id', $request->barangay_id);

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ClenroPileupReport extends Model
 {
@@ -15,6 +16,7 @@ class ClenroPileupReport extends Model
         'incident_code',
         'location_zone',
         'barangay_number',
+        'barangay_id',
         'specific_landmark',
         'latitude',
         'longitude',
@@ -28,11 +30,14 @@ class ClenroPileupReport extends Model
         'waste_category',
         'root_cause',
         'contractor_assigned',
+        'contractor_id',
         'truck_plate',
+        'truck_id',
         'status',
         'clenro_action_taken',
         'decision_recommendation',
         'reported_by',
+        'reported_by_user_id',
     ];
 
     protected $casts = [
@@ -45,6 +50,32 @@ class ClenroPileupReport extends Model
         'longitude' => 'decimal:7',
         'barangay_number' => 'integer',
     ];
+
+    /*
+    |--------------------------------------------------------------------------
+    | RELATIONSHIPS
+    |--------------------------------------------------------------------------
+    */
+
+    public function barangay(): BelongsTo
+    {
+        return $this->belongsTo(Barangay::class);
+    }
+
+    public function contractor(): BelongsTo
+    {
+        return $this->belongsTo(Contractor::class);
+    }
+
+    public function truck(): BelongsTo
+    {
+        return $this->belongsTo(Truck::class);
+    }
+
+    public function reporter(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'reported_by_user_id');
+    }
 
     /*
     |--------------------------------------------------------------------------

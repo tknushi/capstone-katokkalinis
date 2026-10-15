@@ -338,9 +338,33 @@ class AttendanceController extends Controller
 
     /*
     |--------------------------------------------------------------------------
-    | AUTOMATED CHECK-IN / CHECK-OUT (SELF)
+    | AUTOMATED CHECK-IN / CHECK-OUT (SELF) & CURRENT SESSION
     |--------------------------------------------------------------------------
     */
+
+    public function current(Request $request)
+    {
+        $user = $request->user();
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'Unauthenticated.'], 401);
+        }
+
+        $today = now()->toDateString();
+        $attendance = Attendance::where('user_id', $user->id)
+            ->where('date', $today)
+            ->latest('id')
+            ->first();
+
+        $isCheckedIn = $attendance && !empty($attendance->time_in) && empty($attendance->time_out);
+
+        return response()->json([
+            'success' => true,
+            'attendance' => $attendance,
+            'is_checked_in' => $isCheckedIn,
+            'date' => $today,
+            'server_time' => now()->format('H:i:s'),
+        ]);
+    }
 
     public function checkIn(Request $request)
     {

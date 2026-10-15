@@ -38,6 +38,7 @@ use App\Http\Middleware\SuperAdminMiddleware;
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+Route::post('/logout', [AuthController::class, 'logout']);
 
 Route::get('/health', function () {
     return response()->json([
@@ -193,6 +194,7 @@ Route::middleware('auth:sanctum')->group(function () {
 */
 
 Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/attendance/current', [AttendanceController::class, 'current']);
     Route::post('/attendance/check-in', [AttendanceController::class, 'checkIn']);
     Route::post('/attendance/check-out', [AttendanceController::class, 'checkOut']);
 
@@ -290,12 +292,48 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/trucks', [TruckController::class, 'store']);
     Route::get('/trucks/{id}', [TruckController::class, 'show']);
     Route::put('/trucks/{id}', [TruckController::class, 'update']);
+    Route::patch('/trucks/{id}/archive', [TruckController::class, 'archive']);
+    Route::post('/trucks/{id}/archive', [TruckController::class, 'archive']);
+    Route::patch('/trucks/{id}/restore', [TruckController::class, 'restore']);
+    Route::post('/trucks/{id}/restore', [TruckController::class, 'restore']);
     Route::put('/trucks/{id}/status', [TruckController::class, 'updateStatus']);
-    Route::delete('/trucks/{id}', [TruckController::class, 'destroy']);
+    Route::post('/trucks/{id}/status', [TruckController::class, 'updateStatus']);
+    Route::delete('/trucks/{id}', [TruckController::class, 'archive']); // soft delete
+
+    Route::get('/trucks/{id}/maintenance', [TruckController::class, 'maintenance']);
+    Route::post('/trucks/{id}/maintenance', [TruckController::class, 'storeMaintenance']);
+
+    Route::get('/routes', [TruckController::class, 'routes']);
+    Route::get('/drivers', [TruckController::class, 'drivers']);
+    Route::get('/telemetry/fleet', [TruckController::class, 'telemetry']);
+    Route::post('/telemetry/events', [TruckController::class, 'logTelemetryEvent']);
 
     Route::get('/trucks/{id}/locations', [TruckLocationController::class, 'index']);
     Route::post('/trucks/{id}/locations', [TruckLocationController::class, 'store']);
+
+    // Mobile Driver Assigned Truck & Route Sync
+    Route::get('/mobile/driver/assigned-truck', [TruckController::class, 'getDriverAssignedTruck']);
+    Route::get('/driver/assigned-truck', [TruckController::class, 'getDriverAssignedTruck']);
 });
+
+// Demo/Preview/Mobile fallback routes
+Route::get('/public/trucks', [TruckController::class, 'index']);
+Route::get('/public/trucks/{id}', [TruckController::class, 'show']);
+Route::post('/public/trucks', [TruckController::class, 'store']);
+Route::put('/public/trucks/{id}', [TruckController::class, 'update']);
+Route::patch('/public/trucks/{id}/archive', [TruckController::class, 'archive']);
+Route::post('/public/trucks/{id}/archive', [TruckController::class, 'archive']);
+Route::patch('/public/trucks/{id}/restore', [TruckController::class, 'restore']);
+Route::post('/public/trucks/{id}/restore', [TruckController::class, 'restore']);
+Route::put('/public/trucks/{id}/status', [TruckController::class, 'updateStatus']);
+Route::post('/public/trucks/{id}/status', [TruckController::class, 'updateStatus']);
+Route::get('/public/routes', [TruckController::class, 'routes']);
+Route::get('/public/drivers', [TruckController::class, 'drivers']);
+Route::get('/public/contractors', [TruckController::class, 'contractors']);
+Route::get('/public/telemetry/fleet', [TruckController::class, 'telemetry']);
+Route::post('/public/telemetry/events', [TruckController::class, 'logTelemetryEvent']);
+Route::get('/public/mobile/driver/assigned-truck', [TruckController::class, 'getDriverAssignedTruck']);
+Route::get('/public/driver/assigned-truck', [TruckController::class, 'getDriverAssignedTruck']);
 
 
 /*

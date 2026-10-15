@@ -64,7 +64,33 @@ class UserSeeder extends Seeder
 
         /*
         |--------------------------------------------------------------------------
-        | VENDOR
+        | BARANGAY ADMIN (LOCAL OVERSIGHT)
+        |--------------------------------------------------------------------------
+        */
+
+        $this->createUserWithRole(
+            name: 'Barangay Administrator',
+            email: 'barangayadmin@katokkalinis.com',
+            password: 'BarangayAdmin@123',
+            roleName: 'barangay_admin'
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | RESIDENT (COMMUNITY HOUSEHOLD)
+        |--------------------------------------------------------------------------
+        */
+
+        $this->createUserWithRole(
+            name: 'Jane Resident',
+            email: 'resident@katokkalinis.com',
+            password: 'Resident@123',
+            roleName: 'resident'
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | VENDOR 1: COGON PUBLIC MARKET
         |--------------------------------------------------------------------------
         */
 
@@ -78,31 +104,62 @@ class UserSeeder extends Seeder
         $vendorUser = DB::table('users')->where('email', 'vendor@katokkalinis.com')->first();
 
         if ($vendorUser) {
-            $barangay = DB::table('barangays')->first();
-            if (!$barangay) {
-                $barangayId = DB::table('barangays')->insertGetId([
-                    'name' => 'Barangay 1',
-                    'code' => 'BRGY-001',
-                    'city' => 'Cagayan de Oro City',
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]);
-            } else {
-                $barangayId = $barangay->id;
-            }
+            $cogonBrgy = DB::table('barangays')->where('name', 'Barangay 33')->first()
+                ?: DB::table('barangays')->first();
+
+            $cogonBrgyId = $cogonBrgy ? $cogonBrgy->id : 1;
 
             DB::table('vendors')->updateOrInsert(
                 ['vendor_code' => '2026012345'],
                 [
                     'user_id' => $vendorUser->id,
-                    'barangay_id' => $barangayId,
-                    'business_name' => 'KatokKalimpyo',
+                    'barangay_id' => $cogonBrgyId,
+                    'business_name' => 'KatokKalimpyo Fruit & Produce',
                     'owner_name' => 'Juan Dela Cruz',
-                    'market' => 'Divi Public Market',
+                    'market' => 'Cogon Public Market',
                     'stall_number' => 'Stall #12',
                     'contact_number' => '09467802940',
-                    'address' => 'Barangay 123, Divi',
+                    'address' => 'Cogon Market Zone, Cagayan de Oro City',
                     'qr_code' => '2026012345',
+                    'status' => 'active',
+                    'updated_at' => now(),
+                ]
+            );
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | VENDOR 2: CARMEN PUBLIC MARKET
+        |--------------------------------------------------------------------------
+        */
+
+        $this->createUserWithRole(
+            name: 'Maria Carmen',
+            email: 'carmen.vendor@katokkalinis.com',
+            password: 'Vendor@123',
+            roleName: 'vendor'
+        );
+
+        $carmenUser = DB::table('users')->where('email', 'carmen.vendor@katokkalinis.com')->first();
+
+        if ($carmenUser) {
+            $carmenBrgy = DB::table('barangays')->where('name', 'Barangay 15')->first()
+                ?: DB::table('barangays')->first();
+
+            $carmenBrgyId = $carmenBrgy ? $carmenBrgy->id : 1;
+
+            DB::table('vendors')->updateOrInsert(
+                ['vendor_code' => '2026012346'],
+                [
+                    'user_id' => $carmenUser->id,
+                    'barangay_id' => $carmenBrgyId,
+                    'business_name' => 'Carmen Fresh Vegetables & Dry Goods',
+                    'owner_name' => 'Maria Carmen Santos',
+                    'market' => 'Carmen Public Market',
+                    'stall_number' => 'Stall #08',
+                    'contact_number' => '09351234567',
+                    'address' => 'Carmen Market Zone, Cagayan de Oro City',
+                    'qr_code' => '2026012346',
                     'status' => 'active',
                     'updated_at' => now(),
                 ]

@@ -19,7 +19,9 @@ class BarangayController extends Controller
 
     public function index()
     {
-        $barangays = Barangay::orderBy('name')->get();
+        $barangays = \Illuminate\Support\Facades\Cache::remember('all_barangays_list', 300, function () {
+            return Barangay::select('id', 'name')->orderBy('name')->get();
+        });
 
         return response()->json([
             'success' => true,

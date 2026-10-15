@@ -5,10 +5,13 @@
   "main": "login.html",
   "scripts": {
     "start": "npx -y serve -l 3000 -c serve.json .",
-    "dev": "npx -y serve -l 3000 -c serve.json ."
+    "dev": "npx -y serve -l 3000 -c serve.json .",
+    "check-layering": "node verify-ui-layering.js",
+    "test-notification": "node test-notification-bell.js",
+    "test": "node verify-ui-layering.js && node test-notification-bell.js && node test-truck-modal.js"
   },
-  "dependencies": {},
   "devDependencies": {
-    "serve": "^14.2.4"
+    "serve": "^14.2.4",
+    "sharp": "^0.35.5"
   }
 }

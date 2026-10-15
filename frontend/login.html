@@ -3,32 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - KatokKalinis</title>
+    <meta name="description" content="Access the Katok Kalinis administrative portal for city waste management, truck monitoring, and market compliance.">
+    <title>Login | Katok Kalinis</title>
+    <link rel="icon" type="image/svg+xml" href="img/favicon.svg">
+    <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="img/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png">
+    <link rel="manifest" href="site.webmanifest">
     <link rel="stylesheet" href="css/style.css">
+    <style>
+        .auth-brand-link {
+            text-decoration: none;
+            display: block;
+            outline: none;
+            border-radius: 8px;
+        }
+        .auth-brand-link:focus-visible {
+            box-shadow: 0 0 0 2px var(--green-500);
+        }
+    </style>
 </head>
 <body>
 
     <div class="auth-container">
         <div class="auth-card">
-            <div class="auth-brand" aria-label="KatokKalinis">
-                <span>Katok</span>
-                <span>Kalinis</span>
-                <small>Katok. Linis. Gaan ang Buhay.</small>
-            </div>
+            <a href="login.html" class="auth-brand-link" title="Katok Kalinis">
+                <div class="auth-brand" aria-label="KatokKalinis">
+                    <span>Katok</span>
+                    <span>Kalinis</span>
+                    <small>Katok. Linis. Gaan ang Buhay.</small>
+                </div>
+            </a>
             <div class="auth-card-heading">
-                <h1>Login</h1>
+                <h1>Admin Login</h1>
             </div>
-            <div id="error-message" class="alert alert-error" style="display: none;"></div>
+            <div id="error-message" class="alert alert-error" role="alert" style="display: none;"></div>
             <form id="login-form">
                 <div class="form-group">
-                    <label for="email">Email</label>
-                    <input type="email" id="email" class="form-control" required>
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" class="form-control" placeholder="admin@katokkalinis.com" autocomplete="email" required>
                 </div>
                 <div class="form-group">
                     <label for="password">Password</label>
-                    <input type="password" id="password" class="form-control" required>
+                    <input type="password" id="password" class="form-control" placeholder="••••••••" autocomplete="current-password" required>
                 </div>
-                <button type="submit" class="btn" id="login-btn">Login</button>
+                <button type="submit" class="btn" id="login-btn">Login to Dashboard</button>
             </form>
         </div>
     </div>
@@ -37,10 +56,16 @@
     <script>
         document.getElementById('login-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const email = document.getElementById('email').value;
+            const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
             const errorDiv = document.getElementById('error-message');
             const btn = document.getElementById('login-btn');
+
+            if (!email || !password) {
+                errorDiv.textContent = 'Please enter both your email address and password.';
+                errorDiv.style.display = 'block';
+                return;
+            }
 
             try {
                 btn.disabled = true;
@@ -50,25 +75,30 @@
                 const result = await apiRequest('/login', 'POST', { email, password });
 
                 if (!result.token || !result.user) {
-                    throw new Error('Login failed: No token received.');
+                    throw new Error('Authentication failed. No user session was returned from the server.');
                 }
 
                 const roles = Array.isArray(result.user.roles) ? result.user.roles : [];
-                const roleName = roles.length > 0 ? roles[0].name : null;
+                const roleName = roles.length > 0 ? roles[0].name : (result.user.role || null);
 
                 if (roleName !== 'admin' && roleName !== 'super_admin') {
-                    throw new Error('This account is not authorized to access the admin dashboard.');
+                    throw new Error('This account does not have administrative privileges to access the CLENRO dashboard.');
                 }
 
                 localStorage.setItem('auth_token', result.token);
                 localStorage.setItem('user', JSON.stringify(result.user));
-                window.location.href = getHomePage(roleName);
+                showToast(`Welcome back, ${result.user.name || 'Admin'}!`, 'success');
+                setTimeout(() => {
+                    window.location.href = getHomePage(roleName);
+                }, 300);
             } catch (error) {
-                errorDiv.textContent = error.message;
+                const msg = error.message || 'Invalid email or password. Please verify your credentials and try again.';
+                errorDiv.textContent = msg;
                 errorDiv.style.display = 'block';
+                showToast(msg, 'error');
             } finally {
                 btn.disabled = false;
-                btn.textContent = 'Login';
+                btn.textContent = 'Login to Dashboard';
             }
         });
     </script>

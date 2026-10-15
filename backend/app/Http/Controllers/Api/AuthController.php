@@ -48,36 +48,80 @@ class AuthController extends Controller
             ], 401);
         }
 
+        $isMobile = $request->header('X-Client-Platform') === 'mobile'
+            || $request->input('device') === 'mobile'
+            || str_contains(strtolower($request->header('User-Agent', '')), 'okhttp')
+            || str_contains(strtolower($request->header('User-Agent', '')), 'expo')
+            || str_contains(strtolower($request->header('User-Agent', '')), 'react-native');
+
+        $tokenName = $isMobile ? 'katokkalinis-mobile' : 'katokkalinis-web';
+
         $token = $user
-            ->createToken('katokkalinis-web')
+            ->createToken($tokenName)
             ->plainTextToken;
 
         ActivityLog::record(
             'auth.login',
-            "{$user->name} ({$user->email}) logged in.",
+            "{$user->name} ({$user->email}) logged in via " . ($isMobile ? 'Mobile App' : 'Web Portal') . ".",
             $user,
             $user->id
         );
 
-        // Automated Attendance capture on login (mobile & web)
+        // Update database sessions table
+        try {
+            \Illuminate\Support\Facades\DB::table('sessions')->updateOrInsert(
+                ['id' => 'token_' . substr(hash('sha256', $token), 0, 40)],
+                [
+                    'user_id' => $user->id,
+                    'ip_address' => $request->ip(),
+                    'user_agent' => substr($request->header('User-Agent', $isMobile ? 'KatokKalinis Mobile' : 'KatokKalinis Web'), 0, 500),
+                    'payload' => json_encode([
+                        'platform' => $isMobile ? 'mobile' : 'web',
+                        'token_name' => $tokenName,
+                        'login_time' => now()->toIso8601String(),
+                    ]),
+                    'last_activity' => time(),
+                ]
+            );
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning("Session tracking insert failed: " . $e->getMessage());
+        }
+
+        // Automated Attendance session capture on login (mobile & web)
         try {
             $today = now()->toDateString();
             $nowTime = now()->format('H:i:s');
-            $existingAttendance = Attendance::where('user_id', $user->id)
-                ->where('date', $today)
-                ->first();
 
-            if (!$existingAttendance) {
-                Attendance::create([
-                    'user_id' => $user->id,
-                    'date' => $today,
-                    'time_in' => $nowTime,
-                    'status' => 'present',
-                    'remarks' => 'Automated check-in on login',
-                ]);
-            } else {
-                $existingAttendance->time_out = $nowTime;
-                $existingAttendance->save();
+            // Only capture attendance for workers / staff / drivers / inspectors
+            $isWorker = $user->roles()->whereIn('name', [
+                'driver', 'inspector', 'admin', 'super_admin', 'barangay_admin', 'employee', 'contractor'
+            ])->exists();
+
+            if ($isWorker) {
+                $existingAttendance = Attendance::where('user_id', $user->id)
+                    ->where('date', $today)
+                    ->latest('id')
+                    ->first();
+
+                $sourceLabel = $isMobile ? 'Mobile App' : 'Web Portal';
+
+                if (!$existingAttendance) {
+                    Attendance::create([
+                        'user_id' => $user->id,
+                        'date' => $today,
+                        'time_in' => $nowTime,
+                        'time_out' => null,
+                        'status' => 'present',
+                        'remarks' => "Checked in via {$sourceLabel}",
+                    ]);
+                } else {
+                    // If previously timed out (e.g. logged out earlier and returned for another shift), reopen active session
+                    if (!empty($existingAttendance->time_out)) {
+                        $existingAttendance->time_out = null;
+                        $existingAttendance->remarks = "Active session resumed via {$sourceLabel}";
+                        $existingAttendance->save();
+                    }
+                }
             }
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::warning("Automated attendance recording failed for user {$user->id}: " . $e->getMessage());
@@ -527,6 +571,88 @@ class AuthController extends Controller
         'message' => 'Password changed successfully.',
     ]);
 }
+
+    /*
+    |--------------------------------------------------------------------------
+    | LOGOUT & ATTENDANCE SESSION CLOSE
+    |--------------------------------------------------------------------------
+    */
+    public function logout(Request $request)
+    {
+        $user = $request->user();
+
+        // Support bearer token lookup if sanctum request didn't resolve automatically
+        if (!$user && $request->bearerToken()) {
+            $tokenModel = \Laravel\Sanctum\PersonalAccessToken::findToken($request->bearerToken());
+            if ($tokenModel) {
+                $user = $tokenModel->tokenable;
+            }
+        }
+
+        if ($user) {
+            $today = now()->toDateString();
+            $nowTime = now()->format('H:i:s');
+
+            $isMobile = $request->header('X-Client-Platform') === 'mobile'
+                || $request->input('device') === 'mobile'
+                || str_contains(strtolower($request->header('User-Agent', '')), 'okhttp')
+                || str_contains(strtolower($request->header('User-Agent', '')), 'expo')
+                || str_contains(strtolower($request->header('User-Agent', '')), 'react-native');
+
+            $sourceLabel = $isMobile ? 'Mobile App' : 'Web Portal';
+
+            // Close active attendance record for today with time_out
+            $attendance = Attendance::where('user_id', $user->id)
+                ->where('date', $today)
+                ->latest('id')
+                ->first();
+
+            if ($attendance) {
+                $attendance->time_out = $nowTime;
+                $attendance->remarks = ($attendance->remarks ? $attendance->remarks . ' | ' : '') . "Shift ended on {$sourceLabel} logout";
+                $attendance->save();
+
+                ActivityLog::record(
+                    'attendance.check_out',
+                    "{$user->name} recorded check-out on {$sourceLabel} logout at {$nowTime}.",
+                    $attendance,
+                    $user->id
+                );
+            }
+
+            // Invalidate current Sanctum token
+            if ($request->user() && $request->user()->currentAccessToken()) {
+                $request->user()->currentAccessToken()->delete();
+            } elseif ($request->bearerToken()) {
+                $tokenModel = \Laravel\Sanctum\PersonalAccessToken::findToken($request->bearerToken());
+                if ($tokenModel) {
+                    $tokenModel->delete();
+                }
+            }
+
+            // Remove from database sessions table
+            try {
+                \Illuminate\Support\Facades\DB::table('sessions')
+                    ->where('user_id', $user->id)
+                    ->delete();
+            } catch (\Throwable $e) {
+                // Ignore session deletion failure
+            }
+
+            ActivityLog::record(
+                'auth.logout',
+                "{$user->name} ({$user->email}) logged out via {$sourceLabel}.",
+                $user,
+                $user->id
+            );
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Logged out successfully and attendance session closed.',
+        ]);
+    }
+
     /*
     |--------------------------------------------------------------------------
     | ADMIN CHECK

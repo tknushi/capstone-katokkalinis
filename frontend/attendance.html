@@ -3,7 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Attendance - KatokKalinis</title>
+    <title>Personnel Attendance &amp; Duty Logs | Katok Kalinis</title>
+    <meta name="description" content="Monitor personnel daily time records, shift check-ins, duty attendance logs, and staff verification records for Katok Kalinis waste management operations.">
+    <link rel="icon" type="image/svg+xml" href="img/favicon.svg">
+    <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="img/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png">
+    <link rel="manifest" href="site.webmanifest">
+    <meta name="theme-color" content="#166534">
     <link rel="stylesheet" href="css/style.css">
     <style>
         .filter-bar {
@@ -99,7 +106,7 @@
                     </div>
 
                     <!-- Attendance Table (Hidden ID column, sortable headers, checkbox selection) -->
-                    <div style="overflow-x: auto;">
+                    <div class="table-responsive">
                         <table class="table" id="attendance-table">
                             <thead>
                                 <tr>
@@ -420,20 +427,45 @@
             }
         }
 
-        function formatStatusBadge(status) {
+        function formatStatusBadge(status, item) {
             const s = (status || 'present').toLowerCase();
+            let badgeHtml = '';
             switch (s) {
                 case 'present':
-                    return '<span class="pill pill-green">Present</span>';
+                    badgeHtml = '<span class="pill pill-green">Present</span>';
+                    break;
                 case 'late':
-                    return '<span class="pill pill-orange">Late</span>';
+                    badgeHtml = '<span class="pill pill-orange">Late</span>';
+                    break;
                 case 'absent':
-                    return '<span class="pill pill-red">Absent</span>';
+                    badgeHtml = '<span class="pill pill-red">Absent</span>';
+                    break;
                 case 'on_leave':
-                    return '<span class="pill pill-blue">On Leave</span>';
+                    badgeHtml = '<span class="pill pill-blue">On Leave</span>';
+                    break;
                 default:
-                    return `<span class="pill pill-gray">${escapeHtml(s)}</span>`;
+                    badgeHtml = `<span class="pill pill-gray">${escapeHtml(s)}</span>`;
             }
+
+            if (!item) return badgeHtml;
+
+            const today = new Date().toISOString().substring(0, 10);
+            const isToday = item.date && item.date.substring(0, 10) === today;
+            const isActiveSession = isToday && Boolean(item.time_in) && !item.time_out;
+
+            let extras = '';
+            if (isActiveSession) {
+                extras += `<span style="display: inline-flex; align-items: center; gap: 4px; background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; border-radius: 9999px; padding: 2px 7px; font-size: 11px; font-weight: 700;"><span style="width: 6px; height: 6px; border-radius: 50%; background: #10b981; display: inline-block;"></span>Active On-Duty</span>`;
+            }
+
+            const remarks = (item.remarks || '').toLowerCase();
+            if (remarks.includes('mobile')) {
+                extras += `<span style="display: inline-flex; align-items: center; gap: 3px; background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; border-radius: 9999px; padding: 2px 6px; font-size: 11px; font-weight: 600;">📱 Mobile</span>`;
+            } else if (remarks.includes('web')) {
+                extras += `<span style="display: inline-flex; align-items: center; gap: 3px; background: #f3f4f6; color: #4b5563; border: 1px solid #e5e7eb; border-radius: 9999px; padding: 2px 6px; font-size: 11px; font-weight: 600;">💻 Web</span>`;
+            }
+
+            return badgeHtml + (extras ? `<div style="margin-top: 4px; display: flex; flex-wrap: wrap; gap: 4px;">${extras}</div>` : '');
         }
 
         async function loadEmployees() {
@@ -454,15 +486,19 @@
             }
         }
 
-        async function loadData() {
+        async function loadData(silent = false) {
             const tbody = document.getElementById('table-body');
             try {
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 24px;">Loading attendance records...</td></tr>';
+                if (!silent) {
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 24px;">Loading attendance records...</td></tr>';
+                }
                 const res = await apiRequest(endpoint);
                 rawAttendance = res.attendance || [];
                 applyPipeline();
             } catch (error) {
-                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: #b91c1c; padding: 24px;">Error loading data: ${escapeHtml(error.message)}</td></tr>`;
+                if (!silent) {
+                    tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: #b91c1c; padding: 24px;">Error loading data: ${escapeHtml(error.message)}</td></tr>`;
+                }
             }
         }
 
@@ -574,7 +610,7 @@
                             <td>${dateStr}</td>
                             <td>${item.time_in ? item.time_in.substring(0, 5) : '-'}</td>
                             <td>${item.time_out ? item.time_out.substring(0, 5) : '-'}</td>
-                            <td>${formatStatusBadge(item.status)}</td>
+                            <td>${formatStatusBadge(item.status, item)}</td>
                             <td>
                                 <div class="row-actions-cell">
                                     <button type="button" class="action-icon-btn has-tooltip" data-tooltip="Update Status" aria-label="Update Status" onclick="openStatusModal(${item.id}, '${escapeHtml(item.status || 'present')}')">
@@ -998,6 +1034,11 @@
 
             loadEmployees();
             loadData();
+
+            // Auto-refresh every 5 seconds for real-time mobile attendance sync
+            setInterval(() => {
+                loadData(true);
+            }, 5000);
         });
     </script>
 </body>

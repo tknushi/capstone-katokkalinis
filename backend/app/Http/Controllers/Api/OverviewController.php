@@ -14,18 +14,23 @@ use App\Models\User;
 use App\Models\Vendor;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class OverviewController extends Controller
 {
     /**
      * Return comprehensive aggregate operational data for the Barangay Overview dashboard.
      * Optionally scoped by ?barangay_id=<id>.
+     * Cached for 30 seconds per scope.
      */
     public function summary(Request $request)
     {
         $barangayId = $request->filled('barangay_id') ? (int) $request->barangay_id : null;
-        $barangay = $barangayId ? Barangay::find($barangayId) : null;
-        $barangayName = $barangay ? $barangay->name : null;
+        $cacheKey = 'overview_summary_' . ($barangayId ?? 'all');
+
+        $data = Cache::remember($cacheKey, 30, function () use ($barangayId) {
+            $barangay = $barangayId ? Barangay::find($barangayId) : null;
+            $barangayName = $barangay ? $barangay->name : null;
 
         // ---------------------------------------------------------------------
         // 1. Total Residents
@@ -256,7 +261,7 @@ class OverviewController extends Controller
         // ---------------------------------------------------------------------
         // Build & return structured response
         // ---------------------------------------------------------------------
-        return response()->json([
+        return [
             'success' => true,
             'message' => 'Overview operational summary retrieved successfully.',
             'timestamp' => now()->toIso8601String(),
@@ -299,7 +304,10 @@ class OverviewController extends Controller
             'upcoming_schedules' => $upcomingSchedules,
             'active_issues' => $activeIssues,
             'recent_activities' => $recentActivities,
-        ]);
+        ];
+        });
+
+        return response()->json($data);
     }
 
     /**

@@ -19,6 +19,10 @@ return Application::configure(basePath: dirname(__DIR__))
             'superadmin' => SuperAdminMiddleware::class,
         ]);
 
+        $middleware->api(append: [
+            \App\Http\Middleware\GzipResponseMiddleware::class,
+        ]);
+
         $middleware->redirectGuestsTo(function (\Illuminate\Http\Request $request) {
             if ($request->is('api/*') || $request->expectsJson()) {
                 return null;

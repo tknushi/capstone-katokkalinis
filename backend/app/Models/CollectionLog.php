@@ -13,6 +13,7 @@ class CollectionLog extends Model
     use HasFactory;
 
     protected $fillable = [
+        'schedule_id',
         'driver_id',
         'truck_id',
         'barangay_id',
@@ -84,6 +85,14 @@ class CollectionLog extends Model
     public function barangay(): BelongsTo
     {
         return $this->belongsTo(Barangay::class, 'barangay_id');
+    }
+
+    /**
+     * Planned collection schedule this log fulfils (optional).
+     */
+    public function schedule(): BelongsTo
+    {
+        return $this->belongsTo(CollectionSchedule::class, 'schedule_id');
     }
 
     /**

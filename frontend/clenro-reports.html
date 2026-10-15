@@ -4,7 +4,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CLENRO Historical Decision Reports - KatokKalinis</title>
+    <meta name="description" content="Comprehensive historical waste tonnage records, commercial market collection statistics, and decision support metrics.">
+    <title>CLENRO Decision Support &amp; Historical Reports | Katok Kalinis</title>
+    <link rel="icon" type="image/svg+xml" href="img/favicon.svg">
+    <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="img/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png">
+    <link rel="manifest" href="site.webmanifest">
     <link rel="stylesheet" href="css/style.css">
     <style>
         /* Specific Styles for CLENRO Decision Support System */
@@ -639,7 +645,7 @@
         .modal {
             display: none;
             position: fixed;
-            z-index: 1000;
+            z-index: var(--z-backdrop);
             left: 0;
             top: 0;
             width: 100%;
@@ -1171,7 +1177,7 @@
             border: 1px solid var(--border);
             border-radius: 8px;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-            z-index: 120;
+            z-index: var(--z-popover);
             display: none;
         }
 
@@ -1190,7 +1196,7 @@
             border-top: 1px solid var(--border);
             position: sticky;
             top: 0;
-            z-index: 1;
+            z-index: var(--z-content);
         }
 
         .combobox-group-header:first-child {
@@ -1663,7 +1669,10 @@
                 <!-- Formal Philippine Government Print Letterhead (Print-Only) -->
                 <header class="print-official-letterhead" id="print-official-letterhead">
                     <div class="letterhead-logo-anchor">
-                        <img src="img/clenro-logo.png" alt="City Government of Cagayan de Oro - CLENRO Seal" class="letterhead-seal-img">
+                        <picture>
+                            <source srcset="img/clenro-logo.webp" type="image/webp">
+                            <img src="img/clenro-logo-optimized.png" alt="City Government of Cagayan de Oro - CLENRO Seal" class="letterhead-seal-img" width="68" height="68" loading="lazy" decoding="async">
+                        </picture>
                     </div>
                     <div class="letterhead-text-block">
                         <div class="gov-line-republic">Republic of the Philippines</div>

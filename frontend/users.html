@@ -2,8 +2,14 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Profiles - KatokKalinis</title>
+    <title>User Management &amp; Access Control | Katok Kalinis</title>
+    <meta name="description" content="Manage municipal user profiles, administrative roles, permissions, and account status across the Katok Kalinis waste management platform.">
+    <link rel="icon" type="image/svg+xml" href="img/favicon.svg">
+    <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="img/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png">
+    <link rel="manifest" href="site.webmanifest">
+    <meta name="theme-color" content="#166534">
     <link rel="stylesheet" href="css/style.css">
     <style>
         .role-badge {
@@ -115,7 +121,7 @@
                     </div>
 
                     <!-- User Table (Hidden ID column, sortable headers, checkbox selection) -->
-                    <div style="overflow-x: auto;">
+                    <div class="table-responsive">
                         <table class="table" id="users-table">
                             <thead>
                                 <tr>
@@ -653,7 +659,7 @@
                                 `}
                             </td>
                             <td><strong>${escapeHtml(item.name)}</strong></td>
-                            <td>${escapeHtml(item.email)}</td>
+                            <td>${formatEmailLink(item.email)}</td>
                             <td>${roleBadges || '-'}</td>
                             <td>${joined}</td>
                             <td>

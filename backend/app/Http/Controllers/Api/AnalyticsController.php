@@ -11,44 +11,49 @@ use App\Models\Report;
 use App\Models\Truck;
 use App\Models\User;
 use App\Models\Vendor;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class AnalyticsController extends Controller
 {
     /*
     |--------------------------------------------------------------------------
-    | DASHBOARD OVERVIEW
+    | DASHBOARD OVERVIEW (Cached for 30 seconds)
     |--------------------------------------------------------------------------
     */
 
     public function overview()
     {
-        return response()->json([
+        $data = Cache::remember('analytics_overview_data', 30, function () {
+            return [
+                'totals' => [
+                    'employees'   => User::whereHas('roles', fn ($q) => $q->where('name', 'driver'))->count(),
+                    'contractors' => Contractor::count(),
+                    'vendors'     => Vendor::count(),
+                    'reports'     => Report::count(),
+                    'trucks'      => Truck::count(),
+                ],
+
+                'reports_by_status' => Report::select('status', DB::raw('count(*) as total'))
+                    ->groupBy('status')
+                    ->pluck('total', 'status'),
+
+                'trucks_by_status' => Truck::select('status', DB::raw('count(*) as total'))
+                    ->groupBy('status')
+                    ->pluck('total', 'status'),
+
+                'employee_attendance' => $this->employeeAttendanceSummary(),
+
+                'barangay_stats' => $this->barangayStats(),
+
+                'market_compliance' => $this->marketCompliance(),
+            ];
+        });
+
+        return response()->json(array_merge([
             'success' => true,
             'message' => 'Analytics retrieved successfully.',
-
-            'totals' => [
-                'employees'   => User::whereHas('roles', fn ($q) => $q->where('name', 'driver'))->count(),
-                'contractors' => Contractor::count(),
-                'vendors'     => Vendor::count(),
-                'reports'     => Report::count(),
-                'trucks'      => Truck::count(),
-            ],
-
-            'reports_by_status' => Report::select('status', DB::raw('count(*) as total'))
-                ->groupBy('status')
-                ->pluck('total', 'status'),
-
-            'trucks_by_status' => Truck::select('status', DB::raw('count(*) as total'))
-                ->groupBy('status')
-                ->pluck('total', 'status'),
-
-            'employee_attendance' => $this->employeeAttendanceSummary(),
-
-            'barangay_stats' => $this->barangayStats(),
-
-            'market_compliance' => $this->marketCompliance(),
-        ]);
+        ], $data));
     }
 
 
@@ -189,19 +194,37 @@ class AnalyticsController extends Controller
 
     private function employeeAttendanceSummary()
     {
-        $employees = User::whereHas('roles', fn ($q) => $q->where('name', 'driver'))->get();
+        $employees = User::whereHas('roles', fn ($q) => $q->where('name', 'driver'))
+            ->select('id', 'name')
+            ->get();
 
-        return $employees->map(function ($employee) {
-            $records = Attendance::where('user_id', $employee->id)->get();
+        if ($employees->isEmpty()) {
+            return collect();
+        }
+
+        $records = Attendance::whereIn('user_id', $employees->pluck('id'))
+            ->select('user_id', 'status', DB::raw('count(*) as count'))
+            ->groupBy('user_id', 'status')
+            ->get()
+            ->groupBy('user_id');
+
+        return $employees->map(function ($employee) use ($records) {
+            $userRecords = $records->get($employee->id, collect());
+            $byStatus = $userRecords->pluck('count', 'status');
+
+            $present = (int) $byStatus->get('present', 0);
+            $late    = (int) $byStatus->get('late', 0);
+            $absent  = (int) $byStatus->get('absent', 0);
+            $onLeave = (int) $byStatus->get('on_leave', 0);
 
             return [
                 'id'         => $employee->id,
                 'name'       => $employee->name,
-                'present'    => $records->where('status', 'present')->count(),
-                'late'       => $records->where('status', 'late')->count(),
-                'absent'     => $records->where('status', 'absent')->count(),
-                'on_leave'   => $records->where('status', 'on_leave')->count(),
-                'total_days' => $records->count(),
+                'present'    => $present,
+                'late'       => $late,
+                'absent'     => $absent,
+                'on_leave'   => $onLeave,
+                'total_days' => $present + $late + $absent + $onLeave,
             ];
         })->values();
     }

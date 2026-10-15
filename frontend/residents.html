@@ -2,8 +2,14 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Residents - KatokKalinis</title>
+    <title>Resident Directory &amp; Permissions | Katok Kalinis</title>
+    <meta name="description" content="View and manage barangay resident directories, community access roles, and system permissions for the Katok Kalinis waste management platform.">
+    <link rel="icon" type="image/svg+xml" href="img/favicon.svg">
+    <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="img/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png">
+    <link rel="manifest" href="site.webmanifest">
+    <meta name="theme-color" content="#166534">
     <link rel="stylesheet" href="css/style.css">
     <style>
         .role-badge {
@@ -50,25 +56,27 @@
                     <div class="card-header">
                         <h3>Residents in this Barangay</h3>
                     </div>
-                    <div class="filter-bar">
-                        <input type="text" id="search-box" placeholder="Search by name or email...">
+                    <div class="filter-bar" style="flex-wrap: wrap;">
+                        <input type="text" id="search-box" placeholder="Search by name or email..." style="flex: 1; min-width: 200px;">
                         <button class="btn" onclick="loadData()" style="width: auto;">Search</button>
                     </div>
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Name</th>
-                                <th>Email</th>
-                                <th>Roles / Permissions</th>
-                                <th>Joined</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="table-body">
-                            <tr><td colspan="6">Loading...</td></tr>
-                        </tbody>
-                    </table>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Roles / Permissions</th>
+                                    <th>Joined</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-body">
+                                <tr><td colspan="6">Loading...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </section>
         </main>
@@ -131,17 +139,17 @@
                     return `
                     <tr>
                         <td>${item.id}</td>
-                        <td>${item.name}</td>
-                        <td>${item.email}</td>
+                        <td><strong>${escapeHtml(item.name)}</strong></td>
+                        <td>${formatEmailLink(item.email)}</td>
                         <td>${roleBadges || '-'}</td>
                         <td>${joined}</td>
                         <td>
-                            <button class="btn" style="padding: 5px 10px; width: auto; background: #3498db;" onclick='editPermissions(${JSON.stringify(item).replace(/'/g, "&#39;")})'>Edit Permissions</button>
+                            <button class="btn" style="min-height: 40px; padding: 6px 14px; width: auto; background: #3498db; font-size: 13px;" onclick='editPermissions(${JSON.stringify(item).replace(/'/g, "&#39;")})'>Edit Permissions</button>
                         </td>
                     </tr>
                 `;}).join('');
             } catch (error) {
-                tbody.innerHTML = `<tr><td colspan="6">Error loading data: ${error.message}</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: #b91c1c; padding: 20px;">Error loading data: ${escapeHtml(error.message)}</td></tr>`;
             }
         }
 
@@ -157,7 +165,7 @@
             container.innerHTML = allRoles.map(r => `
                 <label>
                     <input type="checkbox" value="${r.id}" ${userRoleIds.includes(r.id) ? 'checked' : ''}>
-                    ${r.name}
+                    ${escapeHtml(r.name)}
                 </label>
             `).join('');
         }
@@ -170,9 +178,10 @@
             try {
                 await apiRequest(`/users/${id}/roles`, 'PUT', { role_ids: roleIds });
                 closeModal();
+                showToast('Permissions updated successfully.', 'success');
                 loadData();
             } catch(e) {
-                alert('Error saving permissions: ' + e.message);
+                showToast('Error saving permissions: ' + e.message, 'error');
             }
         });
 

@@ -193,23 +193,23 @@ export default function RoleScreen() {
             </LinearGradient>
           </TouchableOpacity>
         </View>
-
-        {/* Title Screen Scenic Landscape Anchor */}
-        <View style={styles.bottomLandscape} pointerEvents="none">
-          <Image
-            source={require("../assets/images/forest_hills.png")}
-            style={styles.forestGraphic}
-            resizeMode="cover"
-          />
-          <View style={styles.truckWrapper}>
-            <Image
-              source={require("../assets/images/compactor_truck.png")}
-              style={styles.truckGraphic}
-              resizeMode="contain"
-            />
-          </View>
-        </View>
       </ScrollView>
+
+      {/* Title Screen Scenic Landscape Anchor - Pinned at the very bottom */}
+      <View style={styles.bottomLandscape} pointerEvents="none">
+        <Image
+          source={require("../assets/images/forest_hills.png")}
+          style={styles.forestGraphic}
+          resizeMode="cover"
+        />
+        <View style={styles.truckWrapper}>
+          <Image
+            source={require("../assets/images/compactor_truck.png")}
+            style={styles.truckGraphic}
+            resizeMode="contain"
+          />
+        </View>
+      </View>
     </View>
   );
 }
@@ -285,11 +285,11 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   scrollContent: {
-    paddingBottom: 20,
+    paddingBottom: Math.min(SCREEN_HEIGHT * 0.25, 200),
   },
   cardsContainer: {
     paddingHorizontal: 18,
-    gap: 13,
+    gap: 12,
     zIndex: 10,
     marginBottom: 10,
   },
@@ -298,31 +298,31 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: "#D2EBD5",
     shadowColor: "#1B431D",
-    shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.09,
-    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
     elevation: 3,
     overflow: "hidden",
   },
   cardGradient: {
-    paddingVertical: 14,
-    paddingHorizontal: 15,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
     flexDirection: "row",
     alignItems: "center",
     borderRadius: 18,
   },
   iconCircle: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 1.5,
   },
   cardContent: {
     flex: 1,
-    marginLeft: 13,
-    marginRight: 8,
+    marginLeft: 12,
+    marginRight: 6,
   },
   tagRow: {
     flexDirection: "row",
@@ -340,15 +340,15 @@ const styles = StyleSheet.create({
     letterSpacing: 0.4,
   },
   cardTitle: {
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: "900",
     color: "#1E331B",
-    marginBottom: 4,
+    marginBottom: 2,
   },
   cardDescription: {
-    fontSize: 12,
+    fontSize: 11.5,
     color: "#577154",
-    lineHeight: 16,
+    lineHeight: 15,
     fontWeight: "500",
   },
   chevronCircle: {
@@ -359,27 +359,28 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   bottomLandscape: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
     width: SCREEN_WIDTH,
-    marginHorizontal: -20,
-    position: "relative",
     justifyContent: "flex-end",
     alignItems: "center",
-    marginTop: 12,
-    overflow: "hidden",
+    zIndex: 1,
   },
   forestGraphic: {
     width: SCREEN_WIDTH,
-    height: Math.min(SCREEN_HEIGHT * 0.18, 145),
+    height: Math.min(SCREEN_HEIGHT * 0.24, 190),
     opacity: 0.95,
   },
   truckWrapper: {
     position: "absolute",
     left: SCREEN_WIDTH * 0.08,
-    bottom: 16,
+    bottom: 22,
     zIndex: 5,
   },
   truckGraphic: {
-    width: 105,
-    height: 52,
+    width: 125,
+    height: 62,
   },
 });

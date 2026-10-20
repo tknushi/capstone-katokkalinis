@@ -249,26 +249,26 @@ export default function DriverLogin() {
                 )}
               </TouchableOpacity>
             </View>
+          </ScrollView>
 
-        {/* Title Screen Scenic Landscape & Compactor Truck */}
-        <View style={styles.bottomLandscape} pointerEvents="none">
-          <Image
-            source={require("../../assets/images/forest_hills.png")}
-            style={styles.forestGraphic}
-            resizeMode="cover"
-          />
-          <View style={styles.truckWrapper}>
+          {/* Title Screen Scenic Landscape & Compactor Truck - Pinned at the very bottom */}
+          <View style={styles.bottomLandscape} pointerEvents="none">
             <Image
-              source={require("../../assets/images/compactor_truck.png")}
-              style={styles.truckGraphic}
-              resizeMode="contain"
+              source={require("../../assets/images/forest_hills.png")}
+              style={styles.forestGraphic}
+              resizeMode="cover"
             />
+            <View style={styles.truckWrapper}>
+              <Image
+                source={require("../../assets/images/compactor_truck.png")}
+                style={styles.truckGraphic}
+                resizeMode="contain"
+              />
+            </View>
           </View>
         </View>
-      </ScrollView>
-    </View>
-  );
-}
+      );
+    }
 
 const styles = StyleSheet.create({
   container: {
@@ -305,31 +305,32 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 22,
-    paddingBottom: 20,
+    paddingBottom: Math.min(SCREEN_HEIGHT * 0.25, 200),
   },
   bottomLandscape: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
     width: SCREEN_WIDTH,
-    marginHorizontal: -22,
-    position: "relative",
     justifyContent: "flex-end",
     alignItems: "center",
-    marginTop: 24,
-    overflow: "hidden",
+    zIndex: 1,
   },
   forestGraphic: {
     width: SCREEN_WIDTH,
-    height: Math.min(SCREEN_HEIGHT * 0.18, 145),
+    height: Math.min(SCREEN_HEIGHT * 0.24, 190),
     opacity: 0.95,
   },
   truckWrapper: {
     position: "absolute",
     left: SCREEN_WIDTH * 0.08,
-    bottom: 16,
+    bottom: 22,
     zIndex: 5,
   },
   truckGraphic: {
-    width: 105,
-    height: 52,
+    width: 125,
+    height: 62,
   },
   header: {
     alignItems: "center",

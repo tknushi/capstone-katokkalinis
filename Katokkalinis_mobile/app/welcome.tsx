@@ -160,12 +160,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#FFFFFF",
-    justifyContent: "space-between",
   },
   header: {
     alignItems: "center",
-    paddingTop: Math.max(50, SCREEN_HEIGHT * 0.07),
+    paddingTop: Math.max(52, SCREEN_HEIGHT * 0.075),
     paddingHorizontal: 20,
+    marginBottom: Math.max(22, SCREEN_HEIGHT * 0.032),
     zIndex: 10,
   },
   logoImage: {
@@ -207,9 +207,8 @@ const styles = StyleSheet.create({
   },
   cardsContainer: {
     paddingHorizontal: 20,
-    gap: 16,
+    gap: 15,
     zIndex: 20,
-    marginTop: -10,
   },
   card: {
     borderRadius: 20,
@@ -223,15 +222,15 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   cardGradient: {
-    paddingVertical: 18,
-    paddingHorizontal: 18,
+    paddingVertical: 15,
+    paddingHorizontal: 16,
     borderRadius: 20,
   },
   cardHeaderRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 10,
+    marginBottom: 8,
   },
   iconCircle: {
     width: 48,
@@ -277,24 +276,27 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
   bottomLandscape: {
-    width: "100%",
-    position: "relative",
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    width: SCREEN_WIDTH,
     justifyContent: "flex-end",
     alignItems: "center",
   },
   forestGraphic: {
     width: SCREEN_WIDTH,
-    height: Math.min(SCREEN_HEIGHT * 0.20, 160),
+    height: Math.min(SCREEN_HEIGHT * 0.24, 190),
     opacity: 0.95,
   },
   truckWrapper: {
     position: "absolute",
     left: SCREEN_WIDTH * 0.08,
-    bottom: 18,
+    bottom: 22,
     zIndex: 5,
   },
   truckGraphic: {
-    width: 115,
-    height: 58,
+    width: 125,
+    height: 62,
   },
 });

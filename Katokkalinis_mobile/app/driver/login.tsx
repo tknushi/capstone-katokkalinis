@@ -6,18 +6,21 @@ import {
   ActivityIndicator,
   Alert,
   Dimensions,
+  Image,
   ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import { getBaseApiUrl } from "../../services/api";
 import { loginUser } from "../../services/auth";
 import { registerDevicePushToken } from "../../services/pushNotification";
 
-const { width: SCREEN_WIDTH } = Dimensions.get("window");
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 const isSmall = SCREEN_WIDTH < 360;
 
 export default function DriverLogin() {
@@ -102,15 +105,33 @@ export default function DriverLogin() {
 
   return (
     <View style={styles.container}>
-      {/* Top Back Navigation */}
+      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
+
+      {/* Lush Background Eco-Gradient matching Title Screen */}
+      <LinearGradient
+        colors={["#FFFFFF", "#F8FDF7", "#EEF8EB", "#DFEED9"]}
+        locations={[0, 0.35, 0.7, 1.0]}
+        style={StyleSheet.absoluteFillObject}
+      />
+
+      {/* Top Back Navigation with Logo */}
       <View style={styles.topNav}>
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => router.replace("/role")}
           hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          activeOpacity={0.8}
         >
-          <MaterialCommunityIcons name="arrow-left" size={24} color="#1E331B" />
+          <MaterialCommunityIcons name="arrow-left" size={22} color="#1E331B" />
         </TouchableOpacity>
+
+        <Image
+          source={require("../../assets/images/katok_logo_full.png")}
+          style={styles.navLogo}
+          resizeMode="contain"
+        />
+
+        <View style={{ width: 38 }} />
       </View>
 
       <ScrollView
@@ -228,6 +249,22 @@ export default function DriverLogin() {
                 )}
               </TouchableOpacity>
             </View>
+
+        {/* Title Screen Scenic Landscape & Compactor Truck */}
+        <View style={styles.bottomLandscape} pointerEvents="none">
+          <Image
+            source={require("../../assets/images/forest_hills.png")}
+            style={styles.forestGraphic}
+            resizeMode="cover"
+          />
+          <View style={styles.truckWrapper}>
+            <Image
+              source={require("../../assets/images/compactor_truck.png")}
+              style={styles.truckGraphic}
+              resizeMode="contain"
+            />
+          </View>
+        </View>
       </ScrollView>
     </View>
   );
@@ -237,21 +274,60 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#FFFFFF",
-    paddingTop: 50,
   },
   topNav: {
-    paddingHorizontal: 20,
-    marginBottom: 10,
+    paddingHorizontal: 18,
+    paddingTop: Math.max(44, SCREEN_HEIGHT * 0.055),
+    paddingBottom: 6,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    zIndex: 20,
   },
   backButton: {
-    width: 40,
-    height: 40,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: "#FFFFFF",
     justifyContent: "center",
-    alignItems: "flex-start",
+    alignItems: "center",
+    borderWidth: 1.5,
+    borderColor: "#D2EBD5",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  navLogo: {
+    width: 130,
+    height: 32,
   },
   scrollContent: {
-    paddingHorizontal: 26,
-    paddingBottom: 40,
+    paddingHorizontal: 22,
+    paddingBottom: 20,
+  },
+  bottomLandscape: {
+    width: "100%",
+    position: "relative",
+    justifyContent: "flex-end",
+    alignItems: "center",
+    marginTop: 20,
+  },
+  forestGraphic: {
+    width: SCREEN_WIDTH,
+    height: Math.min(SCREEN_HEIGHT * 0.20, 170),
+    opacity: 0.95,
+  },
+  truckWrapper: {
+    position: "absolute",
+    left: SCREEN_WIDTH * 0.08,
+    bottom: 20,
+    zIndex: 5,
+  },
+  truckGraphic: {
+    width: 110,
+    height: 55,
   },
   header: {
     alignItems: "center",

@@ -1,8 +1,10 @@
-// Absolute URL so this works no matter how the frontend static files are
-// served (double-clicked, Live Server, XAMPP, etc). Run the backend with
-// `php artisan serve` (default port 8000) or update this if you use a
-// different host/port.
-const API_BASE_URL = window.API_BASE_URL || 'http://localhost:8000/api';
+// Dynamic backend URL so this works across localhost, 127.0.0.1, LAN IP (e.g. mobile testing),
+// Live Server, or when served via npm run dev.
+const API_BASE_URL = window.API_BASE_URL || (
+    typeof window !== 'undefined' && window.location && window.location.hostname && window.location.protocol.startsWith('http')
+        ? `${window.location.protocol}//${window.location.hostname}:8000/api`
+        : 'http://localhost:8000/api'
+);
 
 /**
  * Resolves a media / storage URL to an absolute web-accessible URL.

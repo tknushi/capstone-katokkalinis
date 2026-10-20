@@ -1,0 +1,11 @@
+{
+  "name": "katokkalinis",
+  "version": "1.0.0",
+  "description": "KatokKalinis Full-Stack System",
+  "private": true,
+  "scripts": {
+    "dev:backend": "cd backend && php artisan serve --host=0.0.0.0 --port=8000",
+    "dev:frontend": "cd frontend && npx -y serve -l 3000 -c serve.json .",
+    "dev:mobile": "cd Katokkalinis_mobile && npx expo start"
+  }
+}

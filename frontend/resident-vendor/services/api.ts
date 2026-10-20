@@ -1,6 +1,12 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Platform } from "react-native";
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL || "http://10.0.2.2:8000/api";
+const LAN_IP = "192.168.18.174";
+const API_URL =
+  process.env.EXPO_PUBLIC_API_URL ||
+  (Platform.OS === "web"
+    ? (typeof window !== "undefined" && window.location?.hostname ? `http://${window.location.hostname}:8000/api` : "http://localhost:8000/api")
+    : `http://${LAN_IP}:8000/api`);
 const TOKEN_KEY = "katokkalinis_token";
 
 /*

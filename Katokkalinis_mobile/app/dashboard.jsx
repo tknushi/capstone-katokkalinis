@@ -107,40 +107,24 @@ export default function Dashboard() {
     }
   };
 
-  const loadScheduleData = useCallback(async () => {
+  const loadScheduleData = useCallback(async (isSilent = false) => {
     try {
-      setLoadingSchedule(true);
+      if (!isSilent) setLoadingSchedule(true);
       const res = await fetchNextSchedule(barangayId, userLocation);
       if (res && res.success && res.schedule) {
         setNextSchedule(res.schedule);
         const cd = computeCountdown(res.schedule.date, res.schedule.pickup_time);
         setCountdownText(cd);
       } else {
-        // Default smart fallback based on current date
-        const fallbackTarget = new Date();
-        fallbackTarget.setDate(fallbackTarget.getDate() + 2);
-        const fallbackDateStr = fallbackTarget.toISOString().split("T")[0];
-        setNextSchedule({
-          date: fallbackDateStr,
-          day: fallbackTarget.toLocaleDateString("en-US", { weekday: "long" }),
-          pickup_time: "08:00",
-          status: "scheduled",
-        });
-        setCountdownText("in 2 days");
+        setNextSchedule(null);
+        setCountdownText("No schedule set");
       }
     } catch (e) {
-      console.warn("Could not fetch remote schedule, using local fallback:", e);
-      const fallbackTarget = new Date();
-      fallbackTarget.setDate(fallbackTarget.getDate() + 2);
-      setNextSchedule({
-        date: fallbackTarget.toISOString().split("T")[0],
-        day: fallbackTarget.toLocaleDateString("en-US", { weekday: "long" }),
-        pickup_time: "08:00",
-        status: "scheduled",
-      });
-      setCountdownText("in 2 days");
+      console.warn("Could not fetch remote schedule:", e);
+      setNextSchedule(null);
+      setCountdownText("No schedule set");
     } finally {
-      setLoadingSchedule(false);
+      if (!isSilent) setLoadingSchedule(false);
       setRefreshing(false);
     }
   }, [barangayId, userLocation]);
@@ -151,6 +135,14 @@ export default function Dashboard() {
 
   useEffect(() => {
     loadScheduleData();
+  }, [loadScheduleData]);
+
+  // Periodic background check so web schedule changes update on mobile dashboard
+  useEffect(() => {
+    const timer = setInterval(() => {
+      loadScheduleData(true);
+    }, 10000);
+    return () => clearInterval(timer);
   }, [loadScheduleData]);
 
   useEffect(() => {
@@ -194,17 +186,17 @@ export default function Dashboard() {
 
   // Format date display (e.g. "Friday, May 2, 2026")
   const formattedCollectionDate = nextSchedule?.date
-    ? new Date(nextSchedule.date).toLocaleDateString("en-US", {
+    ? new Date(String(nextSchedule.date).slice(0, 10) + "T00:00:00").toLocaleDateString("en-US", {
         weekday: "long",
         month: "long",
         day: "numeric",
         year: "numeric",
       })
-    : "Friday, May 2, 2026";
+    : "No Upcoming Schedule";
 
   const pickupTimeDisplay = nextSchedule?.pickup_time
     ? nextSchedule.pickup_time.slice(0, 5)
-    : "08:00 AM";
+    : "Not Set";
 
   useEffect(() => {
     // Only pop up the collection alert on the actual SET DATE
@@ -230,6 +222,14 @@ export default function Dashboard() {
           message: `Scheduled pickup today at ${pickupTimeDisplay} for ${userLocation}. Please have your bins ready.`,
           type: "truck",
         });
+
+        // Also fire native system push notification into notification tray
+        import("../services/pushNotification").then(({ triggerLocalNotification }) => {
+          triggerLocalNotification(
+            "Garbage Collection Today",
+            `Scheduled pickup today at ${pickupTimeDisplay} for ${userLocation}. Please have your bins ready.`
+          );
+        }).catch(() => {});
       }, 1200);
 
       return () => clearTimeout(timer);
@@ -334,7 +334,9 @@ export default function Dashboard() {
             </View>
 
             <Text style={styles.heroSubDetail}>
-              Pickup starts at {pickupTimeDisplay}
+              {nextSchedule?.pickup_time
+                ? `Pickup starts at ${pickupTimeDisplay}`
+                : "Tap to view city collection calendar"}
             </Text>
           </View>
 

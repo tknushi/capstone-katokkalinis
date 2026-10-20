@@ -4,45 +4,84 @@ import { Platform } from "react-native";
 
 const TOKEN_KEYS = ["katokkalinis_token", "authToken"];
 
+let cachedCustomUrl: string | null = null;
+
+// Immediately initialize custom URL from storage if previously saved
+AsyncStorage.getItem("@custom_backend_url").then((saved) => {
+  if (saved && saved.trim()) {
+    cachedCustomUrl = saved.trim();
+  }
+}).catch(() => {});
+
+export function setRuntimeBackendUrl(url: string | null) {
+  cachedCustomUrl = url;
+}
+
+export async function updateBackendServerUrl(newUrl: string): Promise<void> {
+  cachedCustomUrl = newUrl.trim();
+  await AsyncStorage.setItem("@custom_backend_url", newUrl.trim());
+}
+
+export async function resetBackendServerUrl(): Promise<void> {
+  cachedCustomUrl = null;
+  await AsyncStorage.removeItem("@custom_backend_url");
+}
+
 /*
 |--------------------------------------------------------------------------
 | BASE API URL RESOLUTION
 |--------------------------------------------------------------------------
 | Dynamically resolves the backend API URL:
-| 1. Expo env variable (EXPO_PUBLIC_API_URL)
-| 2. Automatically derived IP from Metro bundler hostUri (e.g. 192.168.18.174)
-| 3. Android emulator fallback (10.0.2.2)
-| 4. Web hostname
+| 1. Custom runtime override from AsyncStorage (@custom_backend_url)
+| 2. Web browser: active window hostname (localhost or LAN IP)
+| 3. Expo Metro bundler hostUri (auto-detects dev PC's IP on physical phones)
+| 4. EXPO_PUBLIC_API_URL from .env
+| 5. Default Development LAN IP fallback (192.168.18.174:8000)
 |--------------------------------------------------------------------------
 */
 export function getBaseApiUrl(): string {
-  // 1. Web browser: Always use active window hostname (localhost or LAN) to avoid CORS / PNA blocks
+  // 1. Check custom runtime override
+  if (cachedCustomUrl && cachedCustomUrl.trim()) {
+    return cachedCustomUrl.replace(/\/+$/, "");
+  }
+
+  // 2. Web browser: Always use active window hostname (localhost or LAN IP)
   if (Platform.OS === "web" && typeof window !== "undefined" && window.location?.hostname) {
     const host = window.location.hostname || "localhost";
     return `http://${host}:8000/api`;
   }
 
-  // 2. Android Emulator (not physical device): map to host machine
-  if (Platform.OS === "android" && !Constants.isDevice) {
-    return "http://10.0.2.2:8000/api";
-  }
+  // 3. Expo Metro bundler host (automatically detects dev PC's IP when running via Expo Go on physical device)
+  const hostUri =
+    Constants.expoConfig?.hostUri ||
+    (Constants as any).manifest2?.extra?.expoClient?.hostUri ||
+    (Constants as any).manifest?.debuggerHost ||
+    (Constants as any).experienceUrl;
 
-  // 3. Expo Metro bundler hostUri (e.g. physical device running Expo Go on LAN)
-  const hostUri = Constants.expoConfig?.hostUri;
-  if (hostUri) {
-    const host = hostUri.split(":")[0];
+  if (hostUri && typeof hostUri === "string") {
+    const cleanHostUri = hostUri.replace(/^https?:\/\//, "").replace(/^exp:\/\//, "");
+    const host = cleanHostUri.split(":")[0];
     if (host && host !== "localhost" && host !== "127.0.0.1") {
       return `http://${host}:8000/api`;
     }
   }
 
-  // 4. Custom env URL
+  // 4. Custom env variable from .env (e.g. EXPO_PUBLIC_API_URL)
   const envUrl = process.env.EXPO_PUBLIC_API_URL;
-  if (envUrl && !envUrl.includes("localhost") && !envUrl.includes("127.0.0.1")) {
+  if (envUrl && envUrl.trim().length > 0) {
+    // If running on native and envUrl is localhost/127.0.0.1, replace with active LAN IP
+    if (Platform.OS !== "web" && (envUrl.includes("localhost") || envUrl.includes("127.0.0.1"))) {
+      return envUrl.replace(/localhost|127\.0\.0\.1/, "192.168.18.174").replace(/\/+$/, "");
+    }
     return envUrl.replace(/\/+$/, "");
   }
 
-  // 5. Default LAN IP fallback
+  // 5. Android Studio Emulator fallback (only if running inside emulator and no hostUri found)
+  if (Platform.OS === "android" && !Constants.isDevice && Constants.deviceName?.toLowerCase().includes("emulator")) {
+    return "http://10.0.2.2:8000/api";
+  }
+
+  // 6. Default Development LAN IP (active host PC IP)
   return "http://192.168.18.174:8000/api";
 }
 

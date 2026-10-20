@@ -32,31 +32,39 @@ export default function Notifications() {
       if (response && response.success && Array.isArray(response.notifications) && response.notifications.length > 0) {
         setNotifications(response.notifications);
       } else {
-        // High quality fallback alerts
+        // Official government notification types matching approved scope
         setNotifications([
           {
             id: 1,
-            title: "Collection Truck Approaching",
-            message: "The collection driver is entering your barangay route. Please have your bins ready.",
-            type: "truck",
+            title: "Collection Schedule Update",
+            message: "Barangay compactor route scheduled for tomorrow at 06:00 AM. Please ensure segregated bins are out.",
+            type: "schedule",
             is_read: false,
             created_at: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
           },
           {
             id: 2,
-            title: "Report Status Updated",
-            message: "Your report regarding market corner waste has been assigned to driver team #04.",
-            type: "info",
+            title: "Sanitation Advisory",
+            message: "CLENRO reminder: Strict waste segregation into Biodegradable and Non-Biodegradable is enforced under City Ordinance.",
+            type: "advisory",
             is_read: false,
             created_at: new Date(Date.now() - 3600000 * 2).toISOString(),
           },
           {
             id: 3,
-            title: "Scheduled Pickup Reminder",
-            message: "Upcoming general biodegradable waste collection tomorrow at 08:00 AM.",
-            type: "schedule",
+            title: "City Announcement",
+            message: "Scheduled preventive maintenance for urban sector collection compactor fleet on Friday.",
+            type: "announcement",
             is_read: true,
             created_at: new Date(Date.now() - 3600000 * 24).toISOString(),
+          },
+          {
+            id: 4,
+            title: "Inspection Notice",
+            message: "Quarterly market sanitation audit scheduled for Cogon and Carmen Public Markets next week.",
+            type: "inspection",
+            is_read: true,
+            created_at: new Date(Date.now() - 3600000 * 48).toISOString(),
           },
         ]);
       }
@@ -70,6 +78,10 @@ export default function Notifications() {
 
   useEffect(() => {
     loadNotifications();
+    const interval = setInterval(() => {
+      loadNotifications();
+    }, 8000);
+    return () => clearInterval(interval);
   }, []);
 
   const handleRead = async (id, isRead) => {
@@ -171,10 +183,16 @@ export default function Notifications() {
           notifications.map((n) => {
             const isUnread = !n.is_read;
             const iconName =
-              n.type === "truck" || n.type === "alert"
-                ? "truck-fast"
-                : n.type === "schedule"
+              n.type === "schedule"
                 ? "calendar-clock"
+                : n.type === "advisory"
+                ? "shield-alert-outline"
+                : n.type === "announcement"
+                ? "bullhorn-outline"
+                : n.type === "inspection"
+                ? "clipboard-check-outline"
+                : n.type === "truck"
+                ? "truck-fast"
                 : "bell-ring-outline";
 
             const iconBg = isUnread ? "#E8F8EE" : "#F2F5F2";

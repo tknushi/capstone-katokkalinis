@@ -189,7 +189,7 @@ export default function VendorDashboard() {
         <TouchableOpacity
           style={styles.greetingRight}
           activeOpacity={0.85}
-          onPress={() => router.push("/profile")}
+          onPress={() => router.push({ pathname: "/profile", params: { role: "vendor" } })}
           accessibilityRole="button"
           accessibilityLabel="Open vendor profile"
         >

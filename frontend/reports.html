@@ -126,6 +126,8 @@
                     return;
                 }
 
+                const isSuperAdmin = typeof getUserRole === 'function' ? getUserRole() === 'super_admin' : false;
+
                 container.innerHTML = data.slice(0, 8).map(item => {
                     const imgUrl = resolveMediaUrl(item.image_url || item.image);
                     const safeTitle = escapeHtml(item.title || 'Untitled report');
@@ -159,8 +161,12 @@
                         <div class="report-card-actions">
                             <button class="btn report-outline" onclick="viewReport(${item.id})">View Details</button>
                             <button class="btn report-outline" onclick="downloadReport(${item.id})">Download</button>
-                            <button class="btn" onclick="openStatusModal(${item.id}, '${safeStatus}')">Update Status</button>
-                            <button class="btn report-delete" onclick="deleteItem(${item.id})">Delete</button>
+                            ${isSuperAdmin ? `
+                                <button class="btn" onclick="openStatusModal(${item.id}, '${safeStatus}')">Update Status</button>
+                                <button class="btn report-delete" onclick="deleteItem(${item.id})">Delete</button>
+                            ` : `
+                                <span style="font-size: 11.5px; color: var(--text-muted); font-style: italic; padding: 6px 4px;">Barangay Read-Only</span>
+                            `}
                         </div>
                     </article>
                     `;

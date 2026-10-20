@@ -25,7 +25,7 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'email' => 'required|email',
+            'email' => 'required|string',
             'password' => 'required|string',
         ]);
 
@@ -37,8 +37,11 @@ class AuthController extends Controller
             ], 422);
         }
 
+        $loginInput = trim($request->email);
+
         $user = User::with('roles')
-            ->where('email', $request->email)
+            ->where('email', $loginInput)
+            ->orWhere('name', $loginInput)
             ->first();
 
         if (!$user || !Hash::check($request->password, $user->password)) {
@@ -331,6 +334,23 @@ class AuthController extends Controller
 
         if ($user->vendor) {
             $userData['vendor'] = $user->vendor;
+        }
+
+        if ($user->roles()->where('name', 'inspector')->exists()) {
+            $stallsCertified = \App\Models\Inspection::where('inspector_id', $user->id)
+                ->where('status', 'completed')
+                ->distinct('vendor_id')
+                ->count('vendor_id');
+
+            $userData['inspector_stats'] = [
+                'stalls_certified' => $stallsCertified,
+                'total_inspections' => \App\Models\Inspection::where('inspector_id', $user->id)->count(),
+                'pending_reviews' => \App\Models\Inspection::where('inspector_id', $user->id)->where('status', 'pending')->count(),
+                'completed_today' => \App\Models\Inspection::where('inspector_id', $user->id)
+                    ->where('status', 'completed')
+                    ->whereDate('inspected_at', now()->toDateString())
+                    ->count(),
+            ];
         }
 
         return response()->json([

@@ -15,7 +15,6 @@ import {
   View,
 } from "react-native";
 import KatokLogo from "../../components/KatokLogo";
-import LeafletCdoMapView from "../../components/LeafletCdoMapView";
 import TopNotificationBanner from "../../components/TopNotificationBanner";
 import {
   BarangayItem,
@@ -25,6 +24,7 @@ import {
   getBarangays1to40,
   getDriverCollectionLogs,
   submitCollectionLog,
+  updateDriverTruckStatus,
 } from "../../services/driver";
 
 export default function DriverDashboard() {
@@ -120,10 +120,16 @@ export default function DriverDashboard() {
     setIsCollecting(true);
     setRouteCompleted(false);
     await AsyncStorage.setItem("driver_is_collecting", "true");
+
+    // Broadcast status update to backend & web live
+    updateDriverTruckStatus("on_route", undefined, truckPlate).catch((err) => {
+      console.warn("Could not sync truck on_route status to server:", err);
+    });
+
     setBanner({
       visible: true,
       title: "Collection Started",
-      message: "GPS telemetry broadcasting. Driving Route #04 (Barangay 31 - 40).",
+      message: "Truck status updated to ON ROUTE. Broadcasting live to central web dashboard.",
       type: "truck",
     });
   };
@@ -140,10 +146,16 @@ export default function DriverDashboard() {
           onPress: async () => {
             setIsCollecting(false);
             await AsyncStorage.setItem("driver_is_collecting", "false");
+
+            // Broadcast status update to backend & web live
+            updateDriverTruckStatus("available", undefined, truckPlate).catch((err) => {
+              console.warn("Could not sync truck available status to server:", err);
+            });
+
             setBanner({
               visible: true,
               title: "Collection Ended",
-              message: "Run ended. Remember to finalize all non-finalized collection logs.",
+              message: "Truck status updated to AVAILABLE on web dashboard. Remember to finalize collection logs.",
               type: "info",
             });
           },
@@ -293,12 +305,6 @@ export default function DriverDashboard() {
     );
   };
 
-  // Map pin selection callback
-  const handleMapSelectBarangay = (brgyName: string, brgyId?: number) => {
-    setSelectedBrgy(brgyName);
-    setSelectedBrgyId(brgyId);
-    setRecordModalVisible(true);
-  };
 
   return (
     <View style={styles.container}>
@@ -427,19 +433,6 @@ export default function DriverDashboard() {
           </TouchableOpacity>
         </View>
 
-        {/* OPENSTREETMAP (LEAFLET - CAGAYAN DE ORO, MINDANAO) */}
-        <View style={styles.sectionHeaderRow}>
-          <Text style={styles.sectionTitle}>Cagayan de Oro Leaflet OSM</Text>
-          <Text style={styles.sectionBadgeText}>Barangay 1 to 40 Routes</Text>
-        </View>
-
-        <LeafletCdoMapView
-          height={320}
-          barangays={barangaysList}
-          selectedBarangay={selectedBrgy}
-          onSelectBarangay={handleMapSelectBarangay}
-          activeTruckPlate={truckPlate}
-        />
 
         {/* ACTUAL COLLECTION LOGS SECTION */}
         <View style={[styles.sectionHeaderRow, { marginTop: 18 }]}>

@@ -13,7 +13,9 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { getBaseApiUrl } from "../../services/api";
 import { loginUser } from "../../services/auth";
+import { registerDevicePushToken } from "../../services/pushNotification";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const isSmall = SCREEN_WIDTH < 360;
@@ -55,11 +57,7 @@ export default function InspectorLogin() {
         return;
       }
 
-      if (result.user.role !== "inspector") {
-        Alert.alert("Access Notice", `Logged in with role: ${result.user.role}.`);
-      }
-
-      await AsyncStorage.setItem("userRole", "inspector");
+      await AsyncStorage.setItem("userRole", result.user.role);
       await AsyncStorage.setItem("userId", String(result.user.id));
       await AsyncStorage.setItem("userName", result.user.name);
       await AsyncStorage.setItem("userEmail", result.user.email);
@@ -75,12 +73,27 @@ export default function InspectorLogin() {
         await AsyncStorage.removeItem("rememberMe");
       }
 
-      router.replace("/inspector/dashboard");
-    } catch (error) {
+      // Register device push token for inspector
+      registerDevicePushToken("inspector", result.user.barangay_id || null).catch(() => {});
+
+      if (result.user.role === "inspector") {
+        router.replace("/inspector/dashboard");
+      } else if (result.user.role === "driver") {
+        Alert.alert("Account Notice", "You logged in with a Driver account. Redirecting...");
+        router.replace("/driver/dashboard" as any);
+      } else if (result.user.role === "vendor") {
+        Alert.alert("Account Notice", "You logged in with a Vendor account. Redirecting...");
+        router.replace("/vendor" as any);
+      } else {
+        Alert.alert("Account Notice", `Logged in with role: ${result.user.role}. Redirecting...`);
+        router.replace("/dashboard" as any);
+      }
+    } catch (error: any) {
       console.error("INSPECTOR LOGIN ERROR:", error);
+      const targetUrl = getBaseApiUrl();
       Alert.alert(
         "Connection Error",
-        error instanceof Error ? error.message : "Cannot connect to the Laravel server."
+        `Cannot reach the Laravel server at:\n${targetUrl}\n\nPlease verify that your mobile device and computer are on the same Wi-Fi network and that the backend server is active.`
       );
     } finally {
       setLoading(false);
@@ -129,7 +142,7 @@ export default function InspectorLogin() {
             />
             <TextInput
               style={styles.input}
-              placeholder="Full Name"
+              placeholder="Email or Full Name (e.g. inspector@katokkalinis.com)"
               placeholderTextColor="#9AA998"
               value={email}
               onChangeText={setEmail}
@@ -199,20 +212,22 @@ export default function InspectorLogin() {
             </TouchableOpacity>
           </View>
 
-          {/* LOGIN BUTTON */}
-          <TouchableOpacity
-            style={[styles.loginButton, loading && styles.disabledButton]}
-            onPress={handleLogin}
-            disabled={loading}
-            activeOpacity={0.88}
-          >
-            {loading ? (
-              <ActivityIndicator color="#FFFFFF" />
-            ) : (
-              <Text style={styles.loginText}>Login</Text>
-            )}
-          </TouchableOpacity>
-        </View>
+
+
+              {/* LOGIN BUTTON */}
+              <TouchableOpacity
+                style={[styles.loginButton, loading && styles.disabledButton]}
+                onPress={handleLogin}
+                disabled={loading}
+                activeOpacity={0.88}
+              >
+                {loading ? (
+                  <ActivityIndicator color="#FFFFFF" />
+                ) : (
+                  <Text style={styles.loginText}>Login</Text>
+                )}
+              </TouchableOpacity>
+            </View>
       </ScrollView>
     </View>
   );

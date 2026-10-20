@@ -22,17 +22,17 @@ const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const isSmall = SCREEN_WIDTH < 360;
 
 const FEEDBACK_TOPICS = [
-  { id: "timing", label: "Collection Timing", icon: "clock-outline" },
-  { id: "route", label: "Missed Pickup", icon: "truck-fast-outline" },
-  { id: "service", label: "Service Quality", icon: "account-star-outline" },
-  { id: "app", label: "App / Alerts", icon: "cellphone-check" },
-  { id: "general", label: "General", icon: "lightbulb-outline" },
+  { id: "collection_timing", label: "Collection Timing", icon: "clock-outline" },
+  { id: "missed_pickups", label: "Missed Pickups", icon: "truck-fast-outline" },
+  { id: "service_quality", label: "Service Quality", icon: "account-star-outline" },
+  { id: "app_notifications", label: "App Notifications", icon: "cellphone-check" },
+  { id: "general_inquiries", label: "General Inquiries", icon: "help-circle-outline" },
 ];
 
 export default function Feedback() {
   const router = useRouter();
   const [content, setContent] = useState("");
-  const [selectedTopic, setSelectedTopic] = useState("timing");
+  const [selectedTopic, setSelectedTopic] = useState("collection_timing");
   const [feedbacks, setFeedbacks] = useState([]);
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);

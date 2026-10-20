@@ -34,7 +34,7 @@ export default function Grade() {
   const [condition, setCondition] = useState(4);
   const [total, setTotal] = useState(8);
   const [compliance, setCompliance] = useState(8.0);
-  const [notes, setNotes] = useState("Good sanitation, clean food display and proper waste bin segregation.");
+  const [notes, setNotes] = useState("");
   const [photoUri, setPhotoUri] = useState<string | null>(null);
 
   // Existing evaluation and pending change state
@@ -63,9 +63,13 @@ export default function Grade() {
           if (ev.premises_score !== undefined && ev.premises_score !== null) {
             setCondition(Math.max(1, Math.min(5, Math.round(Number(ev.premises_score) / 20))));
           }
-          if (ev.notes) {
+          if (ev.notes && typeof ev.notes === "string" && ev.notes.trim() !== "") {
             setNotes(ev.notes);
+          } else {
+            setNotes("");
           }
+        } else {
+          setNotes("");
         }
       } catch (err) {
         console.warn("Failed to load current evaluation for vendor:", err);
@@ -146,13 +150,16 @@ export default function Grade() {
       const hygieneNum = Math.min(100, Math.max(0, hygiene * 20));
       const conditionNum = Math.min(100, Math.max(0, condition * 20));
 
+      const trimmedNotes = notes.trim();
+      const sanitizedNotes = (!trimmedNotes || trimmedNotes.toLowerCase() === "write something") ? "" : trimmedNotes;
+
       const res = await submitInspection({
         vendor_id: vendorId,
         inspection_id: existingInspectionId || undefined,
         inspector_id: inspectorId,
         hygiene_system: hygieneNum,
         condition_of_premises: conditionNum,
-        notes: notes.trim() || undefined,
+        notes: sanitizedNotes,
         status: "completed",
       });
 
@@ -329,14 +336,21 @@ export default function Grade() {
           {/* TOTAL SCORE BOX */}
           <View style={styles.scoreSummaryBox}>
             <View style={styles.scoreMetric}>
-              <Text style={styles.scoreLabel}>COMBINED SCORE</Text>
+              <Text style={styles.scoreLabel}>RAW SCORE</Text>
               <Text style={styles.scoreVal}>{total} / 10</Text>
             </View>
             <View style={styles.scoreDivider} />
             <View style={styles.scoreMetric}>
               <Text style={styles.scoreLabel}>COMPLIANCE RATING</Text>
-              <Text style={[styles.scoreVal, { color: compliance >= 7.5 ? "#2E7D32" : "#D97706" }]}>
-                {compliance * 10}%
+              <Text style={[styles.scoreVal, { color: compliance * 10 >= 85 ? "#2E7D32" : (compliance * 10 >= 70 ? "#1976D2" : "#DC2626") }]}>
+                {Math.round(compliance * 10)}%
+              </Text>
+            </View>
+            <View style={styles.scoreDivider} />
+            <View style={styles.scoreMetric}>
+              <Text style={styles.scoreLabel}>GRADE</Text>
+              <Text style={[styles.scoreVal, { color: compliance * 10 >= 85 ? "#2E7D32" : (compliance * 10 >= 70 ? "#1976D2" : "#DC2626") }]}>
+                {compliance * 10 >= 85 ? "Grade A" : (compliance * 10 >= 70 ? "Grade B" : "Grade C")}
               </Text>
             </View>
           </View>
@@ -387,7 +401,7 @@ export default function Grade() {
               style={styles.notesInput}
               multiline
               editable={!isLocked}
-              placeholder="Enter inspector observations, recommendations, or violations..."
+              placeholder="Write something"
               placeholderTextColor="#9AA998"
               value={notes}
               onChangeText={setNotes}

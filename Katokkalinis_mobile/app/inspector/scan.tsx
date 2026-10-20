@@ -15,7 +15,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { fetchVendorByCodeOrId } from "../../services/inspector";
+import { fetchVendorByCodeOrId, verifyVendorQrToken } from "../../services/inspector";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const QR_BOX_SIZE = Math.min(270, SCREEN_WIDTH * 0.72);
@@ -37,15 +37,16 @@ export default function Scan() {
       let codeToSearch = rawCode.trim();
       try {
         const parsed = JSON.parse(rawCode);
-        if (parsed.vendor_code) codeToSearch = parsed.vendor_code;
+        if (parsed.qr_token) codeToSearch = parsed.qr_token;
+        else if (parsed.vendor_code) codeToSearch = parsed.vendor_code;
         else if (parsed.code) codeToSearch = parsed.code;
         else if (parsed.id) codeToSearch = String(parsed.id);
       } catch {
-        // Plain string
+        // Plain string token
       }
 
-      console.log("Processing scanned code:", codeToSearch);
-      const res = await fetchVendorByCodeOrId(codeToSearch);
+      console.log("Processing scanned QR code:", codeToSearch);
+      const res = await verifyVendorQrToken(codeToSearch);
 
       if (res.success && res.vendor) {
         try {
@@ -58,12 +59,16 @@ export default function Scan() {
           params: { vendor_id: res.vendor.id },
         });
       } else {
+        const alertTitle = res.error_type === "REVOKED_OR_INACTIVE"
+          ? "Stall Suspended / Inactive"
+          : (res.error_type === "NOT_REGISTERED" ? "Unregistered QR Code" : "Verification Failed");
+
         Alert.alert(
-          "Vendor Not Found",
-          res.message || `No vendor stall registered under code: ${codeToSearch}`,
+          alertTitle,
+          res.message || `No authorized market stall registered under code: ${codeToSearch}`,
           [
             {
-              text: "Try Again",
+              text: "Scan Another",
               onPress: () => setScanned(false),
             },
           ]
@@ -71,8 +76,8 @@ export default function Scan() {
       }
     } catch (error: any) {
       Alert.alert(
-        "Scan Error",
-        error?.message || "An error occurred while connecting to system.",
+        "Verification Error",
+        error?.message || "An error occurred while connecting to central database.",
         [
           {
             text: "OK",

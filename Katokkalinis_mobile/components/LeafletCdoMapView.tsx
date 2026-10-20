@@ -87,23 +87,7 @@ export default function LeafletCdoMapView({
       box-shadow: 0 2px 5px rgba(0,0,0,0.3);
       cursor: pointer;
     }
-    .custom-truck-pin {
-      background: #2E7D32;
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      border: 3px solid #fff;
-      box-shadow: 0 3px 8px rgba(0,0,0,0.4);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      animation: pulse 2s infinite;
-    }
-    @keyframes pulse {
-      0% { box-shadow: 0 0 0 0 rgba(46, 125, 50, 0.6); }
-      70% { box-shadow: 0 0 0 10px rgba(46, 125, 50, 0); }
-      100% { box-shadow: 0 0 0 0 rgba(46, 125, 50, 0); }
-    }
+
     .leaflet-popup-content-wrapper {
       border-radius: 12px;
       box-shadow: 0 4px 14px rgba(0,0,0,0.18);
@@ -235,23 +219,7 @@ export default function LeafletCdoMapView({
         }
       });
 
-      // Active Truck Pin
-      var activeTruckLocation = [8.4835, 124.6480]; // Stop 2 / Central CDO
-      var truckIcon = L.divIcon({
-        className: '',
-        html: '<div class="custom-truck-pin"><svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M20 8h-3V4H3c-1.1 0-2 .9-2 2v11h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4zM6 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm13.5-9l1.96 2.5H17V9.5h2.5zm-1.5 9c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg></div>',
-        iconSize: [32, 32],
-        iconAnchor: [16, 16]
-      });
-
-      var truckMarker = L.marker(activeTruckLocation, { icon: truckIcon }).addTo(markerLayer);
-      truckMarker.bindPopup(
-        '<div class="popup-box">' +
-          '<span class="popup-badge" style="background:#E8F8EE; color:#2E7D32;">ACTIVE DISPATCH</span>' +
-          '<div class="popup-title">${activeTruckPlate} Live</div>' +
-          '<div class="popup-info">Barangay 2 Main Ave, Cagayan de Oro</div>' +
-        '</div>'
-      );
+      // Route directory rendered strictly as scheduled collection sectors (Limitation 6: No live tracking)
     }
 
     window.selectBrgy = function(id, name) {

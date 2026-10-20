@@ -91,23 +91,23 @@ class OverviewDataSeeder extends Seeder
         $vendorUser5 = $this->createOrGetUser('Carmen Fresh Veggies', 'carmen.veg@katokkalinis.com', 'Vendor@123', $vendorRole->id, '09661234570', $brgy12->name);
 
         $v1 = Vendor::updateOrCreate(
-            ['vendor_code' => '2026012345'],
+            ['vendor_code' => 'VND-COG-001'],
             [
                 'user_id' => $vendorUser1->id,
                 'barangay_id' => $brgy1->id,
                 'business_name' => 'KatokKalimpyo Fruit Stall',
                 'owner_name' => 'Juan Dela Cruz',
-                'market' => 'Divisoria Public Market',
+                'market' => 'Cogon Public Market',
                 'stall_number' => 'Stall #12',
                 'contact_number' => '09467802940',
-                'address' => 'Barangay 1, Divisoria',
-                'qr_code' => '2026012345',
+                'address' => 'Barangay 1, Cogon',
+                'qr_code' => 'KK-QR-COG-1-12-8f92b7c4e019a3d42e617b8c',
                 'status' => 'active',
             ]
         );
 
         $v2 = Vendor::updateOrCreate(
-            ['vendor_code' => '2026012346'],
+            ['vendor_code' => 'VND-COG-002'],
             [
                 'user_id' => $vendorUser2->id,
                 'barangay_id' => $brgy2->id,
@@ -117,13 +117,13 @@ class OverviewDataSeeder extends Seeder
                 'stall_number' => 'Stall #45',
                 'contact_number' => '09351234567',
                 'address' => 'Barangay 2, Cogon',
-                'qr_code' => '2026012346',
+                'qr_code' => 'KK-QR-COG-2-45-7e84b912c40a581e9d0b6f34',
                 'status' => 'active',
             ]
         );
 
         $v3 = Vendor::updateOrCreate(
-            ['vendor_code' => '2026012347'],
+            ['vendor_code' => 'VND-CAR-001'],
             [
                 'user_id' => $vendorUser3->id,
                 'barangay_id' => $brgy3->id,
@@ -133,13 +133,13 @@ class OverviewDataSeeder extends Seeder
                 'stall_number' => 'Wet Section #08',
                 'contact_number' => '09471234568',
                 'address' => 'Barangay 3, Carmen',
-                'qr_code' => '2026012347',
+                'qr_code' => 'KK-QR-CAR-3-08-3a91e5d7c82b406f157a92de',
                 'status' => 'active',
             ]
         );
 
         $v4 = Vendor::updateOrCreate(
-            ['vendor_code' => '2026012348'],
+            ['vendor_code' => 'VND-COG-003'],
             [
                 'user_id' => $vendorUser4->id,
                 'barangay_id' => $brgy4->id,
@@ -149,13 +149,13 @@ class OverviewDataSeeder extends Seeder
                 'stall_number' => 'Stall #102',
                 'contact_number' => '09561234569',
                 'address' => 'Barangay 4, Cogon',
-                'qr_code' => '2026012348',
+                'qr_code' => 'KK-QR-COG-4-102-6c28f149b037e951a4d80e72',
                 'status' => 'active',
             ]
         );
 
         $v5 = Vendor::updateOrCreate(
-            ['vendor_code' => '2026012349'],
+            ['vendor_code' => 'VND-CAR-002'],
             [
                 'user_id' => $vendorUser5->id,
                 'barangay_id' => $brgy12->id,
@@ -165,7 +165,7 @@ class OverviewDataSeeder extends Seeder
                 'stall_number' => 'Stall #15',
                 'contact_number' => '09661234570',
                 'address' => 'Barangay 12, Carmen',
-                'qr_code' => '2026012349',
+                'qr_code' => 'KK-QR-CAR-5-15-9d41b638e072f51a3c89b047',
                 'status' => 'active',
             ]
         );

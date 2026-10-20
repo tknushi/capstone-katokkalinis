@@ -8,6 +8,7 @@ use App\Models\Inspection;
 use App\Models\Notification;
 use App\Models\Vendor;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 class InspectionController extends Controller
@@ -73,6 +74,7 @@ class InspectionController extends Controller
             'status' => 'nullable|in:pending,completed,reviewed',
             'inspected_at' => 'nullable|date',
             'inspection_id' => 'nullable|integer',
+            'force_override' => 'nullable|boolean',
         ]);
 
         if ($validator->fails()) {
@@ -85,83 +87,125 @@ class InspectionController extends Controller
 
         $inspectorId = $request->inspector_id ?? ($request->user() ? $request->user()->id : 4);
 
-        // Find existing inspection by explicit ID or latest record for this vendor
-        $existing = null;
-        if ($request->filled('inspection_id')) {
-            $existing = Inspection::find($request->inspection_id);
-        }
-        if (!$existing) {
-            $existing = Inspection::where('vendor_id', $request->vendor_id)->orderByDesc('id')->first();
-        }
+        return DB::transaction(function () use ($request, $inspectorId) {
+            // Pessimistic locking on the vendor record to serialize concurrent audits
+            $vendor = Vendor::where('id', $request->vendor_id)->lockForUpdate()->first();
+            if (!$vendor) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Vendor not found.',
+                ], 404);
+            }
 
-        // If an inspection already exists for this vendor, treat edits as a pending change request
-        if ($existing) {
-            $pendingTotal = intdiv(
+            // Check for concurrent collision: another inspector submitted an evaluation for this vendor in the last 3 minutes
+            $recentOtherInspection = Inspection::where('vendor_id', $vendor->id)
+                ->where('inspector_id', '!=', $inspectorId)
+                ->where('created_at', '>=', now()->subMinutes(3))
+                ->first();
+
+            if ($recentOtherInspection && !$request->boolean('force_override')) {
+                return response()->json([
+                    'success' => false,
+                    'is_conflict' => true,
+                    'message' => 'Concurrent inspection detected: Another inspector has recently submitted a record for this stall. Please review existing records before submitting a new one.',
+                    'recent_inspection' => $recentOtherInspection,
+                ], 409);
+            }
+
+            // Find existing inspection by explicit ID or latest record for this vendor
+            $existing = null;
+            if ($request->filled('inspection_id')) {
+                $existing = Inspection::find($request->inspection_id);
+            }
+            if (!$existing) {
+                $existing = Inspection::where('vendor_id', $vendor->id)->orderByDesc('id')->first();
+            }
+
+            // If an inspection already exists for this vendor, treat edits as a pending change request
+            if ($existing) {
+                $pendingTotal = intdiv(
+                    $request->hygiene_system + $request->condition_of_premises,
+                    2
+                );
+
+                $pNotes = $request->filled('notes') ? trim((string)$request->notes) : null;
+                if ($pNotes !== null && (strtolower($pNotes) === 'write something' || $pNotes === '')) {
+                    $pNotes = null;
+                }
+
+                $existing->pending_hygiene_system = $request->hygiene_system;
+                $existing->pending_condition_of_premises = $request->condition_of_premises;
+                $existing->pending_total_score = $pendingTotal;
+                $existing->pending_notes = $pNotes;
+                $existing->change_requested_by = $inspectorId;
+                $existing->change_requested_at = now();
+                $existing->change_status = 'pending';
+                $existing->touch();
+                $existing->save();
+
+                $existing->load(['vendor.barangay', 'inspector:id,name,email', 'changeRequester:id,name,email']);
+
+                ActivityLog::record(
+                    'inspection.change_requested',
+                    "Inspector submitted an evaluation change request for vendor #{$existing->vendor_id} (pending score: {$pendingTotal}).",
+                    $existing
+                );
+
+                return response()->json([
+                    'success' => true,
+                    'is_pending_approval' => true,
+                    'message' => 'Evaluation change request submitted and awaiting admin approval.',
+                    'inspection' => $existing,
+                ], 200);
+            }
+
+            // First-time inspection creation
+            $totalScore = intdiv(
                 $request->hygiene_system + $request->condition_of_premises,
                 2
             );
 
-            $existing->pending_hygiene_system = $request->hygiene_system;
-            $existing->pending_condition_of_premises = $request->condition_of_premises;
-            $existing->pending_total_score = $pendingTotal;
-            $existing->pending_notes = $request->notes;
-            $existing->change_requested_by = $inspectorId;
-            $existing->change_requested_at = now();
-            $existing->change_status = 'pending';
-            $existing->touch();
-            $existing->save();
+            $cleanNotes = $request->filled('notes') ? trim((string)$request->notes) : null;
+            if ($cleanNotes !== null && (strtolower($cleanNotes) === 'write something' || $cleanNotes === '')) {
+                $cleanNotes = null;
+            }
 
-            $existing->load(['vendor.barangay', 'inspector:id,name,email', 'changeRequester:id,name,email']);
+            $inspection = Inspection::create([
+                'vendor_id' => $vendor->id,
+                'inspector_id' => $inspectorId,
+                'hygiene_system' => $request->hygiene_system,
+                'condition_of_premises' => $request->condition_of_premises,
+                'total_score' => $totalScore,
+                'compliance_level' => $totalScore,
+                'notes' => $cleanNotes,
+                'status' => $request->status ?? 'completed',
+                'decision' => 'accepted',
+                'decided_by' => $inspectorId,
+                'decided_at' => now(),
+                'inspected_at' => $request->inspected_at ?? now(),
+            ]);
+
+            $inspection->load(['vendor.barangay', 'inspector:id,name,email']);
+
+            \App\Services\VendorComplianceService::recalculateForVendor(
+                $vendor->id,
+                $inspectorId,
+                "Initial inspection recorded (Score: {$totalScore})"
+            );
 
             ActivityLog::record(
-                'inspection.change_requested',
-                "Inspector submitted an evaluation change request for vendor #{$existing->vendor_id} (pending score: {$pendingTotal}).",
-                $existing
+                'inspection.created',
+                "Recorded initial inspection for vendor #{$inspection->vendor_id} (score: {$totalScore}).",
+                $inspection
             );
 
             return response()->json([
                 'success' => true,
-                'is_pending_approval' => true,
-                'message' => 'Evaluation change request submitted and awaiting admin approval.',
-                'inspection' => $existing,
-            ], 200);
-        }
-
-        // First-time inspection creation
-        $totalScore = intdiv(
-            $request->hygiene_system + $request->condition_of_premises,
-            2
-        );
-
-        $inspection = Inspection::create([
-            'vendor_id' => $request->vendor_id,
-            'inspector_id' => $request->inspector_id,
-            'hygiene_system' => $request->hygiene_system,
-            'condition_of_premises' => $request->condition_of_premises,
-            'total_score' => $totalScore,
-            'compliance_level' => $totalScore,
-            'notes' => $request->notes,
-            'status' => $request->status ?? 'completed',
-            'decision' => 'accepted',
-            'decided_by' => $request->inspector_id,
-            'decided_at' => now(),
-            'inspected_at' => $request->inspected_at ?? now(),
-        ]);
-
-        $inspection->load(['vendor.barangay', 'inspector:id,name,email']);
-
-        ActivityLog::record(
-            'inspection.created',
-            "Recorded initial inspection for vendor #{$inspection->vendor_id} (score: {$totalScore}).",
-            $inspection
-        );
-
-        return response()->json([
-            'success' => true,
-            'is_pending_approval' => false,
-            'message' => 'Inspection created successfully.',
-            'inspection' => $inspection,
-        ], 201);
+                'is_pending_approval' => false,
+                'message' => 'Inspection created successfully.',
+                'inspection' => $inspection,
+            ], 201);
+        });
     }
 
     /*
@@ -225,11 +269,16 @@ class InspectionController extends Controller
 
         // Direct admin update overrides immediately if specified
         if ($request->boolean('is_admin_direct')) {
+            $rawNotes = $request->has('notes') ? trim((string)$request->notes) : $inspection->notes;
+            if ($rawNotes !== null && (strtolower($rawNotes) === 'write something' || $rawNotes === '')) {
+                $rawNotes = null;
+            }
+
             $inspection->fill($request->only([
-                'notes',
                 'status',
                 'inspected_at',
             ]));
+            $inspection->notes = $rawNotes;
 
             if ($request->filled('hygiene_system')) {
                 $inspection->hygiene_system = $request->hygiene_system;
@@ -252,6 +301,12 @@ class InspectionController extends Controller
             $inspection->save();
             $inspection->load(['vendor.barangay', 'inspector:id,name,email', 'changeRequester:id,name,email']);
 
+            \App\Services\VendorComplianceService::recalculateForVendor(
+                $inspection->vendor_id,
+                $request->user() ? $request->user()->id : null,
+                "Inspection #{$inspection->id} directly updated by Admin"
+            );
+
             ActivityLog::record(
                 'inspection.updated',
                 "Admin directly updated inspection #{$inspection->id}.",
@@ -271,10 +326,15 @@ class InspectionController extends Controller
         $pendingPremises = $request->filled('condition_of_premises') ? (int) $request->condition_of_premises : $inspection->condition_of_premises;
         $pendingTotal = intdiv($pendingHygiene + $pendingPremises, 2);
 
+        $pendingNotes = $request->has('notes') ? trim((string)$request->notes) : $inspection->notes;
+        if ($pendingNotes !== null && (strtolower($pendingNotes) === 'write something' || $pendingNotes === '')) {
+            $pendingNotes = null;
+        }
+
         $inspection->pending_hygiene_system = $pendingHygiene;
         $inspection->pending_condition_of_premises = $pendingPremises;
         $inspection->pending_total_score = $pendingTotal;
-        $inspection->pending_notes = $request->filled('notes') ? $request->notes : $inspection->notes;
+        $inspection->pending_notes = $pendingNotes;
         $inspection->change_requested_by = $request->user() ? $request->user()->id : $inspection->inspector_id;
         $inspection->change_requested_at = now();
         $inspection->change_status = 'pending';
@@ -326,7 +386,12 @@ class InspectionController extends Controller
         $inspection->compliance_level = $inspection->total_score;
 
         if ($inspection->pending_notes !== null) {
-            $inspection->notes = $inspection->pending_notes;
+            $finalNotes = trim((string)$inspection->pending_notes);
+            if (strtolower($finalNotes) === 'write something' || $finalNotes === '') {
+                $finalNotes = null;
+            }
+            $inspection->notes = $finalNotes;
+            $inspection->pending_notes = null;
         }
 
         $inspection->decision = 'accepted';
@@ -336,6 +401,12 @@ class InspectionController extends Controller
         $inspection->inspected_at = now();
         $inspection->touch();
         $inspection->save();
+
+        \App\Services\VendorComplianceService::recalculateForVendor(
+            $inspection->vendor_id,
+            $request->user() ? $request->user()->id : 1,
+            "Evaluation change request approved for inspection #{$inspection->id}"
+        );
 
         // In-app notification to the vendor
         if ($inspection->vendor && $inspection->vendor->user_id) {
@@ -438,6 +509,12 @@ class InspectionController extends Controller
         $inspection->save();
         $inspection->load(['vendor.barangay', 'inspector:id,name,email']);
 
+        \App\Services\VendorComplianceService::recalculateForVendor(
+            $inspection->vendor_id,
+            $request->user()->id,
+            "Admin decided inspection #{$inspection->id} as {$request->decision}"
+        );
+
         ActivityLog::record(
             'inspection.decision_updated',
             "{$request->decision} inspection #{$inspection->id} for vendor #{$inspection->vendor_id}.",
@@ -516,19 +593,19 @@ class InspectionController extends Controller
                 'vendor_id' => $vendor->id,
                 'evaluation' => [
                     'id' => null,
-                    'grade' => 'A',
-                    'total_score' => 92,
-                    'hygiene_score' => 95,
-                    'premises_score' => 88,
-                    'pest_control_score' => 92,
-                    'violations_count' => 0,
-                    'notes' => 'Stall certified in compliance with municipal sanitation standards.',
-                    'inspected_at' => now()->toIso8601String(),
-                    'inspected_at_formatted' => now()->format('F j, Y'),
+                    'grade' => $vendor->compliance_grade ?: 'N/A',
+                    'total_score' => (int) ($vendor->compliance_score ?? 0),
+                    'hygiene_score' => 0,
+                    'premises_score' => 0,
+                    'pest_control_score' => 0,
+                    'violations_count' => (int) ($vendor->violations_count ?? 0),
+                    'notes' => '',
+                    'inspected_at' => null,
+                    'inspected_at_formatted' => 'Pending Inspection',
                     'valid_through' => $quarter,
-                    'inspector_name' => 'John Inspector',
-                    'status' => 'completed',
-                    'decision' => 'accepted',
+                    'inspector_name' => 'Unassigned',
+                    'status' => 'pending',
+                    'decision' => 'none',
                     'updated_at' => now()->toIso8601String(),
                 ],
             ]);
@@ -550,8 +627,8 @@ class InspectionController extends Controller
                 'hygiene_score' => $hygienePct,
                 'premises_score' => $premisesPct,
                 'pest_control_score' => $pestPct,
-                'violations_count' => 0,
-                'notes' => $inspection->notes ?: 'Good segregation and clean food preparation surface.',
+                'violations_count' => (int) ($vendor->violations_count ?? 0),
+                'notes' => $inspection->notes ?? '',
                 'inspected_at' => $inspection->inspected_at ? $inspection->inspected_at->toIso8601String() : $inspection->created_at->toIso8601String(),
                 'inspected_at_formatted' => $inspectedDate,
                 'valid_through' => $quarter,
@@ -569,27 +646,205 @@ class InspectionController extends Controller
     | DELETE INSPECTION
     |--------------------------------------------------------------------------
     */
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
-        $inspection = Inspection::find($id);
+        return DB::transaction(function () use ($request, $id) {
+            $inspection = Inspection::where('id', $id)->lockForUpdate()->first();
 
-        if (!$inspection) {
+            if (!$inspection) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Inspection not found.',
+                ], 404);
+            }
+
+            $vendorId = $inspection->vendor_id;
+            $inspection->delete();
+
+            \App\Services\VendorComplianceService::recalculateForVendor(
+                $vendorId,
+                $request->user() ? $request->user()->id : null,
+                "Inspection #{$id} deleted"
+            );
+
+            ActivityLog::record(
+                'inspection.deleted',
+                "Deleted inspection #{$id}."
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Inspection deleted successfully.',
+            ]);
+        });
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | INSPECTOR PROFILE REAL STATS (Requirement 3)
+    |--------------------------------------------------------------------------
+    */
+    public function getInspectorStats(Request $request)
+    {
+        $user = $request->user();
+        $inspectorId = $user ? $user->id : (int) ($request->query('inspector_id') ?: 4);
+
+        $stallsCertified = Inspection::where('inspector_id', $inspectorId)
+            ->where('status', 'completed')
+            ->distinct('vendor_id')
+            ->count('vendor_id');
+
+        $totalInspections = Inspection::where('inspector_id', $inspectorId)->count();
+
+        $pendingReviews = Inspection::where('inspector_id', $inspectorId)
+            ->where('status', 'pending')
+            ->count();
+
+        $completedToday = Inspection::where('inspector_id', $inspectorId)
+            ->where('status', 'completed')
+            ->whereDate('inspected_at', now()->toDateString())
+            ->count();
+
+        $recentInspections = Inspection::with(['vendor.barangay'])
+            ->where('inspector_id', $inspectorId)
+            ->where('status', 'completed')
+            ->latest('inspected_at')
+            ->latest('id')
+            ->limit(10)
+            ->get()
+            ->map(function ($ins) {
+                return [
+                    'id' => $ins->id,
+                    'vendor_id' => $ins->vendor_id,
+                    'business_name' => $ins->vendor?->business_name ?? 'Market Stall',
+                    'stall_number' => $ins->vendor?->stall_number ?? ('Stall #' . $ins->vendor_id),
+                    'market' => $ins->vendor?->market ?? 'Public Market',
+                    'score' => $ins->total_score,
+                    'grade' => $ins->grade_letter,
+                    'status' => 'Passed',
+                    'inspected_at' => $ins->inspected_at ? $ins->inspected_at->format('F j, Y') : $ins->created_at->format('F j, Y'),
+                ];
+            });
+
+        return response()->json([
+            'success' => true,
+            'stalls_certified' => $stallsCertified,
+            'total_inspections' => $totalInspections,
+            'pending_reviews' => $pendingReviews,
+            'completed_today' => $completedToday,
+            'recent_stalls' => $recentInspections,
+        ]);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | VERIFY VENDOR QR CODE (Inspector Vendor Verification)
+    |--------------------------------------------------------------------------
+    | Limitation 2: QR functionality is exclusive to registered public market
+    | vendors and authorized city inspectors. Do NOT expose to residential profiles.
+    */
+    public function verifyVendorQr(Request $request)
+    {
+        $user = $request->user();
+
+        $isAuthorized = $user && $user->roles()->whereIn('name', ['inspector', 'super_admin'])->exists();
+        if (!$isAuthorized) {
             return response()->json([
                 'success' => false,
-                'message' => 'Inspection not found.',
+                'message' => 'Unauthorized. QR vendor verification is strictly restricted to authorized City Sanitation Inspectors and CLENRO Super Admin.',
+            ], 403);
+        }
+
+        $code = trim($request->input('qr_code') ?? $request->input('code') ?? '');
+
+        // Handle JSON payloads scanned from QR badge
+        if (str_starts_with($code, '{') && str_ends_with($code, '}')) {
+            $parsed = json_decode($code, true);
+            if (is_array($parsed)) {
+                $code = $parsed['qr_token'] ?? $parsed['qr_code'] ?? $parsed['vendor_code'] ?? $parsed['code'] ?? $code;
+            }
+        }
+
+        if (empty($code)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Please provide a valid vendor QR code.',
+            ], 422);
+        }
+
+        $vendor = Vendor::with([
+            'barangay:id,name',
+            'user:id,name,email',
+            'inspections' => function ($q) {
+                $q->latest()->limit(10);
+            },
+        ])
+        ->where('qr_code', $code)
+        ->orWhere('vendor_code', $code)
+        ->orWhere('id', is_numeric($code) ? (int)$code : 0)
+        ->first();
+
+        if (!$vendor) {
+            ActivityLog::record(
+                'inspector.qr_failed',
+                "Inspector " . ($user ? $user->name : 'Unknown') . " scanned unrecognized QR code [{$code}]."
+            );
+
+            return response()->json([
+                'success' => false,
+                'error_type' => 'NOT_REGISTERED',
+                'message' => 'Non-registered QR code. This QR code does not belong to any authorized market vendor in Cogon or Carmen Market.',
             ], 404);
         }
 
-        $inspection->delete();
+        if ($vendor->status !== 'active') {
+            ActivityLog::record(
+                'inspector.qr_revoked',
+                "Inspector {$user->name} scanned {$vendor->status} stall QR for {$vendor->business_name} (#{$vendor->id}).",
+                $vendor
+            );
+
+            return response()->json([
+                'success' => false,
+                'error_type' => 'REVOKED_OR_INACTIVE',
+                'vendor_status' => $vendor->status,
+                'message' => "Stall {$vendor->status}. Vendor stall '{$vendor->business_name}' at {$vendor->market} is currently marked as {$vendor->status} in city records.",
+                'vendor' => $vendor,
+            ], 422);
+        }
+
+        $violations = \App\Models\Violation::where('vendor_id', $vendor->id)
+            ->latest()
+            ->limit(10)
+            ->get();
+
+        $latestInspection = $vendor->inspections->first();
+        $score = $latestInspection ? $latestInspection->total_score : ($vendor->compliance_score ?: 0);
+        $gradeLetter = \App\Services\VendorComplianceService::calculateGradeLetter($score);
+        $grade = 'Grade ' . $gradeLetter;
+        $complianceLabel = \App\Services\VendorComplianceService::getGradeLabel($gradeLetter);
 
         ActivityLog::record(
-            'inspection.deleted',
-            "Deleted inspection #{$id}."
+            'inspector.qr_verified',
+            "Inspector {$user->name} verified vendor {$vendor->business_name} ({$vendor->market}, {$vendor->stall_number}) via QR verification.",
+            $vendor
         );
 
         return response()->json([
             'success' => true,
-            'message' => 'Inspection deleted successfully.',
+            'message' => 'Vendor stall verified successfully.',
+            'vendor' => $vendor,
+            'compliance' => [
+                'score' => $score,
+                'grade' => $grade,
+                'grade_letter' => substr($grade, -1),
+                'status_label' => $complianceLabel,
+                'flagged' => $score <= self::COMPLIANCE_FLAG_THRESHOLD,
+                'inspections_count' => $vendor->inspections->count(),
+                'violations_count' => $violations->count(),
+            ],
+            'recent_inspections' => $vendor->inspections,
+            'recent_violations' => $violations,
         ]);
     }
 }

@@ -124,12 +124,12 @@ export default function Grade() {
         />
 
         <Text style={styles.label}>
-          Add Notes
+          Inspection Findings
         </Text>
 
         <TextInput
           style={styles.notes}
-          placeholder="Write your comments..."
+          placeholder="Write something"
           placeholderTextColor="#999"
           value={notes}
           onChangeText={setNotes}

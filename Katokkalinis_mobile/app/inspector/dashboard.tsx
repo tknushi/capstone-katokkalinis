@@ -11,18 +11,19 @@ import {
 } from "react-native";
 import KatokLogo from "../../components/KatokLogo";
 import TopNotificationBanner from "../../components/TopNotificationBanner";
+import { fetchInspectorStats } from "../../services/inspector";
 
 export default function InspectorDashboard() {
   const router = useRouter();
   const [userName, setUserName] = useState("John Inspector");
   const assignedArea = "Divi & Cogon Public Markets";
-  const pendingCount = 3;
-  const completedToday = 5;
+  const [pendingCount, setPendingCount] = useState(0);
+  const [completedToday, setCompletedToday] = useState(0);
 
   const [banner, setBanner] = useState({
     visible: true,
     title: "Market Inspection Roster Loaded",
-    message: "5 vendor hygiene inspections scheduled for today in District 1.",
+    message: "Vendor hygiene inspections loaded for today's roster.",
     type: "info" as "truck" | "info" | "success" | "warning",
   });
 
@@ -34,6 +35,18 @@ export default function InspectorDashboard() {
     try {
       const name = await AsyncStorage.getItem("userName");
       if (name) setUserName(name);
+
+      const statsRes = await fetchInspectorStats();
+      if (statsRes.success && statsRes.stats) {
+        setPendingCount(statsRes.stats.pending_reviews);
+        setCompletedToday(statsRes.stats.completed_today);
+        setBanner({
+          visible: true,
+          title: "Market Inspection Roster Active",
+          message: `${statsRes.stats.pending_reviews} inspections awaiting review • ${statsRes.stats.completed_today} completed today.`,
+          type: "info",
+        });
+      }
     } catch (e) {
       console.error(e);
     }

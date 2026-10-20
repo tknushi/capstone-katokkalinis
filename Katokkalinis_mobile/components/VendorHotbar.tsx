@@ -31,7 +31,11 @@ export default function VendorHotbar({ activeTab }: VendorHotbarProps) {
     if (currentTab === tab) {
       return;
     }
-    router.push(route as any);
+    if (tab === "home") {
+      router.replace("/vendor" as any);
+    } else {
+      router.push(route as any);
+    }
   };
 
   return (
@@ -94,7 +98,7 @@ export default function VendorHotbar({ activeTab }: VendorHotbarProps) {
       <TouchableOpacity
         style={styles.navItem}
         activeOpacity={0.8}
-        onPress={() => navigateTo("profile", "/profile")}
+        onPress={() => navigateTo("profile", "/profile?role=vendor")}
         accessibilityRole="button"
         accessibilityLabel="Navigate to Profile"
       >
@@ -119,30 +123,25 @@ const styles = StyleSheet.create({
     right: 0,
     height: 65,
     backgroundColor: "#FFFFFF",
-    borderTopWidth: 1,
-    borderTopColor: "#EEF5ED",
     flexDirection: "row",
     justifyContent: "space-around",
     alignItems: "center",
+    borderTopWidth: 1,
+    borderTopColor: "#EEF5ED",
     paddingBottom: 4,
-    elevation: 8,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
     zIndex: 99,
   },
   navItem: {
     alignItems: "center",
+    justifyContent: "center",
+    flex: 1,
     paddingVertical: 4,
-    paddingHorizontal: 12,
-    minWidth: 60,
   },
   navItemText: {
-    fontSize: 10,
+    fontSize: 11,
+    fontWeight: "600",
     color: "#7A8D78",
     marginTop: 2,
-    fontWeight: "600",
   },
   navItemTextActive: {
     color: "#2E7D32",

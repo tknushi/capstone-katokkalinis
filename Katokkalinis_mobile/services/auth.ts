@@ -10,6 +10,9 @@ export interface User {
   roles?: { id?: number; name: string }[] | string[];
   avatar?: string | null;
   avatar_url?: string | null;
+  barangay_id?: number | null;
+  barangay?: { id?: number; name?: string } | null;
+  address?: string | null;
 }
 
 export interface AuthResponse {
@@ -76,6 +79,14 @@ export async function loginUser(
         success: false,
         message: `This account does not have access to the ${expectedRole} portal.`,
       };
+    }
+
+    // Register push notification device token in background
+    try {
+      const { registerDevicePushToken } = await import("./pushNotification");
+      registerDevicePushToken(roleName, data.user?.barangay_id).catch(() => {});
+    } catch {
+      // Background push registration non-blocking
     }
 
     return {
@@ -228,11 +239,19 @@ export const AUTH_KEYS = [
 
 export async function logoutUser(router: any): Promise<void> {
   try {
-    // 1. Invalidate tokens and session keys from storage
+    // 1. Unregister device push token from backend
+    try {
+      const { unregisterDevicePushToken } = await import("./pushNotification");
+      await unregisterDevicePushToken();
+    } catch (e) {
+      console.warn("Could not unregister push token during logout:", e);
+    }
+
+    // 2. Invalidate tokens and session keys from storage
     const AsyncStorage = (await import("@react-native-async-storage/async-storage")).default;
     await AsyncStorage.multiRemove(AUTH_KEYS);
 
-    // 2. Clear navigation stack and redirect to Welcome/Login
+    // 3. Clear navigation stack and redirect to Welcome/Login
     if (router) {
       if (typeof router.dismissAll === "function") {
         try {

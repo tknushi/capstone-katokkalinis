@@ -7,8 +7,7 @@
     <link rel="stylesheet" href="css/style.css">
     <style>
         .flagged-row { background-color: #fdecea; }
-        .pending-row { background-color: #fef9e7; border-left: 4px solid #f39c12; }
-        .filter-bar { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; align-items: center; }
+        .filter-bar { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
         .filter-bar select, .filter-bar label { padding: 8px 0; }
         .score-pill {
             display: inline-block;
@@ -19,25 +18,13 @@
         }
         .score-good { background: #2ecc71; }
         .score-bad { background: #e74c3c; }
-        .badge-pending {
-            display: inline-block;
-            background: #fff3cd;
-            color: #856404;
-            border: 1px solid #ffeeba;
-            padding: 3px 8px;
-            border-radius: 6px;
-            font-size: 11px;
-            font-weight: bold;
-        }
-        .pending-box {
-            margin-top: 6px;
-            background: #fff8e1;
-            border: 1px dashed #ffb300;
-            padding: 8px;
-            border-radius: 6px;
-            font-size: 12px;
-            color: #333;
-        }
+        .grade-badge-a { background: #e8f8ee; color: #2e7d32; border: 1px solid #c5ebd2; padding: 4px 10px; border-radius: 12px; font-weight: 800; font-size: 13px; display: inline-flex; align-items: center; gap: 4px; }
+        .grade-badge-b { background: #fff8e1; color: #f57f17; border: 1px solid #ffe082; padding: 4px 10px; border-radius: 12px; font-weight: 800; font-size: 13px; display: inline-flex; align-items: center; gap: 4px; }
+        .grade-badge-c { background: #ffebee; color: #c62828; border: 1px solid #ffcdd2; padding: 4px 10px; border-radius: 12px; font-weight: 800; font-size: 13px; display: inline-flex; align-items: center; gap: 4px; }
+        .audit-metric-box { background: #f8faf8; border: 1px solid #e2ece1; border-radius: 10px; padding: 12px; margin-bottom: 12px; }
+        .audit-metric-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px; }
+        .audit-metric-label { color: #556655; font-weight: 600; }
+        .audit-metric-val { color: #1e331b; font-weight: 700; }
     </style>
 </head>
 <body>
@@ -66,17 +53,15 @@
                     </div>
                     <div class="filter-bar">
                         <label><input type="checkbox" id="flagged-only" style="width:auto;" onchange="loadData()"> Show flagged markets only (score &le; <span id="threshold">60</span>)</label>
-                        <label style="margin-left: 15px;"><input type="checkbox" id="pending-only" style="width:auto;" onchange="loadData()"> Show Pending Change Requests Only</label>
-                        <button type="button" class="btn btn-sm" onclick="loadData(true)" style="margin-left: 15px; padding: 6px 12px; font-size: 12px; width: auto; background: #27ae60; color: #fff; cursor: pointer; border: none; border-radius: 6px;">&#x21bb; Refresh</button>
                     </div>
                     <table class="table">
                         <thead>
                             <tr>
                                 <th>ID</th>
-                                <th>Vendor & Details</th>
+                                <th>Vendor</th>
                                 <th>Barangay</th>
                                 <th>Inspector</th>
-                                <th>Official Score</th>
+                                <th>Score</th>
                                 <th>Status</th>
                                 <th>Inspected At</th>
                                 <th>Actions</th>
@@ -129,11 +114,27 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>Notes</label>
-                    <textarea id="notes" class="form-control"></textarea>
+                    <label>Inspection Findings</label>
+                    <textarea id="notes" class="form-control" placeholder="Write something"></textarea>
                 </div>
                 <button type="submit" class="btn">Save</button>
             </form>
+        </div>
+    </div>
+
+    <!-- SANITATION AUDIT DETAILS & EVIDENCE MODAL -->
+    <div class="modal" id="audit-modal">
+        <div class="modal-content" style="max-width: 580px;">
+            <div class="modal-header">
+                <h3 id="audit-title">Official Stall Sanitation Audit</h3>
+                <span class="close" onclick="closeAuditModal()">&times;</span>
+            </div>
+            <div id="audit-body" style="padding: 10px 0;">
+                <!-- dynamic content -->
+            </div>
+            <div style="display: flex; justify-content: flex-end; margin-top: 15px;">
+                <button class="btn" style="width: auto; background: #6c757d;" onclick="closeAuditModal()">Close Audit</button>
+            </div>
         </div>
     </div>
 
@@ -172,73 +173,38 @@
         async function loadData() {
             const tbody = document.getElementById('table-body');
             const flaggedOnly = document.getElementById('flagged-only').checked;
-            const pendingOnly = document.getElementById('pending-only').checked;
             const qs = flaggedOnly ? '?flagged=1' : '';
 
             try {
                 const res = await apiRequest(endpoint + qs);
-                let data = res.inspections || [];
+                const data = res.inspections || [];
                 document.getElementById('threshold').textContent = res.flag_threshold ?? 60;
-
-                if (pendingOnly) {
-                    data = data.filter(item => item.change_status === 'pending');
-                }
 
                 if (data.length === 0) {
                     tbody.innerHTML = '<tr><td colspan="8">No inspections found.</td></tr>';
                     return;
                 }
 
-                currentInspections = data;
                 tbody.innerHTML = data.map(item => {
-                    const hasPendingChange = item.change_status === 'pending';
                     const flagged = item.total_score <= (res.flag_threshold ?? 60);
                     const scoreClass = flagged ? 'score-bad' : 'score-good';
                     const vendorName = (item.vendor && item.vendor.business_name) || '-';
                     const barangayName = (item.vendor && item.vendor.barangay && item.vendor.barangay.name) || '-';
                     const inspectorName = (item.inspector && item.inspector.name) || '-';
                     const inspectedAt = item.inspected_at ? item.inspected_at.substring(0, 10) : '-';
-                    const requesterName = (item.change_requester && item.change_requester.name) || 'Inspector';
-
                     return `
-                    <tr class="${hasPendingChange ? 'pending-row' : (flagged ? 'flagged-row' : '')}">
+                    <tr class="${flagged ? 'flagged-row' : ''}">
                         <td>${item.id}</td>
-                        <td>
-                            <strong>${escapeHtml(vendorName)}</strong>
-                            ${hasPendingChange ? `
-                                <div class="pending-box">
-                                    <span class="badge-pending">&#9888; Pending Change Request</span>
-                                    <div style="margin-top: 4px;">
-                                        <strong>Scores:</strong> Hygiene: ${item.hygiene_system} &rarr; <b>${item.pending_hygiene_system}</b> |
-                                        Premises: ${item.condition_of_premises} &rarr; <b>${item.pending_condition_of_premises}</b> |
-                                        Total: ${item.total_score}% &rarr; <b>${item.pending_total_score}% (${item.pending_grade_letter || 'A'})</b>
-                                    </div>
-                                    <div style="margin-top: 2px;">
-                                        <strong>Proposed Notes:</strong> "${escapeHtml(item.pending_notes || 'No notes')}"
-                                    </div>
-                                    <div style="font-size: 11px; color: #666; margin-top: 2px;">
-                                        Requested by: ${escapeHtml(requesterName)}
-                                    </div>
-                                </div>
-                            ` : ''}
-                        </td>
-                        <td>${escapeHtml(barangayName)}</td>
-                        <td>${escapeHtml(inspectorName)}</td>
-                        <td><span class="score-pill ${scoreClass}">${item.total_score}% (Grade ${item.grade_letter || 'A'})</span></td>
-                        <td>
-                            <span>${item.status}</span>
-                            ${hasPendingChange ? '<br><span class="badge-pending">Pending Review</span>' : ''}
-                        </td>
+                        <td>${vendorName}${flagged ? ' &#9888;' : ''}</td>
+                        <td>${barangayName}</td>
+                        <td>${inspectorName}</td>
+                        <td><span class="score-pill ${scoreClass}">${item.total_score}%</span></td>
+                        <td>${item.status}</td>
                         <td>${inspectedAt}</td>
                         <td>
-                            ${hasPendingChange ? `
-                                <div style="display: flex; gap: 5px; margin-bottom: 5px;">
-                                    <button class="btn" style="padding: 4px 8px; width: auto; background: #27ae60; font-size: 11px;" onclick="acceptChange(${item.id})">&#10003; Accept</button>
-                                    <button class="btn" style="padding: 4px 8px; width: auto; background: #c0392b; font-size: 11px;" onclick="rejectChange(${item.id})">&#10007; Reject</button>
-                                </div>
-                            ` : ''}
-                            <button class="btn" style="padding: 4px 8px; width: auto; background: #f39c12; font-size: 11px;" onclick="editItem(${item.id})">Edit</button>
-                            <button class="btn" style="padding: 4px 8px; width: auto; background: #e74c3c; font-size: 11px;" onclick="deleteItem(${item.id})">Delete</button>
+                            <button class="btn" style="padding: 5px 10px; width: auto; background: #27ae60;" onclick='viewAudit(${JSON.stringify(item).replace(/'/g, "&#39;")})'>Audit</button>
+                            <button class="btn" style="padding: 5px 10px; width: auto; background: #f39c12;" onclick='editItem(${JSON.stringify(item).replace(/'/g, "&#39;")})'>Edit</button>
+                            <button class="btn" style="padding: 5px 10px; width: auto; background: #e74c3c;" onclick="deleteItem(${item.id})">Delete</button>
                         </td>
                     </tr>
                 `;}).join('');
@@ -247,27 +213,71 @@
             }
         }
 
-        async function acceptChange(id) {
-            if (!confirm('Accept this evaluation change request? It will immediately become the official evaluation and sync to the vendor mobile app.')) return;
-            try {
-                const res = await apiRequest(`${endpoint}/${id}/accept-change`, 'POST');
-                alert(res.message || 'Evaluation change request accepted and applied.');
-                loadData();
-            } catch(e) {
-                alert('Error accepting change: ' + e.message);
+        function viewAudit(item) {
+            const score = Number(item.total_score) || 0;
+            let grade = 'Grade C';
+            let badgeClass = 'grade-badge-c';
+            if (score >= 85) {
+                grade = 'Grade A (Compliant)';
+                badgeClass = 'grade-badge-a';
+            } else if (score >= 70) {
+                grade = 'Grade B (Conditional)';
+                badgeClass = 'grade-badge-b';
             }
+
+            const vendorName = (item.vendor && item.vendor.business_name) || 'Vendor Stall';
+            const market = (item.vendor && item.vendor.market) || 'Public Market';
+            const stall = (item.vendor && item.vendor.stall_number) ? `Stall #${item.vendor.stall_number}` : '';
+            const barangay = (item.vendor && item.vendor.barangay && item.vendor.barangay.name) || 'Cagayan de Oro';
+            const inspector = (item.inspector && item.inspector.name) || 'City Sanitation Inspector';
+            const dateStr = item.inspected_at ? item.inspected_at.substring(0, 10) : 'Recent';
+
+            document.getElementById('audit-title').textContent = `${vendorName} · ${market}`;
+            document.getElementById('audit-body').innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #edf4ec; padding-bottom: 12px;">
+                    <div>
+                        <div style="font-size: 15px; font-weight: 800; color: #1e331b;">${market} ${stall ? '· ' + stall : ''}</div>
+                        <div style="font-size: 12px; color: #6b8468;">Jurisdiction: ${barangay}</div>
+                    </div>
+                    <span class="${badgeClass}">${grade}</span>
+                </div>
+
+                <div class="audit-metric-box">
+                    <div class="audit-metric-row">
+                        <span class="audit-metric-label">Overall Sanitation Score:</span>
+                        <span class="audit-metric-val" style="font-size: 15px; color: ${score >= 70 ? '#2e7d32' : '#c62828'};">${score}%</span>
+                    </div>
+                    <div class="audit-metric-row">
+                        <span class="audit-metric-label">Hygiene Systems & Waste Segregation:</span>
+                        <span class="audit-metric-val">${item.hygiene_system ?? '-'}%</span>
+                    </div>
+                    <div class="audit-metric-row">
+                        <span class="audit-metric-label">Condition of Premises & Cleanliness:</span>
+                        <span class="audit-metric-val">${item.condition_of_premises ?? '-'}%</span>
+                    </div>
+                    <div class="audit-metric-row" style="margin-bottom: 0;">
+                        <span class="audit-metric-label">Audit Status / Decision:</span>
+                        <span class="audit-metric-val" style="text-transform: capitalize;">${item.decision || item.status || 'Completed'}</span>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 12px;">
+                    <div style="font-size: 12px; font-weight: 700; color: #2e3f2c; margin-bottom: 4px;">Inspector Remarks & Observations:</div>
+                    <div style="background: #f8faf8; border: 1px solid #e2ece1; border-radius: 8px; padding: 10px; font-size: 13px; color: #2c3d29; line-height: 1.5;">
+                        ${item.notes ? item.notes : 'No non-compliance violations or remarks noted during this inspection cycle.'}
+                    </div>
+                </div>
+
+                <div style="font-size: 11.5px; color: #8da78b; text-align: right;">
+                    Audited by ${inspector} · ${dateStr}
+                </div>
+            `;
+
+            document.getElementById('audit-modal').classList.add('active');
         }
 
-        async function rejectChange(id) {
-            const reason = prompt('Reason for rejection (optional):', 'Declined by administrator');
-            if (reason === null) return;
-            try {
-                const res = await apiRequest(`${endpoint}/${id}/reject-change`, 'POST', { reason });
-                alert(res.message || 'Evaluation change request rejected.');
-                loadData();
-            } catch(e) {
-                alert('Error rejecting change: ' + e.message);
-            }
+        function closeAuditModal() {
+            document.getElementById('audit-modal').classList.remove('active');
         }
 
         function openModal() {
@@ -275,19 +285,14 @@
             document.getElementById('modal-title').textContent = 'Add Inspection';
             document.getElementById('data-form').reset();
             document.getElementById('item-id').value = '';
+            document.getElementById('notes').value = '';
         }
 
         function closeModal() {
             document.getElementById('form-modal').classList.remove('active');
         }
 
-        function editItem(idOrItem) {
-            let item = idOrItem;
-            if (typeof idOrItem === 'number' || typeof idOrItem === 'string') {
-                item = currentInspections.find(i => String(i.id) === String(idOrItem));
-            }
-            if (!item) return;
-
+        function editItem(item) {
             openModal();
             document.getElementById('modal-title').textContent = 'Edit Inspection';
             document.getElementById('item-id').value = item.id;
@@ -312,13 +317,15 @@
         document.getElementById('data-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const id = document.getElementById('item-id').value;
+            const rawNotes = (document.getElementById('notes').value || '').trim();
+            const cleanNotes = (rawNotes === '' || rawNotes.toLowerCase() === 'write something') ? '' : rawNotes;
             const payload = {
                 vendor_id: document.getElementById('vendor_id').value,
                 inspector_id: document.getElementById('inspector_id').value,
                 hygiene_system: document.getElementById('hygiene_system').value,
                 condition_of_premises: document.getElementById('condition_of_premises').value,
                 status: document.getElementById('status').value,
-                notes: document.getElementById('notes').value,
+                notes: cleanNotes,
             };
 
             try {
@@ -337,11 +344,6 @@
         document.addEventListener('DOMContentLoaded', () => {
             loadDropdowns();
             loadData();
-
-            // Auto-refresh every 1 second for ultra-fast real-time inspector sync
-            setInterval(() => {
-                loadData(true);
-            }, 1000);
         });
     </script>
 </body>

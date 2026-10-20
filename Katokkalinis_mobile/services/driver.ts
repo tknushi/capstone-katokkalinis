@@ -193,3 +193,35 @@ export async function finalizeCollectionLog(
 
   return res;
 }
+
+/**
+ * Update assigned truck operating status (available vs on_route)
+ * Broadcasts driver route state to the central web dashboard live.
+ */
+export async function updateDriverTruckStatus(
+  status: "available" | "on_route" | "maintenance" | "inactive",
+  truckId?: number,
+  plateNumber?: string
+): Promise<{ success: boolean; message?: string; truck?: any }> {
+  try {
+    const res = await apiRequest("/driver/truck-status", {
+      method: "POST",
+      body: JSON.stringify({ status, truck_id: truckId, plate_number: plateNumber }),
+    });
+    if (res?.success) return res;
+  } catch (e) {
+    console.warn("Using public fallback for driver truck status...", e);
+  }
+
+  try {
+    const res = await apiRequest("/public/driver/truck-status", {
+      method: "POST",
+      body: JSON.stringify({ status, truck_id: truckId, plate_number: plateNumber }),
+    });
+    return res;
+  } catch (err: any) {
+    console.error("Failed to update truck status:", err);
+    return { success: false, message: err?.message };
+  }
+}
+

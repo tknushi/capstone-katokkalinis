@@ -25,6 +25,23 @@ class ReportController extends Controller
 
         /*
         |--------------------------------------------------------------------------
+        | BARANGAY-LEVEL SCOPING (Limitation 3 & Scope C)
+        |--------------------------------------------------------------------------
+        | Barangay officials (role 'admin') may only view reports and backlogs for
+        | their assigned barangay. Super Admin (CLENRO) retains citywide oversight.
+        */
+        $user = $request->user();
+        if ($user) {
+            $isAdmin = $user->roles()->where('name', 'admin')->exists();
+            $isSuperAdmin = $user->roles()->where('name', 'super_admin')->exists();
+
+            if ($isAdmin && !$isSuperAdmin && $user->barangay_id) {
+                $query->where('barangay_id', $user->barangay_id);
+            }
+        }
+
+        /*
+        |--------------------------------------------------------------------------
         | FILTER BY USER (My Reports)
         |--------------------------------------------------------------------------
         */
@@ -197,6 +214,21 @@ class ReportController extends Controller
 
     public function updateStatus(Request $request, $id)
     {
+        /*
+        |--------------------------------------------------------------------------
+        | LIMITATION 3 ENFORCEMENT
+        |--------------------------------------------------------------------------
+        | Barangay-level access is READ-ONLY for reports. Barangay officials cannot
+        | resolve or reply to complaints; authority belongs exclusively to CLENRO.
+        */
+        $user = $request->user();
+        if (!$user || !$user->roles()->where('name', 'super_admin')->exists()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized. Barangay-level access is read-only for reports. Status resolution and replies belong exclusively to CLENRO (Super Admin).',
+            ], 403);
+        }
+
         $validator = Validator::make($request->all(), [
             'status' => 'required|in:pending,reviewed,resolved,rejected',
             'admin_notes' => 'nullable|string',
@@ -254,6 +286,14 @@ class ReportController extends Controller
 
     public function destroy($id)
     {
+        $user = request()->user();
+        if (!$user || !$user->roles()->where('name', 'super_admin')->exists()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized. Only CLENRO (Super Admin) may delete reports.',
+            ], 403);
+        }
+
         $report = Report::find($id);
 
         if (!$report) {

@@ -513,7 +513,11 @@
                             </div>
                             <button type="button" class="cal-today-btn" id="cal-today-btn" onclick="goToToday()">Today</button>
                         </div>
-                        <div>
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                            <button class="btn" onclick="openBroadcastModal()" style="width: auto; background: #2e7d32; display: inline-flex; align-items: center; gap: 6px;">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                                Push Advisory
+                            </button>
                             <button class="btn" onclick="openModal()" style="width: auto; display: inline-flex; align-items: center; gap: 6px;">
                                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                     <line x1="12" y1="5" x2="12" y2="19"></line>
@@ -620,6 +624,55 @@
         </div>
     </div>
 
+    <!-- Broadcast Push Advisory Modal -->
+    <div id="broadcast-modal" class="modal">
+        <div class="modal-content" style="max-width: 520px;">
+            <div class="modal-header">
+                <h3>Dispatch Push Advisory directly to Phones</h3>
+                <span class="close-btn" onclick="closeBroadcastModal()">&times;</span>
+            </div>
+            <form id="broadcast-form" onsubmit="handleSendBroadcast(event)" style="margin-top: 15px;">
+                <div class="form-group">
+                    <label>Advisory Category (Approved Scope)</label>
+                    <select id="broadcast-type" class="form-control" required>
+                        <option value="schedule">Collection Schedule Advisory</option>
+                        <option value="advisory">Sanitation Advisory</option>
+                        <option value="announcement">City Sanitation Announcement</option>
+                        <option value="inspection">Public Market Inspection Notice</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Target Audience (Role)</label>
+                    <select id="broadcast-role" class="form-control">
+                        <option value="">All Roles (Residents, Drivers, Inspectors, Vendors)</option>
+                        <option value="resident">Residents Only</option>
+                        <option value="driver">Collection Drivers Only</option>
+                        <option value="inspector">Sanitation Inspectors Only</option>
+                        <option value="vendor">Market Vendors Only</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Target Geographic Jurisdiction (Barangays 1 to 40)</label>
+                    <select id="broadcast-barangay" class="form-control">
+                        <option value="">All Pilot Barangays (1 to 40)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Advisory Title</label>
+                    <input type="text" id="broadcast-title" class="form-control" placeholder="e.g. Compactor Collection Schedule Advisory" required maxlength="120">
+                </div>
+                <div class="form-group">
+                    <label>Advisory Message</label>
+                    <textarea id="broadcast-message" class="form-control" rows="3" placeholder="Enter message to deliver directly to mobile phone notification tray..." required maxlength="400"></textarea>
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 15px;">
+                    <button type="button" class="btn" style="width: auto; background: var(--border); color: var(--text);" onclick="closeBroadcastModal()">Cancel</button>
+                    <button type="submit" id="broadcast-submit-btn" class="btn" style="width: auto; background: #2e7d32;">Send Push Notification</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script src="js/app.js"></script>
     <script>
         const endpoint = '/schedules';
@@ -627,6 +680,54 @@
         let schedules = [];
         let recentReportsData = [];
         let currentCalDate = new Date(); // Month navigation state
+
+        function openBroadcastModal() {
+            const select = document.getElementById('broadcast-barangay');
+            if (select && select.options.length <= 1) {
+                for (let i = 1; i <= 40; i++) {
+                    const opt = document.createElement('option');
+                    opt.value = i;
+                    opt.textContent = `Barangay ${i}`;
+                    select.appendChild(opt);
+                }
+            }
+            document.getElementById('broadcast-modal').classList.add('active');
+        }
+
+        function closeBroadcastModal() {
+            document.getElementById('broadcast-modal').classList.remove('active');
+        }
+
+        async function handleSendBroadcast(e) {
+            e.preventDefault();
+            const btn = document.getElementById('broadcast-submit-btn');
+            btn.disabled = true;
+            btn.textContent = 'Transmitting...';
+
+            const payload = {
+                type: document.getElementById('broadcast-type').value,
+                role: document.getElementById('broadcast-role').value || undefined,
+                barangay_id: document.getElementById('broadcast-barangay').value ? Number(document.getElementById('broadcast-barangay').value) : undefined,
+                title: document.getElementById('broadcast-title').value.trim(),
+                message: document.getElementById('broadcast-message').value.trim(),
+            };
+
+            try {
+                const res = await apiRequest('/notifications/broadcast', 'POST', payload);
+                if (res && res.success) {
+                    alert(`Push advisory dispatched successfully! Delivered to registered mobile devices.`);
+                    closeBroadcastModal();
+                    document.getElementById('broadcast-form').reset();
+                } else {
+                    alert('Broadcast error: ' + (res.message || 'Failed to dispatch notification'));
+                }
+            } catch (err) {
+                alert('Connection error: ' + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Send Push Notification';
+            }
+        }
 
         function escapeHtml(str) {
             if (!str) return '';
@@ -905,11 +1006,16 @@
                 const res = await apiRequest('/barangays');
                 barangays = res.barangays || [];
                 const select = document.getElementById('barangay_id');
+                select.innerHTML = '<option value="">Select Barangay</option>';
+                const seen = new Set();
                 barangays.forEach(b => {
-                    const opt = document.createElement('option');
-                    opt.value = b.id;
-                    opt.textContent = b.name;
-                    select.appendChild(opt);
+                    if (!seen.has(b.name)) {
+                        seen.add(b.name);
+                        const opt = document.createElement('option');
+                        opt.value = b.id;
+                        opt.textContent = b.name;
+                        select.appendChild(opt);
+                    }
                 });
             } catch (error) {
                 console.error('Failed to load barangays', error);

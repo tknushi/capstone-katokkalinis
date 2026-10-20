@@ -15,8 +15,9 @@ import {
 } from "react-native";
 
 import * as Haptics from "expo-haptics";
-import { resolveMediaUrl } from "../services/api";
+import { getBaseApiUrl, resolveMediaUrl } from "../services/api";
 import { forgotPassword, loginUser } from "../services/auth";
+import { registerDevicePushToken } from "../services/pushNotification";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const isSmall = SCREEN_WIDTH < 360;
@@ -98,11 +99,19 @@ export default function Login() {
         await AsyncStorage.setItem("katokkalinis_token", result.token);
       }
 
+      const userBrgy = result.user.barangay?.name || result.user.address;
+      if (userBrgy) {
+        await AsyncStorage.setItem("userBarangay", userBrgy);
+      }
+
       if (rememberMe) {
         await AsyncStorage.setItem("rememberMe", "true");
       } else {
         await AsyncStorage.removeItem("rememberMe");
       }
+
+      // Register device push token with backend
+      registerDevicePushToken(result.user.role, result.user.barangay_id || null).catch(() => {});
 
       try {
         await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -119,11 +128,12 @@ export default function Login() {
       } else {
         router.replace("/dashboard" as any);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("LOGIN ERROR:", error);
+      const targetUrl = getBaseApiUrl();
       Alert.alert(
         "Connection Error",
-        "Cannot connect to the Laravel server. Please check your network or server."
+        `Cannot reach the Laravel server at:\n${targetUrl}\n\nPlease verify that your mobile device and computer are on the same Wi-Fi network and that the backend server is active.`
       );
     } finally {
       setLoading(false);
@@ -251,37 +261,39 @@ export default function Login() {
             </TouchableOpacity>
           </View>
 
-          {/* LOGIN BUTTON */}
-          <TouchableOpacity
-            style={[styles.loginButton, loading && styles.disabledButton]}
-            onPress={handleLogin}
-            disabled={loading}
-            activeOpacity={0.88}
-          >
-            {loading ? (
-              <ActivityIndicator color="#FFFFFF" />
-            ) : (
-              <Text style={styles.loginText}>Login</Text>
-            )}
-          </TouchableOpacity>
 
-          {/* REGISTER LINK (FOR RESIDENT) */}
-          {selectedRole === "resident" && (
-            <View style={styles.signupRow}>
-              <Text style={styles.signupText}>Don&apos;t have an account?</Text>
+
+              {/* LOGIN BUTTON */}
               <TouchableOpacity
-                onPress={() => router.push("/signup" as any)}
-                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                style={[styles.loginButton, loading && styles.disabledButton]}
+                onPress={handleLogin}
+                disabled={loading}
+                activeOpacity={0.88}
               >
-                <Text style={styles.signupLink}>Register</Text>
+                {loading ? (
+                  <ActivityIndicator color="#FFFFFF" />
+                ) : (
+                  <Text style={styles.loginText}>Login</Text>
+                )}
               </TouchableOpacity>
+
+              {/* REGISTER LINK (FOR RESIDENT) */}
+              {selectedRole === "resident" && (
+                <View style={styles.signupRow}>
+                  <Text style={styles.signupText}>Don&apos;t have an account?</Text>
+                  <TouchableOpacity
+                    onPress={() => router.push("/signup" as any)}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                  >
+                    <Text style={styles.signupLink}>Register</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
             </View>
-          )}
+          </ScrollView>
         </View>
-      </ScrollView>
-    </View>
-  );
-}
+      );
+    }
 
 const styles = StyleSheet.create({
   container: {

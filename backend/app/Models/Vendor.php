@@ -25,6 +25,18 @@ class Vendor extends Model
         'address',
         'qr_code',
         'status',
+        'sanitation_score',
+        'compliance_score',
+        'compliance_grade',
+        'violations_count',
+        'last_inspected_at',
+    ];
+
+    protected $casts = [
+        'sanitation_score' => 'float',
+        'compliance_score' => 'integer',
+        'violations_count' => 'integer',
+        'last_inspected_at' => 'datetime',
     ];
 
     public function user(): BelongsTo

@@ -6,6 +6,7 @@ import * as Haptics from "expo-haptics";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   Alert,
+  Image,
   ScrollView,
   StyleSheet,
   Text,
@@ -173,7 +174,7 @@ export default function VendorQrScreen() {
         <TouchableOpacity
           style={styles.greetingRight}
           activeOpacity={0.85}
-          onPress={() => router.push("/profile")}
+          onPress={() => router.push({ pathname: "/profile", params: { role: "vendor" } })}
           accessibilityRole="button"
           accessibilityLabel="Open vendor profile"
         >
@@ -212,7 +213,15 @@ export default function VendorQrScreen() {
           </View>
 
           <View style={styles.qrMockContainer}>
-            <MaterialCommunityIcons name="qrcode" size={170} color="#1E331B" />
+            <Image
+              source={{
+                uri: `https://api.qrserver.com/v1/create-qr-code/?size=260x260&margin=8&data=${encodeURIComponent(
+                  vendorCode
+                )}`,
+              }}
+              style={styles.qrImage}
+              resizeMode="contain"
+            />
           </View>
 
           <Text style={styles.qrCodeNumber}>UID: {vendorCode}</Text>
@@ -360,12 +369,24 @@ const styles = StyleSheet.create({
     color: "#2E7D32",
   },
   qrMockContainer: {
-    padding: 18,
-    backgroundColor: "#F9FCF8",
+    padding: 14,
+    backgroundColor: "#FFFFFF",
     borderRadius: 24,
     borderWidth: 2,
     borderColor: "#E2ECE0",
     marginBottom: 14,
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#1A3816",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    elevation: 4,
+  },
+  qrImage: {
+    width: 190,
+    height: 190,
+    borderRadius: 8,
   },
   qrCodeNumber: {
     fontSize: 15,

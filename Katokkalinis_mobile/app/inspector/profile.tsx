@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import KatokLogo from "../../components/KatokLogo";
 import { logoutUser } from "../../services/auth";
+import { fetchInspectorStats, InspectorStats } from "../../services/inspector";
 
 export default function InspectorProfile() {
   const router = useRouter();
@@ -21,8 +22,15 @@ export default function InspectorProfile() {
   const [email, setEmail] = useState("inspector@katokkalinis.com");
   const [inspectorId, setInspectorId] = useState("INS-2026");
   const assignedArea = "Divisoria & Cogon Market Zones";
-  const performanceScore = "99%";
-  const completedInspections = "215";
+
+  // Real stats from database (Requirement 3: Stalls Certified, Total Inspections, Pending Reviews)
+  const [stats, setStats] = useState<InspectorStats>({
+    stalls_certified: 0,
+    total_inspections: 0,
+    pending_reviews: 0,
+    completed_today: 0,
+    recent_stalls: [],
+  });
 
   useEffect(() => {
     loadProfileData();
@@ -37,6 +45,11 @@ export default function InspectorProfile() {
       if (storedName) setName(storedName);
       if (storedEmail) setEmail(storedEmail);
       if (storedId) setInspectorId(`INS-${storedId}`);
+
+      const statsRes = await fetchInspectorStats();
+      if (statsRes.success && statsRes.stats) {
+        setStats(statsRes.stats);
+      }
     } catch (e) {
       console.error(e);
     }
@@ -111,46 +124,38 @@ export default function InspectorProfile() {
             </View>
           </View>
 
-          {/* Stats Bar */}
+          {/* Stats Bar - Balanced 3-column government aesthetic (Requirement 3) */}
           <View style={styles.statsRow}>
             <View style={styles.statBox}>
-              <Text style={styles.statValue}>{completedInspections}</Text>
+              <Text style={styles.statValue}>{stats.stalls_certified}</Text>
               <Text style={styles.statLabel}>Stalls Certified</Text>
             </View>
             <View style={styles.statDivider} />
             <View style={styles.statBox}>
-              <Text style={[styles.statValue, { color: "#2E7D32" }]}>{performanceScore}</Text>
-              <Text style={styles.statLabel}>Audit Quality</Text>
+              <Text style={styles.statValue}>{stats.total_inspections}</Text>
+              <Text style={styles.statLabel}>Total Inspections</Text>
             </View>
             <View style={styles.statDivider} />
             <View style={styles.statBox}>
-              <Text style={[styles.statValue, { color: "#D97706" }]}>Grade A</Text>
-              <Text style={styles.statLabel}>Inspector Rank</Text>
+              <Text style={[styles.statValue, { color: stats.pending_reviews > 0 ? "#D97706" : "#2E7D32" }]}>
+                {stats.pending_reviews}
+              </Text>
+              <Text style={styles.statLabel}>Pending Reviews</Text>
             </View>
           </View>
         </View>
 
-        {/* 3. ASSIGNED JURISDICTION & BADGE */}
+        {/* 3. ASSIGNED JURISDICTION */}
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Assigned Markets & Zone</Text>
 
-          <View style={styles.detailRow}>
+          <View style={[styles.detailRow, { borderBottomWidth: 0, paddingBottom: 0, marginBottom: 0 }]}>
             <View style={[styles.detailIconCircle, { backgroundColor: "#E8F8EE" }]}>
               <MaterialCommunityIcons name="map-marker-radius" size={22} color="#2E7D32" />
             </View>
             <View style={{ flex: 1, marginLeft: 12 }}>
               <Text style={styles.detailMainText}>{assignedArea}</Text>
               <Text style={styles.detailSubText}>Cagayan de Oro City Market Administration</Text>
-            </View>
-          </View>
-
-          <View style={[styles.detailRow, { borderBottomWidth: 0, paddingBottom: 0 }]}>
-            <View style={[styles.detailIconCircle, { backgroundColor: "#E3F2FD" }]}>
-              <MaterialCommunityIcons name="certificate" size={22} color="#1976D2" />
-            </View>
-            <View style={{ flex: 1, marginLeft: 12 }}>
-              <Text style={styles.detailMainText}>Official DOH & CENRO Certified</Text>
-              <Text style={styles.detailSubText}>Valid through December 2026</Text>
             </View>
           </View>
         </View>
@@ -164,31 +169,29 @@ export default function InspectorProfile() {
         </View>
 
         <View style={styles.cardList}>
-          <View style={styles.recordItem}>
-            <View style={styles.recordIconCircle}>
-              <MaterialCommunityIcons name="store" size={20} color="#2E7D32" />
+          {stats.recent_stalls && stats.recent_stalls.length > 0 ? (
+            stats.recent_stalls.slice(0, 5).map((stall) => (
+              <View key={`stall-${stall.id}`} style={styles.recordItem}>
+                <View style={styles.recordIconCircle}>
+                  <MaterialCommunityIcons name="store" size={20} color="#2E7D32" />
+                </View>
+                <View style={{ flex: 1, marginLeft: 10 }}>
+                  <Text style={styles.recordName}>{stall.business_name}</Text>
+                  <Text style={styles.recordSub}>
+                    {stall.stall_number} • Score: {stall.score}% (Grade {stall.grade})
+                  </Text>
+                </View>
+                <View style={styles.passedBadge}>
+                  <Text style={styles.passedBadgeText}>{stall.status}</Text>
+                </View>
+              </View>
+            ))
+          ) : (
+            <View style={styles.emptyStallsCard}>
+              <MaterialCommunityIcons name="clipboard-text-outline" size={26} color="#9AA998" />
+              <Text style={styles.emptyStallsText}>No certified stalls recorded yet.</Text>
             </View>
-            <View style={{ flex: 1, marginLeft: 10 }}>
-              <Text style={styles.recordName}>KatokKalimpyo Fruit Stall</Text>
-              <Text style={styles.recordSub}>Stall #12 • Score: 92% (Grade A)</Text>
-            </View>
-            <View style={styles.passedBadge}>
-              <Text style={styles.passedBadgeText}>Passed</Text>
-            </View>
-          </View>
-
-          <View style={styles.recordItem}>
-            <View style={styles.recordIconCircle}>
-              <MaterialCommunityIcons name="store" size={20} color="#1976D2" />
-            </View>
-            <View style={{ flex: 1, marginLeft: 10 }}>
-              <Text style={styles.recordName}>KalimpyoKatok Vegetables</Text>
-              <Text style={styles.recordSub}>Stall #45 • Score: 85% (Grade B)</Text>
-            </View>
-            <View style={styles.passedBadge}>
-              <Text style={styles.passedBadgeText}>Passed</Text>
-            </View>
-          </View>
+          )}
         </View>
 
         {/* 5. LOGOUT BUTTON (Guarded) */}
@@ -549,5 +552,21 @@ const styles = StyleSheet.create({
   navItemTextActive: {
     color: "#2E7D32",
     fontWeight: "800",
+  },
+  emptyStallsCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 14,
+    padding: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "#EDF4EC",
+    marginBottom: 8,
+  },
+  emptyStallsText: {
+    fontSize: 12,
+    color: "#7A8D78",
+    marginTop: 6,
+    fontWeight: "500",
   },
 });

@@ -9,7 +9,6 @@ import {
   View,
 } from "react-native";
 import KatokLogo from "../../components/KatokLogo";
-import LeafletCdoMapView from "../../components/LeafletCdoMapView";
 import TopNotificationBanner from "../../components/TopNotificationBanner";
 import { BarangayItem, getBarangays1to40 } from "../../services/driver";
 
@@ -18,8 +17,8 @@ export default function DriverMap() {
   const [barangays, setBarangays] = useState<BarangayItem[]>([]);
   const [banner, setBanner] = useState({
     visible: true,
-    title: "Route Active • Truck KAL-104",
-    message: "Live telemetry connected to Cagayan de Oro City Sanitation Dispatch.",
+    title: "Collection Schedule • Sector 1 Active",
+    message: "Official assigned collection route covering urban pilot Barangays 1 to 10.",
     type: "truck" as "truck" | "info" | "success",
   });
 
@@ -32,12 +31,8 @@ export default function DriverMap() {
       const data = await getBarangays1to40();
       setBarangays(data);
     } catch (e) {
-      console.warn("Failed to load barangays for map", e);
+      console.warn("Failed to load barangays", e);
     }
-  };
-
-  const handleSelectBarangay = (name: string) => {
-    router.push("/driver/dashboard" as any);
   };
 
   return (
@@ -65,8 +60,8 @@ export default function DriverMap() {
         </View>
 
         <View style={styles.truckActiveBadge}>
-          <MaterialCommunityIcons name="truck-fast" size={14} color="#2E7D32" />
-          <Text style={styles.truckActiveText}>KAL-104 Live</Text>
+          <MaterialCommunityIcons name="truck-outline" size={14} color="#2E7D32" />
+          <Text style={styles.truckActiveText}>Route Active</Text>
         </View>
       </View>
 
@@ -76,22 +71,14 @@ export default function DriverMap() {
       >
         {/* 2. TITLE SECTION */}
         <View style={styles.titleSection}>
-          <Text style={styles.pageTitle}>CDO Route Map</Text>
+          <Text style={styles.pageTitle}>CDO Route Directory</Text>
           <Text style={styles.pageSubtitle}>
-            Leaflet OpenStreetMap • Mindanao (Cagayan de Oro City) • Barangays 1 to 40
+            Designated Collection Sectors & Timetables • Urban Pilot Barangays 1 to 40
           </Text>
         </View>
 
-        {/* 3. LEAFLET OPENSTREETMAP */}
-        <LeafletCdoMapView
-          height={400}
-          barangays={barangays}
-          onSelectBarangay={handleSelectBarangay}
-          activeTruckPlate="KAL-104"
-        />
-
         {/* 4. ROUTE DIRECTORY (BARANGAY 1 TO 40) */}
-        <Text style={[styles.sectionTitle, { marginTop: 16 }]}>Garbage Truck Fleet Routes</Text>
+        <Text style={styles.sectionTitle}>Garbage Truck Fleet Routes</Text>
 
         <View style={styles.routeCardList}>
           {/* Route 1 */}

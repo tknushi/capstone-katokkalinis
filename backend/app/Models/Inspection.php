@@ -54,20 +54,13 @@ class Inspection extends Model
     public function getGradeLetterAttribute(): string
     {
         $score = $this->total_score ?? 0;
-        if ($score >= 90) return 'A';
-        if ($score >= 80) return 'B';
-        if ($score >= 75) return 'C';
-        return 'D';
+        return \App\Services\VendorComplianceService::calculateGradeLetter($score);
     }
 
     public function getPendingGradeLetterAttribute(): ?string
     {
         if ($this->pending_total_score === null) return null;
-        $score = $this->pending_total_score;
-        if ($score >= 90) return 'A';
-        if ($score >= 80) return 'B';
-        if ($score >= 75) return 'C';
-        return 'D';
+        return \App\Services\VendorComplianceService::calculateGradeLetter($this->pending_total_score);
     }
 
     public function vendor(): BelongsTo

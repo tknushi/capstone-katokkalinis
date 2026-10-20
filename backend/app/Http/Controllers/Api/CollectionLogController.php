@@ -169,13 +169,13 @@ class CollectionLogController extends Controller
     public function index(Request $request): JsonResponse
     {
         $user = $request->user();
-        $isStaffOrAdmin = $user->roles()->whereIn('name', ['admin', 'super_admin', 'barangay_admin', 'inspector'])->exists();
+        $isStaffOrAdmin = $user ? $user->roles()->whereIn('name', ['admin', 'super_admin', 'barangay_admin', 'inspector'])->exists() : true;
 
         $query = CollectionLog::with(['driver:id,name,email', 'truck:id,truck_number,plate_number', 'audits'])
             ->orderBy('id', 'desc');
 
         // Driver restriction: drivers can only view their own logs unless admin requested
-        if (!$isStaffOrAdmin || $request->query('my_logs_only')) {
+        if ($user && (!$isStaffOrAdmin || $request->query('my_logs_only'))) {
             $query->where('driver_id', $user->id);
         }
 

@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import { useFocusEffect, useRouter } from "expo-router";
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
 import React, { useCallback, useEffect, useState } from "react";
 import {
@@ -21,6 +21,7 @@ import VendorHotbar from "../components/VendorHotbar";
 import { apiRequest, resolveMediaUrl } from "../services/api";
 import { logoutUser } from "../services/auth";
 import { fetchMyReportsCount } from "../services/resident";
+import { fetchVendorEvaluation } from "../services/vendor";
 import { sanitizePhoneNumber, validatePhilippinePhone } from "../utils/phoneValidation";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
@@ -28,23 +29,29 @@ const isSmall = SCREEN_WIDTH < 360;
 
 export default function Profile() {
   const router = useRouter();
+  const params = useLocalSearchParams();
 
   // User & role info
-  const [role, setRole] = useState("resident"); // "resident" | "vendor"
+  const initialRole = params?.role ? String(params.role) : "resident";
+  const [role, setRole] = useState(initialRole); // "resident" | "vendor"
   const [name, setName] = useState("Katok Resident");
   const [email, setEmail] = useState("resident@katokkalinis.com");
   const [contactNumber, setContactNumber] = useState("09467802940");
   const [address, setAddress] = useState("Barangay 12, Cagayan de Oro");
   const [avatarUri, setAvatarUri] = useState(null);
 
-  // Vendor specific fields
+  // Vendor specific fields (dynamically loaded from backend)
   const [vendorId, setVendorId] = useState("VEN-2026012345");
-  const stallNumber = "Stall #14, Section B";
-  const marketLocation = "Divisoria Public Market";
-  const businessType = "Fresh Produce & Food Stall";
-  const sanitationScore = "8.5 / 10";
-  const complianceHistory = "Passed 4/4 Inspections";
-  const violations = "0 Recorded Violations";
+  const [stallNumber, setStallNumber] = useState("Stall #14, Section B");
+  const [marketLocation, setMarketLocation] = useState("Divisoria Public Market");
+  const [businessType, setBusinessType] = useState("Fresh Produce & Food Stall");
+  const [sanitationScore, setSanitationScore] = useState("0.0");
+  const [complianceScore, setComplianceScore] = useState("0%");
+  const [complianceGrade, setComplianceGrade] = useState("N/A");
+  const [complianceHistory, setComplianceHistory] = useState("Pending Inspection");
+  const [violations, setViolations] = useState("0 Recorded Violations");
+  const [violationsCount, setViolationsCount] = useState(0);
+  const [recentInspection, setRecentInspection] = useState(null);
 
   // Modals state
   const [viewModalVisible, setViewModalVisible] = useState(false);
@@ -77,11 +84,13 @@ export default function Profile() {
   const loadProfile = async () => {
     try {
       const storedRole = await AsyncStorage.getItem("userRole");
+      const effectiveRole = params?.role ? String(params.role) : (storedRole || "resident");
+      if (effectiveRole) setRole(effectiveRole);
+
       const storedName = await AsyncStorage.getItem("userName");
       const storedEmail = await AsyncStorage.getItem("userEmail");
       const storedId = await AsyncStorage.getItem("userId");
 
-      if (storedRole) setRole(storedRole);
       if (storedName) {
         setName(storedName);
         setEditName(storedName);
@@ -112,6 +121,13 @@ export default function Profile() {
       try {
         const res = await apiRequest("/me", { method: "GET" });
         if (res && res.user) {
+          const detectedRole = res.user.vendor
+            ? "vendor"
+            : (res.user.roles?.[0]?.name || effectiveRole || "resident");
+          if (detectedRole) {
+            setRole(detectedRole);
+            await AsyncStorage.setItem("userRole", detectedRole);
+          }
           if (res.user.name) setName(res.user.name);
           if (res.user.email) setEmail(res.user.email);
           if (res.user.contact_number) setContactNumber(res.user.contact_number);
@@ -121,6 +137,45 @@ export default function Profile() {
             if (resolved) {
               setAvatarUri(resolved);
               await AsyncStorage.setItem("userAvatar", resolved);
+            }
+          }
+
+          if (res.user.vendor) {
+            const v = res.user.vendor;
+            if (v.stall_number) setStallNumber(v.stall_number);
+            if (v.market) setMarketLocation(v.market);
+            if (v.business_name) setBusinessType(v.business_name);
+            if (v.vendor_code) setVendorId(`VEN-${v.vendor_code}`);
+
+            const sScore = v.sanitation_score !== null && v.sanitation_score !== undefined
+              ? Number(v.sanitation_score).toFixed(1)
+              : "0.0";
+            const cScore = (v.compliance_score !== null && v.compliance_score !== undefined)
+              ? `${v.compliance_score}%`
+              : "0%";
+            const cGrade = v.compliance_grade ? `Grade ${v.compliance_grade.replace(/^Grade\s*/i, "")}` : "N/A";
+            const vCount = v.violations_count ?? 0;
+
+            setSanitationScore(sScore);
+            setComplianceScore(cScore);
+            setComplianceGrade(cGrade);
+            setViolationsCount(vCount);
+            setViolations(`${vCount} Recorded Violation${vCount === 1 ? "" : "s"}`);
+
+            try {
+              const evalRes = await fetchVendorEvaluation(v.id);
+              if (evalRes && evalRes.success && evalRes.evaluation) {
+                const ev = evalRes.evaluation;
+                if (ev.total_score !== undefined && ev.total_score !== null) {
+                  setComplianceScore(`${ev.total_score}%`);
+                  setSanitationScore((ev.total_score / 10).toFixed(1));
+                  setComplianceGrade(`Grade ${ev.grade}`);
+                }
+                setComplianceHistory(`Status: ${ev.status ? ev.status.toUpperCase() : 'COMPLETED'} (${ev.valid_through || 'Current Quarter'})`);
+                setRecentInspection(ev);
+              }
+            } catch (err) {
+              console.warn("Could not load vendor evaluation details:", err);
             }
           }
         }
@@ -400,17 +455,21 @@ export default function Profile() {
           {role === "vendor" ? (
             <View style={styles.statsContainer}>
               <View style={styles.statItem}>
-                <Text style={styles.statNumber}>8.5</Text>
+                <Text style={styles.statNumber}>{sanitationScore}</Text>
                 <Text style={styles.statLabel}>Sanitation Score</Text>
               </View>
               <View style={styles.statDivider} />
               <View style={styles.statItem}>
-                <Text style={[styles.statNumber, { color: "#4CAF50" }]}>100%</Text>
-                <Text style={styles.statLabel}>Compliance</Text>
+                <Text style={[styles.statNumber, { color: parseInt(complianceScore, 10) >= 85 ? "#2E7D32" : (parseInt(complianceScore, 10) >= 70 ? "#1976D2" : "#DC2626") }]}>
+                  {complianceScore}
+                </Text>
+                <Text style={styles.statLabel}>Compliance ({complianceGrade})</Text>
               </View>
               <View style={styles.statDivider} />
               <View style={styles.statItem}>
-                <Text style={[styles.statNumber, { color: "#2E7D32" }]}>0</Text>
+                <Text style={[styles.statNumber, { color: violationsCount > 0 ? "#DC2626" : "#2E7D32" }]}>
+                  {violationsCount}
+                </Text>
                 <Text style={styles.statLabel}>Violations</Text>
               </View>
             </View>
@@ -637,7 +696,13 @@ export default function Profile() {
               <Text style={styles.modalSectionHeader}>Current Ratings</Text>
               <View style={styles.infoRow}>
                 <Text style={styles.infoLabel}>Sanitation Score / Grade</Text>
-                <Text style={[styles.infoValue, { color: "#4CAF50", fontWeight: "700" }]}>{sanitationScore}</Text>
+                <Text style={[styles.infoValue, { color: "#2E7D32", fontWeight: "700" }]}>
+                  {sanitationScore} / 10 ({complianceGrade})
+                </Text>
+              </View>
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>Compliance Score</Text>
+                <Text style={styles.infoValue}>{complianceScore}</Text>
               </View>
               <View style={styles.infoRow}>
                 <Text style={styles.infoLabel}>Compliance History</Text>
@@ -645,18 +710,35 @@ export default function Profile() {
               </View>
               <View style={styles.infoRow}>
                 <Text style={styles.infoLabel}>Violations Record</Text>
-                <Text style={[styles.infoValue, { color: "#2E7D32" }]}>{violations}</Text>
+                <Text style={[styles.infoValue, { color: violationsCount > 0 ? "#DC2626" : "#2E7D32" }]}>
+                  {violations}
+                </Text>
               </View>
 
-              <Text style={styles.modalSectionHeader}>Recent Inspection History</Text>
-              <View style={styles.activityCard}>
-                <Ionicons name="checkmark-circle-outline" size={22} color="#4CAF50" />
-                <View style={{ marginLeft: 10, flex: 1 }}>
-                  <Text style={styles.activityTitle}>Official Inspection Passed</Text>
-                  <Text style={styles.activitySub}>Score: 8/10 • Grade: Good Sanitation</Text>
-                  <Text style={styles.activityDate}>April 30, 2026</Text>
+              <Text style={styles.modalSectionHeader}>Recent Inspection Assessment</Text>
+              {recentInspection ? (
+                <View style={styles.activityCard}>
+                  <Ionicons name="checkmark-circle-outline" size={22} color="#2E7D32" />
+                  <View style={{ marginLeft: 10, flex: 1 }}>
+                    <Text style={styles.activityTitle}>Official Inspection ({recentInspection.grade ? `Grade ${recentInspection.grade}` : 'Certified'})</Text>
+                    <Text style={styles.activitySub}>Score: {recentInspection.total_score}% • Inspector: {recentInspection.inspector_name || 'Assigned Officer'}</Text>
+                    <Text style={styles.activityDate}>{recentInspection.inspected_at_formatted || 'Recently Inspected'}</Text>
+                    {recentInspection.notes ? (
+                      <Text style={{ fontSize: 11, color: "#666", marginTop: 4, fontStyle: "italic" }}>
+                        &ldquo;{recentInspection.notes}&rdquo;
+                      </Text>
+                    ) : null}
+                  </View>
                 </View>
-              </View>
+              ) : (
+                <View style={[styles.activityCard, { opacity: 0.8 }]}>
+                  <Ionicons name="information-circle-outline" size={22} color="#7A8D78" />
+                  <View style={{ marginLeft: 10, flex: 1 }}>
+                    <Text style={styles.activityTitle}>Pending Official Inspection</Text>
+                    <Text style={styles.activitySub}>An inspector will conduct an assessment on your stall.</Text>
+                  </View>
+                </View>
+              )}
             </ScrollView>
 
             <TouchableOpacity style={styles.modalCloseButton} onPress={() => setComplianceModalVisible(false)}>

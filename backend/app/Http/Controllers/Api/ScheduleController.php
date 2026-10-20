@@ -7,6 +7,7 @@ use App\Models\ActivityLog;
 use App\Models\CollectionSchedule;
 use App\Models\Notification;
 use App\Models\User;
+use App\Services\PushNotificationService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -24,7 +25,18 @@ class ScheduleController extends Controller
         $query = CollectionSchedule::with('barangay');
 
         if ($request->filled('barangay_id')) {
-            $query->where('barangay_id', $request->barangay_id);
+            $targetBarangay = \App\Models\Barangay::find($request->barangay_id);
+            if ($targetBarangay) {
+                $matchingIds = \App\Models\Barangay::where('name', $targetBarangay->name)->pluck('id')->toArray();
+                $query->whereIn('barangay_id', $matchingIds);
+            } else {
+                $query->where('barangay_id', $request->barangay_id);
+            }
+        } elseif ($request->filled('barangay')) {
+            $barangayName = trim($request->barangay);
+            $query->whereHas('barangay', function ($q) use ($barangayName) {
+                $q->where('name', 'like', "%{$barangayName}%");
+            });
         }
 
         if ($request->filled('day')) {
@@ -57,9 +69,15 @@ class ScheduleController extends Controller
         $query = CollectionSchedule::with('barangay');
 
         if ($request->filled('barangay_id')) {
-            $query->where('barangay_id', $request->barangay_id);
+            $targetBarangay = \App\Models\Barangay::find($request->barangay_id);
+            if ($targetBarangay) {
+                $matchingIds = \App\Models\Barangay::where('name', $targetBarangay->name)->pluck('id')->toArray();
+                $query->whereIn('barangay_id', $matchingIds);
+            } else {
+                $query->where('barangay_id', $request->barangay_id);
+            }
         } elseif ($request->filled('barangay')) {
-            $barangayName = $request->barangay;
+            $barangayName = trim($request->barangay);
             $query->whereHas('barangay', function ($q) use ($barangayName) {
                 $q->where('name', 'like', "%{$barangayName}%");
             });
@@ -123,24 +141,22 @@ class ScheduleController extends Controller
             $schedule
         );
 
-        // Notify residents belonging to this matching barangay
+        // Dispatch push notification to residents of this barangay
         $barangay = $schedule->barangay;
         if ($barangay) {
-            $residents = User::whereHas('roles', function ($q) {
-                $q->where('name', 'resident');
-            })->where(function ($q) use ($barangay) {
-                $q->where('barangay_id', $barangay->id)
-                  ->orWhere('address', 'like', "%{$barangay->name}%");
-            })->get();
-
-            foreach ($residents as $resident) {
-                Notification::create([
-                    'user_id' => $resident->id,
-                    'title' => 'Waste Collection Completed',
-                    'message' => "Scheduled waste collection in {$barangay->name} has been completed.",
-                    'type' => 'truck',
-                    'is_read' => false,
-                ]);
+            try {
+                PushNotificationService::broadcast(
+                    'schedule',
+                    'Waste Collection Completed',
+                    "Scheduled waste collection in {$barangay->name} has been completed.",
+                    [
+                        'role' => 'resident',
+                        'barangay_id' => $barangay->id,
+                    ],
+                    ['schedule_id' => $schedule->id]
+                );
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning("Could not broadcast completion push: " . $e->getMessage());
             }
         }
 
@@ -179,8 +195,17 @@ class ScheduleController extends Controller
             ], 422);
         }
 
+        $targetBarangay = \App\Models\Barangay::find($request->barangay_id);
+        $canonicalBarangayId = $request->barangay_id;
+        if ($targetBarangay) {
+            $first = \App\Models\Barangay::where('name', $targetBarangay->name)->orderBy('id')->first();
+            if ($first) {
+                $canonicalBarangayId = $first->id;
+            }
+        }
+
         $schedule = CollectionSchedule::create([
-            'barangay_id' => $request->barangay_id,
+            'barangay_id' => $canonicalBarangayId,
             'date' => $request->date,
             'day' => Carbon::parse($request->date)->format('l'),
             'pickup_time' => $request->pickup_time,
@@ -197,6 +222,24 @@ class ScheduleController extends Controller
             "Added {$schedule->day} schedule for {$schedule->barangay->name}.",
             $schedule
         );
+
+        // Dispatch real-time push notification for this schedule
+        try {
+            $barangayName = $schedule->barangay ? $schedule->barangay->name : "Barangay";
+            $formattedTime = substr($schedule->pickup_time, 0, 5);
+            PushNotificationService::broadcast(
+                'schedule',
+                "Collection Schedule: {$barangayName}",
+                "Pickup scheduled for {$schedule->day}, {$schedule->date} at {$formattedTime}.",
+                [
+                    'barangay_id' => $schedule->barangay_id,
+                    'role' => 'resident',
+                ],
+                ['schedule_id' => $schedule->id]
+            );
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning("Could not broadcast schedule push: " . $e->getMessage());
+        }
 
         return response()->json([
             'success' => true,

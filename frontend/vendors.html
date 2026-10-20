@@ -260,6 +260,30 @@
             border-color: rgba(156, 163, 175, 0.25);
             color: #D1D5DB;
         }
+
+        @media print {
+            body * { visibility: hidden !important; }
+            #vendor-qr-certificate-card, #vendor-qr-certificate-card * { visibility: visible !important; }
+            #vendor-qr-modal {
+                position: fixed !important;
+                left: 0 !important;
+                top: 0 !important;
+                width: 100vw !important;
+                height: 100vh !important;
+                background: #ffffff !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                padding: 0 !important;
+            }
+            #vendor-qr-certificate-card {
+                position: static !important;
+                width: 100% !important;
+                max-width: 500px !important;
+                box-shadow: none !important;
+                border: 2px solid #16a34a !important;
+            }
+        }
     </style>
 </head>
 <body>
@@ -350,20 +374,15 @@
 
                     <div class="card-filter-row">
                         <div class="card-filter-group">
-                            <select id="inspection-filter-status" class="form-control" style="width: auto; min-width: 180px; padding: 6px 12px; font-size: 12.5px;" onchange="filterInspections()">
-                                <option value="all" selected>All Reviews (Pending First)</option>
-                                <option value="pending_changes">Pending Change Requests Only</option>
-                                <option value="pending">Pending Reviews</option>
+                            <select id="inspection-filter-status" class="form-control" style="width: auto; min-width: 160px; padding: 6px 12px; font-size: 12.5px;" onchange="filterInspections()">
+                                <option value="all">All Reviews</option>
+                                <option value="pending" selected>Pending Reviews</option>
                                 <option value="decided">Decision History</option>
                             </select>
                             <label class="flagged-filter-checkbox">
                                 <input type="checkbox" id="flagged-only" onchange="loadInspectionReviews()">
                                 Show Flagged Only (Score &le; <span id="flag-threshold-display">60</span>)
                             </label>
-                            <button type="button" class="btn btn-sm" onclick="loadInspectionReviews(false, true)" style="display: inline-flex; align-items: center; gap: 5px; background: var(--green-700); color: #fff; padding: 6px 12px; font-size: 12.5px; border-radius: 6px; cursor: pointer; border: none;" title="Refresh inspections">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-                                Refresh
-                            </button>
                         </div>
                         <div class="card-filter-group">
                             <input type="text" id="inspection-search" placeholder="Search market or owner..." style="padding: 6px 12px; font-size: 12.5px; border-radius: 6px; border: 1px solid var(--border);" oninput="filterInspections()">
@@ -526,6 +545,62 @@
         </div>
     </div>
 
+    <!-- Vendor Stall QR Certificate & Badge Modal -->
+    <div id="vendor-qr-modal" class="modal">
+        <div class="modal-content" style="max-width: 520px; text-align: center;">
+            <div class="modal-header" style="text-align: left;">
+                <h3 id="vendor-qr-modal-title">Vendor Stall QR Certificate</h3>
+                <span class="close-btn" onclick="closeVendorQrModal()">&times;</span>
+            </div>
+            <div id="vendor-qr-certificate-card" style="margin-top: 10px; background: #ffffff; border: 2px solid #16a34a; border-radius: 12px; padding: 22px; box-shadow: 0 4px 16px rgba(0,0,0,0.06); text-align: center; color: #1e331b;">
+                <div style="font-size: 10.5px; font-weight: 800; letter-spacing: 0.8px; text-transform: uppercase; color: #15803d; margin-bottom: 2px;">
+                    Republic of the Philippines · City of Cagayan de Oro
+                </div>
+                <div style="font-size: 13.5px; font-weight: 800; color: #0f3d20;">
+                    CLENRO Public Market Sanitation Compliance Certificate
+                </div>
+                <div style="height: 1px; background: #e2ece0; margin: 10px auto 14px; width: 90%;"></div>
+
+                <div id="qr-image-container" style="display: flex; justify-content: center; align-items: center; margin: 12px 0;">
+                    <img id="vendor-qr-img" src="" alt="Stall QR Code" style="width: 200px; height: 200px; border-radius: 8px; border: 1px solid #e2e8f0; padding: 6px; background: #fff;" />
+                </div>
+
+                <div style="font-size: 18px; font-weight: 800; color: #0f3d20; margin-top: 6px;" id="qr-business-name">
+                    Market Stall Business
+                </div>
+                <div style="font-size: 13px; color: #526c5b; font-weight: 600; margin-top: 2px;" id="qr-owner-name">
+                    Owner: -
+                </div>
+                <div style="display: inline-flex; gap: 8px; align-items: center; justify-content: center; margin-top: 8px; flex-wrap: wrap;">
+                    <span class="status-pill status-pill-green" id="qr-market-pill"><span class="status-pill-dot"></span>Cogon Market</span>
+                    <span class="status-pill status-pill-blue" id="qr-stall-pill">Stall #12</span>
+                </div>
+
+                <div style="margin-top: 14px; padding: 10px; background: #f0fdf4; border: 1px dashed #86efac; border-radius: 8px; font-family: monospace; font-size: 11px; word-break: break-all; color: #166534;" id="qr-token-display">
+                    KK-QR-...
+                </div>
+
+                <div style="margin-top: 12px; font-size: 11px; color: #64748b; line-height: 1.4;">
+                    Official City Sanitation Verification QR. Authorized Cagayan de Oro City Sanitation Inspectors scan this stall token to conduct compliance ratings (Grades A to C) and record inspections.
+                </div>
+            </div>
+
+            <div style="margin-top: 18px; display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <button type="button" class="btn" style="width: auto; background: #f1f5f9; color: #334155;" onclick="regenerateCurrentVendorQr()" id="btn-regenerate-qr" title="Re-issue a new cryptographically signed token">
+                    &#8635; Regenerate Token
+                </button>
+                <div style="display: flex; gap: 8px;">
+                    <button type="button" class="btn" style="width: auto; background: var(--green-700); color: #fff;" onclick="printStallCertificate()">
+                        &#128438; Print Certificate
+                    </button>
+                    <button type="button" class="btn" style="width: auto; background: var(--border); color: var(--text);" onclick="closeVendorQrModal()">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="js/app.js"></script>
     <script>
         const endpoint = '/vendors';
@@ -593,7 +668,7 @@
         }
 
         // Load & Render Inspections (Market Compliance)
-        async function loadInspectionReviews(isSilent = false, showFeedback = false) {
+        async function loadInspectionReviews() {
             const tbody = document.getElementById('inspections-table-body');
             const flaggedOnly = document.getElementById('flagged-only') ? document.getElementById('flagged-only').checked : false;
             const qs = flaggedOnly ? '?flagged=1' : '';
@@ -605,20 +680,15 @@
                 document.getElementById('flag-threshold-display').textContent = flagThreshold;
 
                 // Update Stats
-                const pending = allInspections.filter(i => (!i.decision || i.change_status === 'pending'));
+                const pending = allInspections.filter(i => !i.decision);
                 document.getElementById('stat-inspections').textContent = allInspections.length;
                 document.getElementById('stat-pending').textContent = pending.length;
                 document.getElementById('badge-compliance-count').textContent = allInspections.length;
                 document.getElementById('compliance-total-badge').textContent = allInspections.length + ' audits';
 
                 filterInspections();
-                if (showFeedback && typeof showToast === 'function') {
-                    showToast('Inspections refreshed.', 'info');
-                }
             } catch (error) {
-                if (!isSilent) {
-                    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 24px; color: #dc2626;">Unable to load inspection reports: ' + escapeHtml(error.message) + '</td></tr>';
-                }
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 24px; color: #dc2626;">Unable to load inspection reports: ' + escapeHtml(error.message) + '</td></tr>';
             }
         }
 
@@ -637,9 +707,8 @@
                     return false;
                 }
 
-                if (statusFilter === 'pending_changes') return item.change_status === 'pending';
-                if (statusFilter === 'pending') return (!item.decision || item.change_status === 'pending');
-                if (statusFilter === 'decided') return Boolean(item.decision) && item.change_status !== 'pending';
+                if (statusFilter === 'pending') return !item.decision;
+                if (statusFilter === 'decided') return Boolean(item.decision);
                 return true;
             });
 
@@ -657,33 +726,13 @@
                 const pillHtml = getInspectionPill(item);
                 const scoreHtml = getScorePill(item.total_score);
                 const isDecided = Boolean(item.decision);
-                const hasPendingChange = item.change_status === 'pending';
-                const requesterName = (item.change_requester && item.change_requester.name) || (item.inspector && item.inspector.name) || 'Inspector';
 
                 return `
-                    <tr style="${hasPendingChange ? 'background-color: #fffdf5; border-left: 4px solid #f59e0b;' : ''}">
+                    <tr>
                         <td>
                             <div>
                                 <strong style="font-size: 13.5px; color: var(--text);">${escapeHtml(marketName)}</strong>
                                 <div style="font-size: 11.5px; color: var(--text-muted); margin-top: 2px;">${escapeHtml(ownerName)}</div>
-                                ${hasPendingChange ? `
-                                    <div style="margin-top: 6px; background: #fff8e1; border: 1px dashed #ffb300; padding: 8px 10px; border-radius: 6px; font-size: 12px; color: #333;">
-                                        <span style="display: inline-flex; align-items: center; gap: 4px; background: #fff3cd; color: #856404; border: 1px solid #ffeeba; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold;">
-                                            &#9888; Inspector Change Request
-                                        </span>
-                                        <div style="margin-top: 4px;">
-                                            <strong>Score Revision:</strong> Hygiene: ${item.hygiene_system} &rarr; <b>${item.pending_hygiene_system}</b> |
-                                            Premises: ${item.condition_of_premises} &rarr; <b>${item.pending_condition_of_premises}</b> |
-                                            Total: ${item.total_score}% &rarr; <b style="color: #b45309;">${item.pending_total_score}% (${item.pending_grade_letter || 'A'})</b>
-                                        </div>
-                                        <div style="margin-top: 3px;">
-                                            <strong>Proposed Notes:</strong> "${escapeHtml(item.pending_notes || 'No notes')}"
-                                        </div>
-                                        <div style="font-size: 11px; color: #666; margin-top: 2px;">
-                                            Submitted by: ${escapeHtml(requesterName)}
-                                        </div>
-                                    </div>
-                                ` : ''}
                             </div>
                         </td>
                         <td>
@@ -701,40 +750,24 @@
                         </td>
                         <td>
                             ${scoreHtml}
-                            ${hasPendingChange ? `
-                                <div style="font-size: 11px; color: #b45309; font-weight: 700; margin-top: 3px;">
-                                    Proposed: ${item.pending_total_score}% (${item.pending_grade_letter || 'A'})
-                                </div>
-                            ` : ''}
                         </td>
                         <td>
-                            ${hasPendingChange ? '<span class="status-pill status-pill-orange"><span class="status-pill-dot"></span>Pending Review</span>' : pillHtml}
+                            ${pillHtml}
                         </td>
                         <td style="text-align: center;">
-                            <div style="display: inline-flex; flex-direction: column; align-items: center; gap: 5px;">
-                                ${hasPendingChange ? `
-                                    <div style="display: flex; gap: 4px; margin-bottom: 2px;">
-                                        <button type="button" class="btn btn-sm" style="padding: 4px 8px; font-size: 11px; font-weight: bold; background: #16a34a; color: #fff; border: none; border-radius: 4px; cursor: pointer;" onclick="acceptChangeRequest(${item.id})" title="Accept inspector's evaluation changes">
-                                            &#10003; Accept
-                                        </button>
-                                        <button type="button" class="btn btn-sm" style="padding: 4px 8px; font-size: 11px; font-weight: bold; background: #dc2626; color: #fff; border: none; border-radius: 4px; cursor: pointer;" onclick="rejectChangeRequest(${item.id})" title="Reject inspector's evaluation changes">
-                                            &#10007; Reject
-                                        </button>
-                                    </div>
-                                ` : (!isDecided ? `
-                                    <div style="display: flex; gap: 4px; margin-bottom: 2px;">
-                                        <button type="button" class="btn btn-sm btn-accept" onclick="decideInspection(${item.id}, 'accepted')" title="Accept Inspection">
-                                            &#10003; Accept
-                                        </button>
-                                        <button type="button" class="btn btn-sm btn-reject" onclick="decideInspection(${item.id}, 'rejected')" title="Reject Inspection">
-                                            &#10007; Reject
-                                        </button>
-                                    </div>
+                            <div style="display: inline-flex; align-items: center; gap: 5px;">
+                                ${!isDecided ? `
+                                    <button type="button" class="btn btn-sm btn-accept" onclick="decideInspection(${item.id}, 'accepted')" title="Accept Inspection">
+                                        &#10003; Accept
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-reject" onclick="decideInspection(${item.id}, 'rejected')" title="Reject Inspection">
+                                        &#10007; Reject
+                                    </button>
                                 ` : `
                                     <span style="font-size: 11.5px; color: var(--text-muted); font-style: italic;">
                                         Decided ${item.decided_at ? item.decided_at.substring(0, 10) : ''}
                                     </span>
-                                `)}
+                                `}
                                 <button type="button" class="action-icon-btn has-tooltip" data-tooltip="View Details" aria-label="View Details" onclick="showInspectionDetail(${item.id})">
                                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                         <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
@@ -748,29 +781,6 @@
             }).join('');
         }
 
-        async function acceptChangeRequest(id) {
-            if (!confirm('Accept this evaluation change request? It will immediately become the official evaluation and sync to the vendor mobile app in real time.')) return;
-            try {
-                const res = await apiRequest('/inspections/' + id + '/accept-change', 'POST');
-                showToast(res.message || 'Change request accepted successfully.', 'success');
-                await loadInspectionReviews();
-            } catch (error) {
-                alert('Unable to accept change: ' + error.message);
-            }
-        }
-
-        async function rejectChangeRequest(id) {
-            const reason = prompt('Reason for rejecting this change request (optional):', 'Declined by administrator');
-            if (reason === null) return;
-            try {
-                const res = await apiRequest('/inspections/' + id + '/reject-change', 'POST', { reason: reason });
-                showToast(res.message || 'Change request rejected.', 'info');
-                await loadInspectionReviews();
-            } catch (error) {
-                alert('Unable to reject change: ' + error.message);
-            }
-        }
-
         async function decideInspection(id, decision) {
             if (!confirm('Are you sure you want to ' + decision + ' this inspection report?')) return;
             try {
@@ -781,11 +791,6 @@
                 alert('Unable to save decision: ' + error.message);
             }
         }
-
-        // Auto-refresh inspection reviews every 1 second for ultra-fast real-time inspector sync
-        setInterval(() => {
-            loadInspectionReviews(true);
-        }, 1000);
 
         function showInspectionDetail(id) {
             const item = allInspections.find(i => i.id === id);
@@ -827,9 +832,9 @@
                     </div>
                 </div>
                 <div>
-                    <span style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Inspector Observations &amp; Notes</span>
+                    <span style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Inspection Findings</span>
                     <div style="margin-top: 4px; padding: 12px; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; font-size: 13px; color: var(--text); line-height: 1.5;">
-                        ${escapeHtml(item.notes || 'No specific remarks recorded for this inspection assessment.')}
+                        ${escapeHtml(item.notes || 'No specific findings recorded for this inspection assessment.')}
                     </div>
                 </div>
             `;
@@ -960,6 +965,7 @@
                                 <th>Owner Name</th>
                                 <th>Contact</th>
                                 <th>Status</th>
+                                <th style="text-align: center;">Official QR</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -970,6 +976,11 @@
                                     <td>${escapeHtml(m.owner_name || '-')}</td>
                                     <td>${escapeHtml(m.contact_number || '-')}</td>
                                     <td>${getStatusPill(m.status === 'active' ? 'green' : 'gray', m.status || 'Active')}</td>
+                                    <td style="text-align: center;">
+                                        <button type="button" class="btn btn-sm btn-outline-action" onclick="openVendorQrModal(${m.id})" style="padding: 4px 9px; font-size: 11.5px; font-weight: 700; color: var(--green-800); border-color: var(--green-500); background: var(--surface-alt);" title="View, Download, or Print Official Stall QR Certificate">
+                                            &#128247; QR Badge
+                                        </button>
+                                    </td>
                                 </tr>
                             `).join('')}
                         </tbody>
@@ -983,6 +994,68 @@
 
         function closeMembersModal() {
             document.getElementById('members-modal').classList.remove('active');
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | VENDOR QR CERTIFICATE & PRINTING HANDLERS (Task 3)
+        |--------------------------------------------------------------------------
+        */
+        let currentQrVendor = null;
+
+        function openVendorQrModal(vendorId) {
+            const vendor = allVendors.find(v => Number(v.id) === Number(vendorId));
+            if (!vendor) return;
+
+            currentQrVendor = vendor;
+            const isSuperAdmin = typeof getUserRole === 'function' ? getUserRole() === 'super_admin' : false;
+
+            document.getElementById('qr-business-name').textContent = vendor.business_name || 'Public Market Stall';
+            document.getElementById('qr-owner-name').textContent = 'Registered Owner: ' + (vendor.owner_name || 'N/A');
+            document.getElementById('qr-market-pill').innerHTML = `<span class="status-pill-dot"></span>${escapeHtml(vendor.market || 'Public Market')}`;
+            document.getElementById('qr-stall-pill').textContent = vendor.stall_number || 'Stall #' + vendor.id;
+
+            const qrToken = vendor.qr_code || `KK-QR-${vendor.id}-${vendor.vendor_code}`;
+            document.getElementById('qr-token-display').textContent = qrToken;
+
+            // Render high-res QR code
+            const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&margin=8&data=${encodeURIComponent(qrToken)}`;
+            document.getElementById('vendor-qr-img').src = qrUrl;
+
+            // Only Super Admin can regenerate token
+            const regenBtn = document.getElementById('btn-regenerate-qr');
+            if (regenBtn) {
+                regenBtn.style.display = isSuperAdmin ? 'inline-block' : 'none';
+            }
+
+            document.getElementById('vendor-qr-modal').classList.add('active');
+        }
+
+        function closeVendorQrModal() {
+            document.getElementById('vendor-qr-modal').classList.remove('active');
+        }
+
+        function printStallCertificate() {
+            window.print();
+        }
+
+        async function regenerateCurrentVendorQr() {
+            if (!currentQrVendor) return;
+            if (!confirm(`Regenerate secure QR token for stall ${currentQrVendor.stall_number} (${currentQrVendor.business_name})? The previous physical QR token will be revoked.`)) return;
+
+            try {
+                const res = await apiRequest(`/vendors/${currentQrVendor.id}/regenerate-qr`, 'POST');
+                if (res && res.success && res.qr_code) {
+                    currentQrVendor.qr_code = res.qr_code;
+                    document.getElementById('qr-token-display').textContent = res.qr_code;
+                    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&margin=8&data=${encodeURIComponent(res.qr_code)}`;
+                    document.getElementById('vendor-qr-img').src = qrUrl;
+                    alert('New secure QR token generated successfully.');
+                    await loadData();
+                }
+            } catch (err) {
+                alert('Failed to regenerate QR: ' + err.message);
+            }
         }
 
         function showMarketDocs(marketName) {

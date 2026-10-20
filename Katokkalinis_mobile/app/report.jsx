@@ -64,19 +64,23 @@ export default function Report() {
   const loadReports = useCallback(async () => {
     try {
       const res = await fetchReports({ status: filter === "all" ? undefined : filter });
-      if (res && res.success && Array.isArray(res.reports) && res.reports.length > 0) {
-        const formatted = res.reports.map((r) => ({
-          id: String(r.id),
-          name: r.user?.name || "Resident",
-          location: r.barangay?.name || r.location || "Cagayan de Oro",
-          time: r.created_at ? new Date(r.created_at).toLocaleDateString() : "Recent",
-          status: r.status === "completed" || r.status === "resolved" ? "Resolved" : "In Progress",
-          text: r.description || r.title || "Waste issue reported",
-          imageUrl: resolveMediaUrl(r.image_url || r.image),
-          avatar: resolveMediaUrl(r.user?.avatar_url || r.user?.avatar || null),
-          category: r.category || "Waste Report",
-        }));
-        setReports(formatted);
+      if (res && res.success && Array.isArray(res.reports)) {
+        if (res.reports.length > 0) {
+          const formatted = res.reports.map((r) => ({
+            id: String(r.id),
+            name: r.user?.name || "Resident",
+            location: r.barangay?.name || r.location || "Cagayan de Oro",
+            time: r.created_at ? new Date(r.created_at).toLocaleDateString() : "Recent",
+            status: r.status === "completed" || r.status === "resolved" ? "Resolved" : "In Progress",
+            text: r.description || r.title || "Waste issue reported",
+            imageUrl: resolveMediaUrl(r.image_url || r.image),
+            avatar: resolveMediaUrl(r.user?.avatar_url || r.user?.avatar || null),
+            category: r.category || "Waste Report",
+          }));
+          setReports(formatted);
+        } else {
+          setReports([]);
+        }
       } else {
         setReports(fallbackReports);
       }
@@ -199,9 +203,21 @@ export default function Report() {
           </View>
         ) : filteredReports.length === 0 ? (
           <View style={styles.emptyCard}>
-            <MaterialCommunityIcons name="clipboard-check-outline" size={40} color="#8DA78B" />
-            <Text style={styles.emptyTitle}>No reports found</Text>
-            <Text style={styles.emptySub}>No waste issues reported in this category.</Text>
+            <View style={styles.emptyIconCircle}>
+              <MaterialCommunityIcons name="clipboard-check-outline" size={36} color="#2E7D32" />
+            </View>
+            <Text style={styles.emptyTitle}>No Reports in this Category</Text>
+            <Text style={styles.emptySub}>
+              There are currently no active sanitation issues or missed collection reports logged for this view.
+            </Text>
+            <TouchableOpacity
+              style={styles.emptyActionButton}
+              onPress={() => router.push("/add-report")}
+              activeOpacity={0.85}
+            >
+              <MaterialCommunityIcons name="plus-circle-outline" size={16} color="#FFFFFF" style={{ marginRight: 6 }} />
+              <Text style={styles.emptyActionText}>Submit New Report</Text>
+            </TouchableOpacity>
           </View>
         ) : (
           filteredReports.map((report) => (
@@ -551,23 +567,58 @@ const styles = StyleSheet.create({
   },
   emptyCard: {
     backgroundColor: "#FFFFFF",
-    borderRadius: 16,
-    padding: 24,
+    borderRadius: 18,
+    padding: 26,
     alignItems: "center",
     borderWidth: 1,
     borderColor: "#EDF4EC",
     marginTop: 10,
+    elevation: 1,
+    shadowColor: "#000",
+    shadowOpacity: 0.03,
+  },
+  emptyIconCircle: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: "#E8F8EE",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 8,
   },
   emptyTitle: {
     fontSize: 15,
     fontWeight: "800",
     color: "#1E331B",
-    marginTop: 8,
+    marginTop: 4,
   },
   emptySub: {
     fontSize: 12,
-    color: "#7A8D78",
+    color: "#6B8468",
     marginTop: 4,
+    textAlign: "center",
+    lineHeight: 17,
+    maxWidth: 270,
+  },
+  emptyActionButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#2E7D32",
+    borderRadius: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    marginTop: 16,
+    elevation: 2,
+    shadowColor: "#2E7D32",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+  },
+  emptyActionText: {
+    color: "#FFFFFF",
+    fontSize: 13,
+    fontWeight: "800",
   },
   reportCard: {
     backgroundColor: "#FFFFFF",

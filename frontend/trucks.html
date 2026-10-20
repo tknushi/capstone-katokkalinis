@@ -18,7 +18,6 @@
         .status-on_route { background: #3498db; }
         .status-maintenance { background: #f39c12; }
         .status-inactive { background: #95a5a6; }
-        .live-note { color: var(--text-muted); font-size: 12.5px; margin-bottom: 12px; }
         .truck-code-tag {
             font-family: 'Consolas', monospace;
             font-weight: 700;
@@ -29,6 +28,50 @@
             border: 1px solid var(--green-200);
             display: inline-block;
             font-size: 11.5px;
+        }
+        .live-sync-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 11px;
+            border-radius: 12px;
+            background: #e8f5e9;
+            color: #2e7d32;
+            font-size: 11.5px;
+            font-weight: 700;
+            border: 1px solid #c8e6c9;
+        }
+        .pulse-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #2e7d32;
+            animation: pulseAnim 1.8s infinite;
+        }
+        @keyframes pulseAnim {
+            0% { transform: scale(0.9); opacity: 0.8; }
+            50% { transform: scale(1.35); opacity: 1; }
+            100% { transform: scale(0.9); opacity: 0.8; }
+        }
+        .weight-badge {
+            display: inline-block;
+            font-weight: 700;
+            color: #15803d;
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            padding: 3px 9px;
+            border-radius: 6px;
+            font-family: 'Consolas', monospace;
+            font-size: 12px;
+        }
+        .total-weight-pill {
+            font-size: 12px;
+            font-weight: 700;
+            background: #dcfce7;
+            color: #166534;
+            padding: 4px 12px;
+            border-radius: 8px;
+            border: 1px solid #86efac;
         }
     </style>
 </head>
@@ -66,28 +109,30 @@
                 <div class="stats-grid">
                     <div class="stat-card">
                         <h3>Total Active Fleet</h3>
-                        <div class="value" id="stat-total-trucks">8 Units</div>
+                        <div class="value" id="stat-total-trucks">5 Units</div>
                     </div>
                     <div class="stat-card">
                         <h3>Active on Route</h3>
-                        <div class="value" id="stat-active-routes" style="color: #2563eb;">3 Units</div>
+                        <div class="value" id="stat-active-routes" style="color: #2563eb;">0 Units</div>
                     </div>
                     <div class="stat-card">
-                        <h3>Market Sweeps Today</h3>
-                        <div class="value" id="stat-collections-today">14 Trips</div>
+                        <h3>Driver Logged Weight</h3>
+                        <div class="value" id="stat-total-weight" style="color: #15803d;">0.0 Tons</div>
                     </div>
                     <div class="stat-card">
-                        <h3>Avg. Turnaround Time</h3>
-                        <div class="value" id="stat-avg-time">6.8 hrs</div>
+                        <h3>Field Collection Logs</h3>
+                        <div class="value" id="stat-collection-logs-count">0 Entries</div>
                     </div>
                 </div>
 
                 <div class="card">
-                    <div class="card-header">
-                        <h3>Fleet Operational Status &amp; Last Reported GPS Location</h3>
+                    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                        <div>
+                            <h3 style="margin: 0;">Fleet Operational Status &amp; Last Reported GPS Location</h3>
+                            <span style="font-size: 12px; color: var(--text-muted);">Real-time status updates broadcasted live from driver mobile devices</span>
+                        </div>
                         <button class="btn" onclick="openModal()" style="width: auto; padding: 7px 16px;">Add Truck</button>
                     </div>
-                    <p class="live-note">⚡ Real-time updates for municipal solid waste vehicles across Cogon, Carmen, and Poblacion Barangays 1 to 40.</p>
                     <table class="table">
                         <thead>
                             <tr>
@@ -98,12 +143,55 @@
                                 <th>Fleet Partner</th>
                                 <th>Operating Zone</th>
                                 <th>Status</th>
+                                <th>Logged Waste</th>
                                 <th>Last Known Location</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody id="table-body">
-                            <tr><td colspan="9">Loading fleet equipment data...</td></tr>
+                            <tr><td colspan="10">Loading fleet equipment data...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Driver Waste Weights & Field Collection Logs Section (Live Transmitted from Mobile) -->
+                <div class="card" style="margin-top: 24px;">
+                    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                        <div>
+                            <h3 style="display: flex; align-items: center; gap: 8px; margin: 0;">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#15803d" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M6 2v20M18 2v20M2 6h20M2 18h20"/>
+                                    <circle cx="12" cy="12" r="4"/>
+                                </svg>
+                                Driver Field Collection Weights &amp; Waste Logs
+                            </h3>
+                            <span style="font-size: 12px; color: var(--text-muted);">Real-time disposal tonnage and collection notes recorded by drivers on mobile</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span class="live-sync-pill">
+                                <span class="pulse-dot"></span> Live Auto-Sync (Every 4s)
+                            </span>
+                            <span class="total-weight-pill" id="total-weight-summary">
+                                0.0 Tons Logged
+                            </span>
+                        </div>
+                    </div>
+
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Timestamp</th>
+                                <th>Driver Name</th>
+                                <th>Vehicle / Plate</th>
+                                <th>Barangay Location</th>
+                                <th>Disposal Weight</th>
+                                <th>Waste Category</th>
+                                <th>Record State</th>
+                                <th>Driver Field Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody id="weights-table-body">
+                            <tr><td colspan="8" class="empty-state">Loading driver collection weights...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -327,9 +415,17 @@
         }
 
         async function loadData() {
-            const tbody = document.getElementById('table-body');
             try {
-                const res = await apiRequest(endpoint);
+                let res = null;
+                try {
+                    res = await apiRequest(endpoint);
+                } catch (e) {
+                    res = await apiRequest('/public/trucks');
+                }
+                if (!res || !res.trucks) {
+                    res = await apiRequest('/public/trucks');
+                }
+
                 if (res && res.trucks && res.trucks.length > 0) {
                     trucksList = res.trucks.map(t => ({
                         id: t.id,
@@ -337,27 +433,106 @@
                         plate_number: t.plate_number,
                         truck_type: t.truck_type || 'Compactor Truck (10–12 cu.m / Heavy Duty - 16T)',
                         driver_name: (t.driver && t.driver.name) || 'CLENRO Operator',
-                        contractor_name: (t.contractor && t.contractor.company_name) || 'IPM CDO Urban Haulers',
-                        operating_zone: t.operating_zone || 'Cogon Market Commercial Zone',
+                        contractor_name: (t.contractor && t.contractor.company_name) || 'CLENRO In-House',
+                        operating_zone: t.operating_zone || 'Poblacion Core',
                         status: t.status || 'available',
                         capacity: '12 m³',
                         lat: t.latest_location ? t.latest_location.latitude : 8.477610,
                         lon: t.latest_location ? t.latest_location.longitude : 124.648210,
-                        last_update: t.latest_location ? t.latest_location.recorded_at : 'Recent'
+                        last_update: t.latest_location ? t.latest_location.recorded_at : 'Recent',
+                        total_weight: t.total_weight_collected || 0,
+                        logs_count: t.collection_logs_count || 0
                     }));
                 }
             } catch (error) {
-                console.log('Using local CDO CLENRO truck fleet data.');
+                console.log('Error loading trucks, using fallback dataset.');
             }
 
             renderTable(trucksList);
             updateStats();
+            await loadWeightsData();
+        }
+
+        async function loadWeightsData() {
+            try {
+                let res = null;
+                try {
+                    res = await apiRequest('/driver/collection-logs');
+                } catch(e) {
+                    res = await apiRequest('/public/driver/collection-logs');
+                }
+                if (!res || !res.data) {
+                    res = await apiRequest('/public/driver/collection-logs');
+                }
+
+                if (res && Array.isArray(res.data)) {
+                    renderWeightsTable(res.data);
+                } else {
+                    renderWeightsTable([]);
+                }
+            } catch (err) {
+                console.warn('Could not load collection logs:', err);
+                renderWeightsTable([]);
+            }
+        }
+
+        function renderWeightsTable(logs) {
+            const tbody = document.getElementById('weights-table-body');
+            if (!tbody) return;
+
+            if (!logs || logs.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="empty-state" style="text-align:center; padding:22px; color:var(--text-muted);">No driver collection weights logged yet. Weights recorded by drivers on mobile appear here live.</td></tr>';
+                const weightEl = document.getElementById('stat-total-weight');
+                if (weightEl) weightEl.textContent = '0.0 Tons';
+                const countEl = document.getElementById('stat-collection-logs-count');
+                if (countEl) countEl.textContent = '0 Entries';
+                const pill = document.getElementById('total-weight-summary');
+                if (pill) pill.textContent = '0.0 Tons Logged';
+                return;
+            }
+
+            let sumTons = 0;
+            tbody.innerHTML = logs.map(item => {
+                const amount = Number(item.amount_collected) || 0;
+                sumTons += amount;
+                const unit = item.unit || 'tons';
+                const driver = item.driver ? item.driver.name : 'John Driver';
+                const truckText = item.truck ? `${item.truck.truck_number} (${item.truck.plate_number})` : 'Truck #04 (ABC-1234)';
+                const brgy = item.barangay_name || 'Barangay Poblacion';
+                const wasteType = item.waste_type || 'Residual';
+                const isFinal = item.is_finalized;
+                const finalBadge = isFinal 
+                    ? '<span class="status-pill status-available" style="font-size:11px; padding:2px 8px;">Finalized &amp; Locked</span>' 
+                    : '<span class="status-pill status-on_route" style="font-size:11px; padding:2px 8px;">Field Entry</span>';
+                const dateStr = item.created_at ? new Date(item.created_at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Recent';
+                const notes = item.notes ? escapeHtml(item.notes) : '<span style="color:var(--text-muted); font-style:italic;">Standard collection</span>';
+
+                return `
+                    <tr>
+                        <td style="white-space:nowrap; font-size:12px; color:var(--text-muted);">${dateStr}</td>
+                        <td><strong>${escapeHtml(driver)}</strong></td>
+                        <td><span class="truck-code-tag">${escapeHtml(truckText)}</span></td>
+                        <td>${escapeHtml(brgy)}</td>
+                        <td><span class="weight-badge">${amount.toFixed(2)} ${escapeHtml(unit)}</span></td>
+                        <td><span style="font-size:12px; font-weight:600; color:var(--text-muted);">${escapeHtml(wasteType)}</span></td>
+                        <td>${finalBadge}</td>
+                        <td style="font-size:12px; max-width:220px; overflow:hidden; text-overflow:ellipsis;">${notes}</td>
+                    </tr>
+                `;
+            }).join('');
+
+            const weightEl = document.getElementById('stat-total-weight');
+            if (weightEl) weightEl.textContent = `${sumTons.toFixed(1)} Tons`;
+            const countEl = document.getElementById('stat-collection-logs-count');
+            if (countEl) countEl.textContent = `${logs.length} Entries`;
+            const pill = document.getElementById('total-weight-summary');
+            if (pill) pill.textContent = `${sumTons.toFixed(1)} Tons Logged`;
         }
 
         function renderTable(data) {
             const tbody = document.getElementById('table-body');
             if (data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="9" class="empty-state">No fleet equipment found.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="10" class="empty-state">No fleet equipment found.</td></tr>';
                 return;
             }
 
@@ -365,6 +540,7 @@
                 const locText = item.lat ? `${Number(item.lat).toFixed(5)}, ${Number(item.lon).toFixed(5)}` : 'In Depot';
                 const statusPill = `<span class="status-pill status-${item.status}">${item.status.replace('_', ' ')}</span>`;
                 const typeBadge = getTruckTypeBadge(item.truck_type);
+                const weightDisplay = item.total_weight ? `<span class="weight-badge">${Number(item.total_weight).toFixed(2)} tons</span>` : '<span style="color:var(--text-muted); font-size:12px;">0.00 tons</span>';
 
                 return `
                     <tr>
@@ -375,6 +551,7 @@
                         <td><span style="font-size:12px; color:var(--text-muted);">${item.contractor_name || 'CLENRO In-House'}</span></td>
                         <td><span style="font-size:12px;">${item.operating_zone || 'Poblacion Core'}</span></td>
                         <td>${statusPill}</td>
+                        <td>${weightDisplay}</td>
                         <td><span style="font-size:11.5px; font-family:monospace; color:var(--text-muted);">${locText}</span></td>
                         <td style="white-space:nowrap;">
                             <button class="btn" style="padding: 5px 10px; width: auto; background: #16a34a; font-size:11px; display:inline-block;" onclick="openStatusModal(${item.id}, '${item.status}')">Status</button>
@@ -516,7 +693,11 @@
             updateStats();
         });
 
-        document.addEventListener('DOMContentLoaded', loadData);
+        document.addEventListener('DOMContentLoaded', () => {
+            loadData();
+            // Live auto-refresh: Automatically sync truck status & weights broadcasted from driver mobile app
+            setInterval(loadData, 4000);
+        });
     </script>
 </body>
 </html>

@@ -97,7 +97,7 @@ export default function RoleScreen() {
               <View style={[styles.iconCircle, { backgroundColor: "#FFF7ED", borderColor: "#FED7AA" }]}>
                 <MaterialCommunityIcons
                   name="storefront-outline"
-                  size={26}
+                  size={28}
                   color="#D97706"
                 />
               </View>
@@ -112,7 +112,7 @@ export default function RoleScreen() {
               <View style={[styles.chevronCircle, { backgroundColor: "#D97706" }]}>
                 <MaterialCommunityIcons
                   name="chevron-right"
-                  size={20}
+                  size={22}
                   color="#FFFFFF"
                 />
               </View>
@@ -132,7 +132,7 @@ export default function RoleScreen() {
               <View style={[styles.iconCircle, { backgroundColor: "#E8F8EE", borderColor: "#C2E8CC" }]}>
                 <MaterialCommunityIcons
                   name="truck-fast-outline"
-                  size={26}
+                  size={28}
                   color="#2E7D32"
                 />
               </View>
@@ -147,7 +147,7 @@ export default function RoleScreen() {
               <View style={[styles.chevronCircle, { backgroundColor: "#2E7D32" }]}>
                 <MaterialCommunityIcons
                   name="chevron-right"
-                  size={20}
+                  size={22}
                   color="#FFFFFF"
                 />
               </View>
@@ -167,7 +167,7 @@ export default function RoleScreen() {
               <View style={[styles.iconCircle, { backgroundColor: "#EDF7FE", borderColor: "#C2DEFA" }]}>
                 <MaterialCommunityIcons
                   name="clipboard-check-outline"
-                  size={26}
+                  size={28}
                   color="#1565C0"
                 />
               </View>
@@ -182,7 +182,7 @@ export default function RoleScreen() {
               <View style={[styles.chevronCircle, { backgroundColor: "#1565C0" }]}>
                 <MaterialCommunityIcons
                   name="chevron-right"
-                  size={20}
+                  size={22}
                   color="#FFFFFF"
                 />
               </View>
@@ -216,18 +216,18 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
   },
   topNav: {
-    paddingHorizontal: 18,
-    paddingTop: Math.max(44, SCREEN_HEIGHT * 0.055),
-    paddingBottom: 6,
+    paddingHorizontal: 20,
+    paddingTop: Math.max(50, SCREEN_HEIGHT * 0.065),
+    paddingBottom: 10,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     zIndex: 20,
   },
   backButton: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
+    width: 42,
+    height: 42,
+    borderRadius: 21,
     backgroundColor: "#FFFFFF",
     justifyContent: "center",
     alignItems: "center",
@@ -240,68 +240,68 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   navLogo: {
-    width: 130,
-    height: 32,
+    width: 140,
+    height: 35,
   },
   header: {
     alignItems: "center",
-    marginTop: 6,
-    marginBottom: 20,
+    marginTop: Math.max(12, SCREEN_HEIGHT * 0.016),
+    marginBottom: Math.max(26, SCREEN_HEIGHT * 0.034),
     paddingHorizontal: 20,
     zIndex: 10,
   },
   title: {
-    fontSize: isSmall ? 25 : 28,
+    fontSize: isSmall ? 28 : 31,
     fontWeight: "900",
     color: "#1E331B",
     letterSpacing: 0.2,
   },
   subtitle: {
-    fontSize: 13,
+    fontSize: 14,
     color: "#5C7558",
-    marginTop: 5,
+    marginTop: 6,
     fontWeight: "600",
     textAlign: "center",
   },
   scrollContent: {
-    paddingBottom: Math.min(SCREEN_HEIGHT * 0.28, 220),
+    paddingBottom: Math.min(SCREEN_HEIGHT * 0.30, 240),
   },
   cardsContainer: {
     paddingHorizontal: 20,
-    gap: 15,
+    gap: Math.max(16, SCREEN_HEIGHT * 0.022),
     zIndex: 10,
-    marginBottom: 16,
+    marginBottom: 20,
   },
   roleCard: {
-    borderRadius: 20,
+    borderRadius: 22,
     borderWidth: 1.5,
     borderColor: "#D2EBD5",
     shadowColor: "#1B431D",
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.09,
-    shadowRadius: 10,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 7 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 4,
     overflow: "hidden",
   },
   cardGradient: {
-    paddingVertical: 16,
-    paddingHorizontal: 16,
+    paddingVertical: Math.max(20, SCREEN_HEIGHT * 0.026),
+    paddingHorizontal: 18,
     flexDirection: "row",
     alignItems: "center",
-    borderRadius: 20,
+    borderRadius: 22,
   },
   iconCircle: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 54,
+    height: 54,
+    borderRadius: 27,
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 1.5,
   },
   cardContent: {
     flex: 1,
-    marginLeft: 14,
-    marginRight: 8,
+    marginLeft: 15,
+    marginRight: 10,
   },
   tagRow: {
     flexDirection: "row",
@@ -319,21 +319,21 @@ const styles = StyleSheet.create({
     letterSpacing: 0.4,
   },
   cardTitle: {
-    fontSize: 17,
+    fontSize: 18.5,
     fontWeight: "900",
     color: "#1E331B",
-    marginBottom: 3,
+    marginBottom: 4,
   },
   cardDescription: {
-    fontSize: 12,
+    fontSize: 13,
     color: "#577154",
-    lineHeight: 16,
+    lineHeight: 18,
     fontWeight: "500",
   },
   chevronCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     justifyContent: "center",
     alignItems: "center",
   },

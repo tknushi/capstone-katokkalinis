@@ -74,10 +74,6 @@ export default function RoleScreen() {
 
       {/* Header */}
       <View style={styles.header}>
-        <View style={styles.badgePill}>
-          <MaterialCommunityIcons name="shield-check-outline" size={12} color="#2E7D32" />
-          <Text style={styles.badgeText}>PERSONNEL ACCESS PORTAL</Text>
-        </View>
         <Text style={styles.title}>Select Your Role</Text>
         <Text style={styles.subtitle}>Choose your operational module to continue</Text>
       </View>
@@ -249,80 +245,63 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: "center",
-    marginBottom: 16,
+    marginTop: 6,
+    marginBottom: 20,
     paddingHorizontal: 20,
     zIndex: 10,
   },
-  badgePill: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "rgba(232, 248, 238, 0.9)",
-    borderWidth: 1,
-    borderColor: "#C5E8CF",
-    paddingHorizontal: 9,
-    paddingVertical: 3.5,
-    borderRadius: 16,
-    marginBottom: 6,
-    gap: 4,
-  },
-  badgeText: {
-    fontSize: 9.5,
-    fontWeight: "800",
-    color: "#2E7D32",
-    letterSpacing: 0.6,
-  },
   title: {
-    fontSize: isSmall ? 24 : 27,
+    fontSize: isSmall ? 25 : 28,
     fontWeight: "900",
     color: "#1E331B",
     letterSpacing: 0.2,
   },
   subtitle: {
-    fontSize: 12.5,
+    fontSize: 13,
     color: "#5C7558",
-    marginTop: 4,
+    marginTop: 5,
     fontWeight: "600",
     textAlign: "center",
   },
   scrollContent: {
-    paddingBottom: Math.min(SCREEN_HEIGHT * 0.25, 200),
+    paddingBottom: Math.min(SCREEN_HEIGHT * 0.28, 220),
   },
   cardsContainer: {
-    paddingHorizontal: 18,
-    gap: 12,
+    paddingHorizontal: 20,
+    gap: 15,
     zIndex: 10,
-    marginBottom: 10,
+    marginBottom: 16,
   },
   roleCard: {
-    borderRadius: 18,
+    borderRadius: 20,
     borderWidth: 1.5,
     borderColor: "#D2EBD5",
     shadowColor: "#1B431D",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.09,
+    shadowRadius: 10,
     elevation: 3,
     overflow: "hidden",
   },
   cardGradient: {
-    paddingVertical: 12,
-    paddingHorizontal: 14,
+    paddingVertical: 16,
+    paddingHorizontal: 16,
     flexDirection: "row",
     alignItems: "center",
-    borderRadius: 18,
+    borderRadius: 20,
   },
   iconCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 1.5,
   },
   cardContent: {
     flex: 1,
-    marginLeft: 12,
-    marginRight: 6,
+    marginLeft: 14,
+    marginRight: 8,
   },
   tagRow: {
     flexDirection: "row",
@@ -340,15 +319,15 @@ const styles = StyleSheet.create({
     letterSpacing: 0.4,
   },
   cardTitle: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: "900",
     color: "#1E331B",
-    marginBottom: 2,
+    marginBottom: 3,
   },
   cardDescription: {
-    fontSize: 11.5,
+    fontSize: 12,
     color: "#577154",
-    lineHeight: 15,
+    lineHeight: 16,
     fontWeight: "500",
   },
   chevronCircle: {

@@ -340,21 +340,12 @@ export default function VendorDashboard() {
           </View>
         </View>
 
-        {/* 6. MARKET INFORMATION & SOLID WASTE ORDINANCE */}
+        {/* 6. MARKET INFORMATION */}
         <View style={styles.card}>
           <Text style={styles.cardHeaderTitle}>Market Operational Hours</Text>
           <Text style={styles.infoParagraph}>
-            Divisoria Public Market operates daily from 04:00 AM to 08:00 PM. Municipal sanitation sweeps
+            Divisoria Public Market operates daily from 04:00 AM to 08:00 PM. City sanitation sweeps
             occur twice daily at 11:30 AM and 07:30 PM.
-          </Text>
-        </View>
-
-        <View style={styles.card}>
-          <Text style={styles.cardHeaderTitle}>Solid Waste Management Ordinance</Text>
-          <Text style={styles.infoParagraph}>
-            Pursuant to Cagayan de Oro City Environmental Code, all wet and dry stalls must practice
-            segregation-at-source. Non-compliance may result in administrative warnings or suspension of
-            stall permits.
           </Text>
         </View>
       </ScrollView>
@@ -386,7 +377,7 @@ export default function VendorDashboard() {
 
               <Text style={styles.reportSectionLabel}>Inspector Findings & Remarks</Text>
               <View style={styles.reportRemarksBox}>
-                <Text style={styles.reportRemarksText}>{evaluation.notes || "Official audit certified in compliance with municipal sanitation requirements."}</Text>
+                <Text style={styles.reportRemarksText}>{evaluation.notes || "Official audit certified in compliance with environmental sanitation requirements."}</Text>
               </View>
 
               <Text style={styles.reportSectionLabel}>Compliance Status</Text>
@@ -394,7 +385,7 @@ export default function VendorDashboard() {
                 <MaterialCommunityIcons name="shield-check" size={18} color={getGradeColor(evaluation.grade)} />
                 <Text style={[styles.reportPassText, { color: getGradeColor(evaluation.grade) }]}>
                   {evaluation.total_score >= 75
-                    ? "Official audit satisfies municipal environmental sanitation standards."
+                    ? "Official audit satisfies environmental sanitation standards."
                     : "Action required: Remedial sanitation measures recommended."}
                 </Text>
               </View>

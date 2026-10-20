@@ -87,7 +87,7 @@ export default function DriverMap() {
               <View style={[styles.routeNumBadge, { backgroundColor: "#2E7D32" }]}>
                 <Text style={styles.routeNumText}>R1</Text>
               </View>
-              <View style={{ flex: 1, marginLeft: 8 }}>
+              <View style={{ flex: 1, marginLeft: 12 }}>
                 <Text style={styles.routeCardTitle}>North Poblacion</Text>
                 <Text style={styles.routeCardSub}>Barangays 1 to 10 • Truck KAL-101</Text>
               </View>
@@ -95,9 +95,17 @@ export default function DriverMap() {
                 <Text style={styles.activeTagText}>Active</Text>
               </View>
             </View>
-            <Text style={styles.routeCoverage}>
-              Coverage: City Health, Fernandez, Burgos, Port Access, Gaabucayan.
-            </Text>
+            <View style={styles.routeInfoDivider} />
+            <View style={styles.coverageRow}>
+              <MaterialCommunityIcons name="map-marker-radius" size={16} color="#2E7D32" />
+              <Text style={styles.routeCoverage}>
+                Coverage: City Health, Fernandez, Burgos, Port Access, Gaabucayan.
+              </Text>
+            </View>
+            <View style={styles.scheduleRow}>
+              <MaterialCommunityIcons name="clock-outline" size={14} color="#7A8D78" />
+              <Text style={styles.scheduleText}>Daily Morning Shift • 06:00 AM - 02:00 PM</Text>
+            </View>
           </View>
 
           {/* Route 2 */}
@@ -106,7 +114,7 @@ export default function DriverMap() {
               <View style={[styles.routeNumBadge, { backgroundColor: "#1976D2" }]}>
                 <Text style={styles.routeNumText}>R2</Text>
               </View>
-              <View style={{ flex: 1, marginLeft: 8 }}>
+              <View style={{ flex: 1, marginLeft: 12 }}>
                 <Text style={styles.routeCardTitle}>Central Poblacion</Text>
                 <Text style={styles.routeCardSub}>Barangays 11 to 20 • Truck KAL-102</Text>
               </View>
@@ -114,9 +122,17 @@ export default function DriverMap() {
                 <Text style={styles.activeTagText}>Active</Text>
               </View>
             </View>
-            <Text style={styles.routeCoverage}>
-              Coverage: Tirso Neri Heritage, JR Borja, Cogon Market Periphery, Limketkai.
-            </Text>
+            <View style={styles.routeInfoDivider} />
+            <View style={styles.coverageRow}>
+              <MaterialCommunityIcons name="map-marker-radius" size={16} color="#1976D2" />
+              <Text style={styles.routeCoverage}>
+                Coverage: Tirso Neri Heritage, JR Borja, Cogon Market Periphery, Limketkai.
+              </Text>
+            </View>
+            <View style={styles.scheduleRow}>
+              <MaterialCommunityIcons name="clock-outline" size={14} color="#7A8D78" />
+              <Text style={styles.scheduleText}>Daily Commercial Shift • 08:00 AM - 04:00 PM</Text>
+            </View>
           </View>
 
           {/* Route 3 */}
@@ -125,7 +141,7 @@ export default function DriverMap() {
               <View style={[styles.routeNumBadge, { backgroundColor: "#F57C00" }]}>
                 <Text style={styles.routeNumText}>R3</Text>
               </View>
-              <View style={{ flex: 1, marginLeft: 8 }}>
+              <View style={{ flex: 1, marginLeft: 12 }}>
                 <Text style={styles.routeCardTitle}>East Poblacion</Text>
                 <Text style={styles.routeCardSub}>Barangays 21 to 30 • Truck KAL-103</Text>
               </View>
@@ -133,28 +149,48 @@ export default function DriverMap() {
                 <Text style={styles.activeTagText}>Active</Text>
               </View>
             </View>
-            <Text style={styles.routeCoverage}>
-              Coverage: Agora Terminal, Provincial Capitol, Velez Central, Daumar St.
-            </Text>
+            <View style={styles.routeInfoDivider} />
+            <View style={styles.coverageRow}>
+              <MaterialCommunityIcons name="map-marker-radius" size={16} color="#F57C00" />
+              <Text style={styles.routeCoverage}>
+                Coverage: Agora Terminal, Provincial Capitol, Velez Central, Daumar St.
+              </Text>
+            </View>
+            <View style={styles.scheduleRow}>
+              <MaterialCommunityIcons name="clock-outline" size={14} color="#7A8D78" />
+              <Text style={styles.scheduleText}>Tue • Thu • Sat • 07:00 AM - 03:00 PM</Text>
+            </View>
           </View>
 
-          {/* Route 4 */}
-          <View style={[styles.routeCard, { borderLeftColor: "#7B1FA2" }]}>
+          {/* Route 4 - Assigned Truck KAL-104 */}
+          <View style={[styles.routeCard, styles.assignedRouteCard, { borderLeftColor: "#7B1FA2" }]}>
             <View style={styles.routeCardHeader}>
               <View style={[styles.routeNumBadge, { backgroundColor: "#7B1FA2" }]}>
                 <Text style={styles.routeNumText}>R4</Text>
               </View>
-              <View style={{ flex: 1, marginLeft: 8 }}>
+              <View style={{ flex: 1, marginLeft: 12 }}>
                 <Text style={styles.routeCardTitle}>South Poblacion</Text>
-                <Text style={styles.routeCardSub}>Barangays 31 to 40 • Truck KAL-104 (Your Truck)</Text>
+                <Text style={[styles.routeCardSub, { color: "#2E7D32", fontWeight: "700" }]}>
+                  Barangays 31 to 40 • Truck KAL-104 (Your Truck)
+                </Text>
               </View>
-              <View style={[styles.activeTag, { backgroundColor: "#E8F8EE" }]}>
-                <Text style={[styles.activeTagText, { color: "#2E7D32" }]}>Your Run</Text>
+              <View style={[styles.activeTag, { backgroundColor: "#E8F8EE", borderWidth: 1, borderColor: "#B2E2C0" }]}>
+                <Text style={[styles.activeTagText, { color: "#1B5E20", fontWeight: "800" }]}>YOUR RUN</Text>
               </View>
             </View>
-            <Text style={styles.routeCoverage}>
-              Coverage: Cogon Market Central Bay, City Hall & Gaston Park, Carmen Bridge Approach, Riverbank.
-            </Text>
+            <View style={styles.routeInfoDivider} />
+            <View style={styles.coverageRow}>
+              <MaterialCommunityIcons name="map-marker-radius" size={16} color="#7B1FA2" />
+              <Text style={styles.routeCoverage}>
+                Coverage: Cogon Market Central Bay, City Hall & Gaston Park, Carmen Bridge Approach, Riverbank.
+              </Text>
+            </View>
+            <View style={styles.scheduleRow}>
+              <MaterialCommunityIcons name="clock-outline" size={14} color="#2E7D32" />
+              <Text style={[styles.scheduleText, { color: "#1E331B", fontWeight: "600" }]}>
+                Mon • Wed • Fri • 06:00 AM - 02:00 PM • Market Bay 4
+              </Text>
+            </View>
           </View>
         </View>
       </ScrollView>
@@ -238,83 +274,120 @@ const styles = StyleSheet.create({
     color: "#2E7D32",
   },
   scrollContent: {
-    paddingHorizontal: 16,
-    paddingTop: 14,
-    paddingBottom: 95,
+    paddingHorizontal: 18,
+    paddingTop: 16,
+    paddingBottom: 105,
   },
   titleSection: {
-    marginBottom: 10,
+    marginBottom: 16,
   },
   pageTitle: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: "900",
     color: "#1E331B",
   },
   pageSubtitle: {
-    fontSize: 11,
+    fontSize: 12.5,
     color: "#688264",
-    marginTop: 2,
+    marginTop: 4,
     fontWeight: "500",
+    lineHeight: 18,
   },
   sectionTitle: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: "800",
     color: "#1E331B",
-    marginBottom: 8,
+    marginBottom: 12,
   },
   routeCardList: {
-    gap: 10,
+    gap: 16,
   },
   routeCard: {
     backgroundColor: "#FFFFFF",
-    borderRadius: 12,
-    padding: 12,
+    borderRadius: 16,
+    padding: 16,
     borderWidth: 1,
     borderColor: "#E5ECE4",
-    borderLeftWidth: 4,
+    borderLeftWidth: 5,
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+  },
+  assignedRouteCard: {
+    backgroundColor: "#F7FBF8",
+    borderColor: "#C6E8CE",
+    borderWidth: 1.5,
   },
   routeCardHeader: {
     flexDirection: "row",
     alignItems: "center",
   },
   routeNumBadge: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     alignItems: "center",
     justifyContent: "center",
   },
   routeNumText: {
-    fontSize: 10,
+    fontSize: 13,
     fontWeight: "900",
     color: "#FFFFFF",
   },
   routeCardTitle: {
-    fontSize: 13,
-    fontWeight: "800",
+    fontSize: 15.5,
+    fontWeight: "900",
     color: "#1E331B",
   },
   routeCardSub: {
-    fontSize: 10,
+    fontSize: 12,
     color: "#688264",
     fontWeight: "600",
+    marginTop: 2,
   },
   activeTag: {
     backgroundColor: "#F0F4EF",
-    paddingVertical: 3,
-    paddingHorizontal: 8,
-    borderRadius: 6,
+    paddingVertical: 4,
+    paddingHorizontal: 9,
+    borderRadius: 8,
   },
   activeTagText: {
-    fontSize: 10,
+    fontSize: 10.5,
     fontWeight: "700",
     color: "#4A6148",
   },
+  routeInfoDivider: {
+    height: 1,
+    backgroundColor: "#EFF5EE",
+    marginVertical: 12,
+  },
+  coverageRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 8,
+    marginBottom: 8,
+  },
   routeCoverage: {
-    fontSize: 10,
-    color: "#556655",
-    marginTop: 6,
-    lineHeight: 14,
+    flex: 1,
+    fontSize: 12,
+    color: "#465945",
+    lineHeight: 17,
+  },
+  scheduleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: "#F4F8F3",
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  scheduleText: {
+    fontSize: 11,
+    color: "#526B50",
+    fontWeight: "600",
   },
   bottomNav: {
     position: "absolute",

@@ -10,6 +10,7 @@ import {
   View,
 } from "react-native";
 import KatokLogo from "../../components/KatokLogo";
+import InspectorHotbar from "../../components/InspectorHotbar";
 import { fetchInspections } from "../../services/inspector";
 
 interface InspectionItem {
@@ -206,44 +207,8 @@ export default function InspectorHistory() {
         </View>
       </ScrollView>
 
-      {/* 4. BOTTOM NAVIGATION (Requirement 16: Home, Inspections, History, Profile) */}
-      <View style={styles.bottomNav}>
-        <TouchableOpacity
-          style={styles.navItem}
-          activeOpacity={0.8}
-          onPress={() => router.push("/inspector/dashboard" as any)}
-        >
-          <MaterialCommunityIcons name="home-outline" size={24} color="#7A8D78" />
-          <Text style={styles.navItemText}>Home</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.navItem}
-          activeOpacity={0.8}
-          onPress={() => router.push("/inspector/inspections" as any)}
-        >
-          <MaterialCommunityIcons name="clipboard-check-outline" size={24} color="#7A8D78" />
-          <Text style={styles.navItemText}>Inspections</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.navItem}
-          activeOpacity={0.8}
-          onPress={() => {}}
-        >
-          <MaterialCommunityIcons name="history" size={24} color="#2E7D32" />
-          <Text style={[styles.navItemText, styles.navItemTextActive]}>History</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.navItem}
-          activeOpacity={0.8}
-          onPress={() => router.push("/inspector/profile" as any)}
-        >
-          <MaterialCommunityIcons name="account-outline" size={24} color="#7A8D78" />
-          <Text style={styles.navItemText}>Profile</Text>
-        </TouchableOpacity>
-      </View>
+      {/* 4. CONNECTED INSPECTOR HOTBAR */}
+      <InspectorHotbar activeTab="history" />
     </View>
   );
 }

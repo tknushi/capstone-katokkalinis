@@ -201,7 +201,7 @@ export default function DriverProfile() {
             </View>
             <View style={{ flex: 1, marginLeft: 12 }}>
               <Text style={styles.dutyMainText}>{assignedTruck}</Text>
-              <Text style={styles.dutySubText}>6-Wheel Municipal Waste Compactor</Text>
+              <Text style={styles.dutySubText}>6-Wheel Waste Compactor</Text>
             </View>
           </View>
 
@@ -210,8 +210,8 @@ export default function DriverProfile() {
               <MaterialCommunityIcons name="map-marker-path" size={22} color="#1976D2" />
             </View>
             <View style={{ flex: 1, marginLeft: 12 }}>
-              <Text style={styles.dutyMainText}>Cagayan de Oro Route Cluster 1</Text>
-              <Text style={styles.dutySubText}>Barangay 1, 2, 3, 4 (Mon • Wed • Fri)</Text>
+              <Text style={styles.dutyMainText}>Route 4 • South Poblacion Sector</Text>
+              <Text style={styles.dutySubText}>Barangays 31 to 40 • Cogon Market Bay (Mon • Wed • Fri)</Text>
             </View>
           </View>
         </View>

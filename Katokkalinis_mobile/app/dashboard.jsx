@@ -1,5 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
@@ -171,7 +172,7 @@ export default function Dashboard() {
           a.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
           a.keywords.some((k) => k.toLowerCase().includes(searchQuery.toLowerCase()))
       )
-    : QUICK_ACTIONS.slice(0, 4);
+    : QUICK_ACTIONS;
 
   const handleSearchSubmit = () => {
     if (displayedActions.length > 0) {
@@ -316,43 +317,64 @@ export default function Dashboard() {
 
         {/* 4. MAIN HERO CARD: NEXT COLLECTION WITH LIVE DB COUNTDOWN */}
         <TouchableOpacity
-          style={styles.heroCard}
-          activeOpacity={0.9}
+          style={styles.heroCardContainer}
+          activeOpacity={0.92}
           onPress={() => router.push("/schedule")}
         >
-          <View style={styles.heroCardLeft}>
-            <View style={styles.heroCardHeaderRow}>
-              <Text style={styles.heroTitle}>Next Collection</Text>
-              {loadingSchedule && <ActivityIndicator size="small" color="#2E7D32" />}
+          <LinearGradient
+            colors={["#1B431D", "#235B26", "#2E7D32"]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.heroGradient}
+          >
+            {/* Top Status Pill Bar */}
+            <View style={styles.heroTopRow}>
+              <View style={styles.heroLivePill}>
+                <View style={styles.livePulseDot} />
+                <Text style={styles.heroLiveText}>CLENRO DISPATCH</Text>
+              </View>
+              <View style={styles.countdownBadge}>
+                <MaterialCommunityIcons name="clock-outline" size={12} color="#1B5E20" />
+                <Text style={styles.countdownText}>{countdownText}</Text>
+              </View>
             </View>
 
-            <Text style={styles.heroMainDate}>{formattedCollectionDate}</Text>
+            {/* Mid Main Content */}
+            <View style={styles.heroMiddleRow}>
+              <View style={styles.heroTextContent}>
+                <Text style={styles.heroScheduleHeader}>Next Scheduled Run</Text>
+                <Text style={styles.heroMainDate}>{formattedCollectionDate}</Text>
+                <View style={styles.pickupTimeRow}>
+                  <MaterialCommunityIcons name="truck-clock" size={15} color="#A5D6A7" />
+                  <Text style={styles.pickupTimeText}>
+                    {nextSchedule?.pickup_time
+                      ? `Starts at ${pickupTimeDisplay} • Curbside placement`
+                      : "Tap to view city collection calendar"}
+                  </Text>
+                </View>
+              </View>
 
-            <View style={styles.countdownBadge}>
-              <MaterialCommunityIcons name="clock-outline" size={13} color="#1E5E22" />
-              <Text style={styles.countdownText}>{countdownText}</Text>
+              <View style={styles.heroTruckBox}>
+                <Image
+                  source={require("../assets/images/compactor_truck.png")}
+                  style={styles.heroTruckImage}
+                  resizeMode="contain"
+                />
+              </View>
             </View>
 
-            <Text style={styles.heroSubDetail}>
-              {nextSchedule?.pickup_time
-                ? `Pickup starts at ${pickupTimeDisplay}`
-                : "Tap to view city collection calendar"}
-            </Text>
-          </View>
-
-          <View style={styles.heroCardRight}>
-            <Image
-              source={require("../assets/images/compactor_truck.png")}
-              style={styles.heroTruckImage}
-              resizeMode="contain"
-            />
-          </View>
+            {/* Hero Footer Action Bar */}
+            <View style={styles.heroFooterBar}>
+              <Text style={styles.heroFooterActionText}>View Pickup Timetable &amp; Reminders</Text>
+              <MaterialCommunityIcons name="arrow-right-circle" size={18} color="#C8E6C9" />
+            </View>
+          </LinearGradient>
         </TouchableOpacity>
 
-        {/* 5. QUICK ACTIONS GRID */}
+        {/* 5. QUICK ACTIONS GRID (Resident Services) */}
         <View style={styles.quickActionsHeaderRow}>
           <Text style={styles.sectionTitle}>
-            {searchQuery.trim() ? `Search Results (${displayedActions.length})` : "Quick Actions"}
+            {searchQuery.trim() ? `Search Results (${displayedActions.length})` : "Resident Services"}
           </Text>
           {searchQuery.trim().length > 0 && (
             <TouchableOpacity onPress={() => setSearchQuery("")}>
@@ -375,6 +397,57 @@ export default function Dashboard() {
               <Text style={styles.actionLabel}>{action.label}</Text>
             </TouchableOpacity>
           ))}
+        </View>
+
+        {/* 6. DAILY SEGREGATION AT SOURCE GUIDE */}
+        <View style={styles.ecoGuideCard}>
+          <View style={styles.ecoGuideHeader}>
+            <MaterialCommunityIcons name="leaf" size={18} color="#2E7D32" />
+            <Text style={styles.ecoGuideTitle}>Segregation at Source Guide</Text>
+          </View>
+          <View style={styles.ecoColumnsRow}>
+            {/* Column 1: Biodegradable */}
+            <View style={[styles.ecoColumn, { backgroundColor: "#E8F8EE", borderColor: "#C8E6C9" }]}>
+              <View style={styles.ecoColHeader}>
+                <MaterialCommunityIcons name="sprout" size={16} color="#2E7D32" />
+                <Text style={[styles.ecoColTitle, { color: "#2E7D32" }]}>Biodegradable</Text>
+              </View>
+              <Text style={styles.ecoColItems}>• Food scraps &amp; peels{"\n"}• Leaves &amp; yard clippings{"\n"}• Organic coffee grounds</Text>
+            </View>
+
+            {/* Column 2: Residual / Dry */}
+            <View style={[styles.ecoColumn, { backgroundColor: "#E3F2FD", borderColor: "#BBDEFB" }]}>
+              <View style={styles.ecoColHeader}>
+                <MaterialCommunityIcons name="recycle" size={16} color="#1976D2" />
+                <Text style={[styles.ecoColTitle, { color: "#1976D2" }]}>Residual / Dry</Text>
+              </View>
+              <Text style={styles.ecoColItems}>• Clean plastics &amp; cartons{"\n"}• Cans &amp; bottles{"\n"}• Dry packaging bags</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* 7. NEIGHBORHOOD CLEANLINESS STATUS */}
+        <View style={styles.cleanlinessCard}>
+          <View style={styles.cleanlinessHeader}>
+            <MaterialCommunityIcons name="shield-check" size={20} color="#2E7D32" />
+            <Text style={styles.cleanlinessTitle}>Sector Cleanliness Overview</Text>
+          </View>
+          <View style={styles.statsSummaryRow}>
+            <View style={styles.statBox}>
+              <Text style={styles.statVal}>96%</Text>
+              <Text style={styles.statLabel}>Clean Rating</Text>
+            </View>
+            <View style={styles.statDivider} />
+            <View style={styles.statBox}>
+              <Text style={[styles.statVal, { color: "#1976D2" }]}>Active</Text>
+              <Text style={styles.statLabel}>Fleet Operations</Text>
+            </View>
+            <View style={styles.statDivider} />
+            <View style={styles.statBox}>
+              <Text style={[styles.statVal, { color: "#F57F17" }]}>&lt; 24h</Text>
+              <Text style={styles.statLabel}>Response Avg</Text>
+            </View>
+          </View>
         </View>
       </ScrollView>
 
@@ -501,91 +574,137 @@ const styles = StyleSheet.create({
     color: "#1E331B",
   },
 
-  // HERO CARD: NEXT COLLECTION
-  heroCard: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 20,
-    paddingVertical: 18,
-    paddingHorizontal: 18,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    borderWidth: 1.5,
-    borderColor: "#D3EBD0",
-    shadowColor: "#2E7D32",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 10,
-    elevation: 3,
+  // HERO CARD: NEXT COLLECTION (LUSH GRADIENT)
+  heroCardContainer: {
+    borderRadius: 22,
+    overflow: "hidden",
+    shadowColor: "#1B431D",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.22,
+    shadowRadius: 12,
+    elevation: 6,
     marginBottom: 22,
   },
-  heroCardLeft: {
-    flex: 1,
-    marginRight: 10,
+  heroGradient: {
+    paddingVertical: 18,
+    paddingHorizontal: 18,
+    borderRadius: 22,
   },
-  heroCardHeaderRow: {
+  heroTopRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  heroLivePill: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
-    marginBottom: 4,
+    backgroundColor: "rgba(255, 255, 255, 0.15)",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    gap: 6,
   },
-  heroTitle: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: "#5C7858",
-    textTransform: "uppercase",
-    letterSpacing: 0.6,
+  livePulseDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
+    backgroundColor: "#69F0AE",
   },
-  heroMainDate: {
-    fontSize: isSmall ? 18 : 20,
+  heroLiveText: {
+    fontSize: 9.5,
     fontWeight: "900",
-    color: "#1E331B",
-    marginBottom: 8,
+    color: "#E8F5E9",
+    letterSpacing: 0.6,
   },
   countdownBadge: {
     flexDirection: "row",
     alignItems: "center",
-    alignSelf: "flex-start",
-    backgroundColor: "#E4F7E3",
+    backgroundColor: "#E8F8EE",
     paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 8,
-    marginBottom: 6,
+    borderRadius: 12,
+    gap: 4,
   },
   countdownText: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: "800",
-    color: "#1E5E22",
-    marginLeft: 4,
+    color: "#1B5E20",
   },
-  heroSubDetail: {
-    fontSize: 12,
-    color: "#728F6E",
+  heroMiddleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  heroTextContent: {
+    flex: 1,
+    paddingRight: 8,
+  },
+  heroScheduleHeader: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: "#C8E6C9",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+  heroMainDate: {
+    fontSize: isSmall ? 17 : 19,
+    fontWeight: "900",
+    color: "#FFFFFF",
+    marginTop: 3,
+    marginBottom: 4,
+  },
+  pickupTimeRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    marginTop: 2,
+  },
+  pickupTimeText: {
+    fontSize: 11.5,
+    color: "#E8F5E9",
     fontWeight: "500",
+    flex: 1,
   },
-  heroCardRight: {
+  heroTruckBox: {
+    width: 95,
+    height: 65,
     justifyContent: "center",
     alignItems: "center",
   },
   heroTruckImage: {
-    width: 90,
-    height: 60,
+    width: 95,
+    height: 62,
+  },
+  heroFooterBar: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: 14,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: "rgba(255, 255, 255, 0.18)",
+  },
+  heroFooterActionText: {
+    fontSize: 11.5,
+    fontWeight: "700",
+    color: "#E8F5E9",
   },
 
-  // SECTION & ACTIONS GRID
+  // SECTION & ACTIONS GRID (3x2 RESPONSIVE CARDS)
   quickActionsHeaderRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 14,
+    marginBottom: 12,
   },
   sectionTitle: {
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: "800",
     color: "#1E331B",
   },
   clearSearchLink: {
-    fontSize: 13,
+    fontSize: 12.5,
     fontWeight: "700",
     color: "#2E7D32",
   },
@@ -593,29 +712,139 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "space-between",
-    gap: 12,
+    marginBottom: 10,
   },
   actionGridCard: {
-    width: (SCREEN_WIDTH - 52) / 4,
+    width: (SCREEN_WIDTH - 60) / 3,
+    alignItems: "center",
+    backgroundColor: "#FFFFFF",
+    paddingVertical: 14,
+    paddingHorizontal: 6,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#EEF4EC",
+    marginBottom: 12,
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
+  },
+  actionIconBox: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: "center",
     alignItems: "center",
     marginBottom: 8,
   },
-  actionIconBox: {
-    width: 54,
-    height: 54,
-    borderRadius: 16,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 6,
-    borderWidth: 1,
-    borderColor: "#F0F5EE",
-  },
   actionLabel: {
-    fontSize: 11,
-    fontWeight: "600",
-    color: "#2C3E2A",
+    fontSize: 11.5,
+    fontWeight: "700",
+    color: "#1E331B",
     textAlign: "center",
-    lineHeight: 14,
+  },
+
+  // 6. DAILY ECO SEGREGATION GUIDE
+  ecoGuideCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 18,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: "#EDF4EC",
+    marginBottom: 16,
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
+  },
+  ecoGuideHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginBottom: 12,
+  },
+  ecoGuideTitle: {
+    fontSize: 14,
+    fontWeight: "800",
+    color: "#1E331B",
+  },
+  ecoColumnsRow: {
+    flexDirection: "row",
+    gap: 10,
+  },
+  ecoColumn: {
+    flex: 1,
+    padding: 12,
+    borderRadius: 14,
+    borderWidth: 1,
+  },
+  ecoColHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    marginBottom: 6,
+  },
+  ecoColTitle: {
+    fontSize: 12,
+    fontWeight: "800",
+  },
+  ecoColItems: {
+    fontSize: 10.5,
+    color: "#3F563E",
+    lineHeight: 16,
+    fontWeight: "500",
+  },
+
+  // 7. NEIGHBORHOOD CLEANLINESS STATUS
+  cleanlinessCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 18,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: "#EDF4EC",
+    marginBottom: 20,
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
+  },
+  cleanlinessHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginBottom: 12,
+  },
+  cleanlinessTitle: {
+    fontSize: 14,
+    fontWeight: "800",
+    color: "#1E331B",
+  },
+  statsSummaryRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-around",
+  },
+  statBox: {
+    alignItems: "center",
+  },
+  statVal: {
+    fontSize: 15,
+    fontWeight: "900",
+    color: "#2E7D32",
+  },
+  statLabel: {
+    fontSize: 10.5,
+    color: "#7A8D78",
+    marginTop: 2,
+    fontWeight: "600",
+  },
+  statDivider: {
+    width: 1,
+    height: 26,
+    backgroundColor: "#EEF5ED",
   },
 
   // BOTTOM NAVIGATION

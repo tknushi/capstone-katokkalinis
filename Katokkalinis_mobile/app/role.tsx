@@ -107,11 +107,6 @@ export default function RoleScreen() {
               </View>
 
               <View style={styles.cardContent}>
-                <View style={styles.tagRow}>
-                  <View style={[styles.rolePill, { backgroundColor: "#FEF3C7", borderColor: "#FDE68A" }]}>
-                    <Text style={[styles.rolePillText, { color: "#B45309" }]}>MARKET STALL</Text>
-                  </View>
-                </View>
                 <Text style={styles.cardTitle}>Market Vendor</Text>
                 <Text style={styles.cardDescription}>
                   Access your digital stall QR code, track hygiene ratings, and monitor compliance.
@@ -147,11 +142,6 @@ export default function RoleScreen() {
               </View>
 
               <View style={styles.cardContent}>
-                <View style={styles.tagRow}>
-                  <View style={[styles.rolePill, { backgroundColor: "#EAF7ED", borderColor: "#C6EBD0" }]}>
-                    <Text style={[styles.rolePillText, { color: "#2E7D32" }]}>WASTE LOGISTICS</Text>
-                  </View>
-                </View>
                 <Text style={styles.cardTitle}>Truck Driver</Text>
                 <Text style={styles.cardDescription}>
                   Update truck status, navigate Barangay stops, and log collection weights.
@@ -187,11 +177,6 @@ export default function RoleScreen() {
               </View>
 
               <View style={styles.cardContent}>
-                <View style={styles.tagRow}>
-                  <View style={[styles.rolePill, { backgroundColor: "#EBF3FB", borderColor: "#CCE1F8" }]}>
-                    <Text style={[styles.rolePillText, { color: "#1565C0" }]}>SANITARY AUDIT</Text>
-                  </View>
-                </View>
                 <Text style={styles.cardTitle}>Market Inspector</Text>
                 <Text style={styles.cardDescription}>
                   Scan stall QR codes, conduct hygiene evaluations, and certify public market vendors.
@@ -355,44 +340,46 @@ const styles = StyleSheet.create({
     letterSpacing: 0.4,
   },
   cardTitle: {
-    fontSize: 16.5,
-    fontWeight: "800",
+    fontSize: 17,
+    fontWeight: "900",
     color: "#1E331B",
-    marginBottom: 2,
+    marginBottom: 4,
   },
   cardDescription: {
-    fontSize: 11.5,
+    fontSize: 12,
     color: "#577154",
-    lineHeight: 15,
+    lineHeight: 16,
     fontWeight: "500",
   },
   chevronCircle: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     justifyContent: "center",
     alignItems: "center",
   },
   bottomLandscape: {
-    width: "100%",
+    width: SCREEN_WIDTH,
+    marginHorizontal: -20,
     position: "relative",
     justifyContent: "flex-end",
     alignItems: "center",
-    marginTop: 6,
+    marginTop: 12,
+    overflow: "hidden",
   },
   forestGraphic: {
     width: SCREEN_WIDTH,
-    height: Math.min(SCREEN_HEIGHT * 0.20, 170),
+    height: Math.min(SCREEN_HEIGHT * 0.18, 145),
     opacity: 0.95,
   },
   truckWrapper: {
     position: "absolute",
     left: SCREEN_WIDTH * 0.08,
-    bottom: 20,
+    bottom: 16,
     zIndex: 5,
   },
   truckGraphic: {
-    width: 110,
-    height: 55,
+    width: 105,
+    height: 52,
   },
 });

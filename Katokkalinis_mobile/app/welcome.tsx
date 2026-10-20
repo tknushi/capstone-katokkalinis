@@ -66,12 +66,6 @@ export default function WelcomeScreen() {
           resizeMode="contain"
         />
 
-        {/* Badge & Subtitle */}
-        <View style={styles.badgePill}>
-          <MaterialCommunityIcons name="leaf" size={13} color="#2E7D32" />
-          <Text style={styles.badgeText}>SMART CLEANLINESS PLATFORM</Text>
-        </View>
-
         <Text style={styles.title}>Welcome!</Text>
         <Text style={styles.subtitle}>Select your portal to get started</Text>
       </View>
@@ -96,18 +90,13 @@ export default function WelcomeScreen() {
                   color="#2E7D32"
                 />
               </View>
-              <View style={[styles.pillContainer, { backgroundColor: "#EAF7ED", borderColor: "#C6EBD0" }]}>
-                <Text style={[styles.pillText, { color: "#2E7D32" }]}>COMMUNITY PORTAL</Text>
+              <View style={[styles.chevronCircle, { backgroundColor: "#2E7D32" }]}>
+                <MaterialCommunityIcons name="arrow-right" size={16} color="#FFFFFF" />
               </View>
             </View>
 
             <View style={styles.cardBody}>
-              <View style={styles.cardTitleRow}>
-                <Text style={styles.cardTitle}>I&apos;m a Resident</Text>
-                <View style={[styles.chevronCircle, { backgroundColor: "#2E7D32" }]}>
-                  <MaterialCommunityIcons name="arrow-right" size={16} color="#FFFFFF" />
-                </View>
-              </View>
+              <Text style={styles.cardTitle}>I&apos;m a Resident</Text>
               <Text style={styles.cardDescription}>
                 Track collection trucks in real-time, view barangay pickup schedules, and report waste issues.
               </Text>
@@ -133,18 +122,13 @@ export default function WelcomeScreen() {
                   color="#1565C0"
                 />
               </View>
-              <View style={[styles.pillContainer, { backgroundColor: "#EBF3FB", borderColor: "#CCE1F8" }]}>
-                <Text style={[styles.pillText, { color: "#1565C0" }]}>LGU &amp; FIELD WORKERS</Text>
+              <View style={[styles.chevronCircle, { backgroundColor: "#1565C0" }]}>
+                <MaterialCommunityIcons name="arrow-right" size={16} color="#FFFFFF" />
               </View>
             </View>
 
             <View style={styles.cardBody}>
-              <View style={styles.cardTitleRow}>
-                <Text style={styles.cardTitle}>I&apos;m a Personnel</Text>
-                <View style={[styles.chevronCircle, { backgroundColor: "#1565C0" }]}>
-                  <MaterialCommunityIcons name="arrow-right" size={16} color="#FFFFFF" />
-                </View>
-              </View>
+              <Text style={styles.cardTitle}>I&apos;m a Personnel</Text>
               <Text style={styles.cardDescription}>
                 Access vendor stall QR compliance, driver collection runs, or conduct sanitary market inspections.
               </Text>
@@ -270,30 +254,26 @@ const styles = StyleSheet.create({
   },
   cardBody: {
     width: "100%",
-  },
-  cardTitleRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 5,
+    marginTop: 4,
   },
   cardTitle: {
     fontSize: 18,
-    fontWeight: "800",
+    fontWeight: "900",
     color: "#1E331B",
     letterSpacing: 0.2,
+    marginBottom: 4,
   },
   chevronCircle: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     justifyContent: "center",
     alignItems: "center",
   },
   cardDescription: {
-    fontSize: 12,
+    fontSize: 12.5,
     color: "#577154",
-    lineHeight: 17,
+    lineHeight: 18,
     fontWeight: "500",
   },
   bottomLandscape: {
@@ -304,17 +284,17 @@ const styles = StyleSheet.create({
   },
   forestGraphic: {
     width: SCREEN_WIDTH,
-    height: Math.min(SCREEN_HEIGHT * 0.23, 200),
+    height: Math.min(SCREEN_HEIGHT * 0.20, 160),
     opacity: 0.95,
   },
   truckWrapper: {
     position: "absolute",
     left: SCREEN_WIDTH * 0.08,
-    bottom: 22,
+    bottom: 18,
     zIndex: 5,
   },
   truckGraphic: {
-    width: 125,
-    height: 62,
+    width: 115,
+    height: 58,
   },
 });

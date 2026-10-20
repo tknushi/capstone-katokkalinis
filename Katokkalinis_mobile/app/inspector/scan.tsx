@@ -15,6 +15,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import InspectorHotbar from "../../components/InspectorHotbar";
 import { fetchVendorByCodeOrId, verifyVendorQrToken } from "../../services/inspector";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
@@ -216,44 +217,8 @@ export default function Scan() {
         </View>
       </ScrollView>
 
-      {/* 4. BOTTOM NAVIGATION BAR (Matches Inspector Dashboard, Inspections, History, Profile) */}
-      <View style={styles.bottomNav}>
-        <TouchableOpacity
-          style={styles.navItem}
-          activeOpacity={0.8}
-          onPress={() => router.push("/inspector/dashboard" as any)}
-        >
-          <MaterialCommunityIcons name="home-outline" size={24} color="#7A8D78" />
-          <Text style={styles.navItemText}>Home</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.navItem}
-          activeOpacity={0.8}
-          onPress={() => router.push("/inspector/inspections" as any)}
-        >
-          <MaterialCommunityIcons name="clipboard-check-outline" size={24} color="#7A8D78" />
-          <Text style={styles.navItemText}>Inspections</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.navItem}
-          activeOpacity={0.8}
-          onPress={() => router.push("/inspector/history" as any)}
-        >
-          <MaterialCommunityIcons name="history" size={24} color="#7A8D78" />
-          <Text style={styles.navItemText}>History</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.navItem}
-          activeOpacity={0.8}
-          onPress={() => router.push("/inspector/profile" as any)}
-        >
-          <MaterialCommunityIcons name="account-outline" size={24} color="#7A8D78" />
-          <Text style={styles.navItemText}>Profile</Text>
-        </TouchableOpacity>
-      </View>
+      {/* 4. CONNECTED INSPECTOR HOTBAR */}
+      <InspectorHotbar activeTab="scan" />
     </View>
   );
 }

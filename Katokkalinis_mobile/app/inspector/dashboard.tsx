@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import KatokLogo from "../../components/KatokLogo";
 import TopNotificationBanner from "../../components/TopNotificationBanner";
+import InspectorHotbar from "../../components/InspectorHotbar";
 import { fetchInspectorStats } from "../../services/inspector";
 
 export default function InspectorDashboard() {
@@ -217,44 +218,8 @@ export default function InspectorDashboard() {
         </View>
       </ScrollView>
 
-      {/* 5. BOTTOM NAVIGATION BAR (Requirement 16: Home, Inspections, History, Profile) */}
-      <View style={styles.bottomNav}>
-        <TouchableOpacity
-          style={styles.navItem}
-          activeOpacity={0.8}
-          onPress={() => {}}
-        >
-          <MaterialCommunityIcons name="home" size={24} color="#2E7D32" />
-          <Text style={[styles.navItemText, styles.navItemTextActive]}>Home</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.navItem}
-          activeOpacity={0.8}
-          onPress={() => router.push("/inspector/inspections" as any)}
-        >
-          <MaterialCommunityIcons name="clipboard-check-outline" size={24} color="#7A8D78" />
-          <Text style={styles.navItemText}>Inspections</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.navItem}
-          activeOpacity={0.8}
-          onPress={() => router.push("/inspector/history" as any)}
-        >
-          <MaterialCommunityIcons name="history" size={24} color="#7A8D78" />
-          <Text style={styles.navItemText}>History</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.navItem}
-          activeOpacity={0.8}
-          onPress={() => router.push("/inspector/profile" as any)}
-        >
-          <MaterialCommunityIcons name="account-outline" size={24} color="#7A8D78" />
-          <Text style={styles.navItemText}>Profile</Text>
-        </TouchableOpacity>
-      </View>
+      {/* 5. CONNECTED INSPECTOR HOTBAR (Home, Stalls, Scan QR, History, Profile) */}
+      <InspectorHotbar activeTab="home" />
     </View>
   );
 }
@@ -305,13 +270,13 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 18,
-    paddingTop: 16,
-    paddingBottom: 95,
+    paddingTop: 18,
+    paddingBottom: 105,
   },
   heroCard: {
     backgroundColor: "#FFFFFF",
     borderRadius: 20,
-    padding: 16,
+    padding: 18,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
@@ -322,7 +287,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.06,
     shadowRadius: 8,
-    marginBottom: 16,
+    marginBottom: 20,
   },
   heroLeft: {
     flex: 1,
@@ -332,10 +297,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "#E8F8EE",
     alignSelf: "flex-start",
-    paddingHorizontal: 8,
-    paddingVertical: 3,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
     borderRadius: 8,
-    marginBottom: 6,
+    marginBottom: 8,
     gap: 4,
   },
   badgeText: {
@@ -344,57 +309,57 @@ const styles = StyleSheet.create({
     color: "#2E7D32",
   },
   heroTitle: {
-    fontSize: 17,
+    fontSize: 18,
     fontWeight: "900",
     color: "#1E331B",
   },
   heroSubtitle: {
-    fontSize: 12,
+    fontSize: 12.5,
     color: "#6B8468",
-    marginTop: 2,
+    marginTop: 4,
   },
   metricPillRow: {
     flexDirection: "row",
-    gap: 8,
-    marginTop: 10,
+    gap: 10,
+    marginTop: 12,
   },
   metricPill: {
     backgroundColor: "#FFF3E0",
-    paddingVertical: 4,
-    paddingHorizontal: 8,
+    paddingVertical: 5,
+    paddingHorizontal: 10,
     borderRadius: 8,
   },
   metricPillVal: {
-    fontSize: 11,
+    fontSize: 11.5,
     fontWeight: "800",
     color: "#E65100",
   },
   heroRightIconBox: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     backgroundColor: "#E8F8EE",
     alignItems: "center",
     justifyContent: "center",
-    marginLeft: 10,
+    marginLeft: 12,
   },
   sectionTitle: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: "800",
     color: "#1E331B",
-    marginBottom: 12,
+    marginBottom: 14,
   },
   quickActionsGrid: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 20,
-    gap: 10,
+    marginBottom: 24,
+    gap: 12,
   },
   actionGridCard: {
     flex: 1,
     backgroundColor: "#FFFFFF",
-    borderRadius: 16,
-    paddingVertical: 14,
+    borderRadius: 18,
+    paddingVertical: 16,
     paddingHorizontal: 8,
     alignItems: "center",
     borderWidth: 1,
@@ -406,15 +371,15 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
   },
   actionIconBox: {
-    width: 46,
-    height: 46,
-    borderRadius: 23,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 8,
+    marginBottom: 10,
   },
   actionLabel: {
-    fontSize: 11,
+    fontSize: 11.5,
     fontWeight: "700",
     color: "#273824",
     textAlign: "center",
@@ -423,22 +388,22 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 10,
+    marginBottom: 12,
   },
   viewAllLink: {
-    fontSize: 12,
+    fontSize: 12.5,
     fontWeight: "700",
     color: "#2E7D32",
   },
   vendorCardList: {
-    gap: 10,
+    gap: 14,
   },
   vendorItemCard: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#FFFFFF",
-    borderRadius: 16,
-    padding: 14,
+    borderRadius: 18,
+    padding: 16,
     borderWidth: 1,
     borderColor: "#EDF4EC",
     elevation: 2,
@@ -448,59 +413,31 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
   },
   vendorIconCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: "center",
     justifyContent: "center",
   },
   vendorNameText: {
-    fontSize: 13,
+    fontSize: 13.5,
     fontWeight: "800",
     color: "#1E331B",
   },
   vendorStallText: {
-    fontSize: 11,
+    fontSize: 11.5,
     color: "#6B8468",
-    marginTop: 1,
+    marginTop: 2,
   },
   actionBadge: {
     backgroundColor: "#2E7D32",
-    paddingVertical: 6,
-    paddingHorizontal: 10,
+    paddingVertical: 7,
+    paddingHorizontal: 12,
     borderRadius: 12,
   },
   actionBadgeText: {
     color: "#FFFFFF",
-    fontSize: 11,
-    fontWeight: "800",
-  },
-  bottomNav: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 65,
-    backgroundColor: "#FFFFFF",
-    borderTopWidth: 1,
-    borderTopColor: "#EEF5ED",
-    flexDirection: "row",
-    justifyContent: "space-around",
-    alignItems: "center",
-    paddingBottom: 4,
-  },
-  navItem: {
-    alignItems: "center",
-    paddingVertical: 4,
-  },
-  navItemText: {
-    fontSize: 10,
-    color: "#7A8D78",
-    marginTop: 2,
-    fontWeight: "600",
-  },
-  navItemTextActive: {
-    color: "#2E7D32",
+    fontSize: 11.5,
     fontWeight: "800",
   },
 });

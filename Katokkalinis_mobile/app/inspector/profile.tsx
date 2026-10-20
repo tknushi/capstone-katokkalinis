@@ -11,6 +11,7 @@ import {
   View,
 } from "react-native";
 import KatokLogo from "../../components/KatokLogo";
+import InspectorHotbar from "../../components/InspectorHotbar";
 import { logoutUser } from "../../services/auth";
 import { fetchInspectorStats, InspectorStats } from "../../services/inspector";
 
@@ -160,38 +161,73 @@ export default function InspectorProfile() {
           </View>
         </View>
 
-        {/* 4. RECENT ACTIVITIES / AUDITS */}
+        {/* 4. SANITATION STANDARDS & FIELD DIRECTORY */}
         <View style={styles.sectionHeaderRow}>
-          <Text style={styles.sectionTitle}>Recent Certified Stalls</Text>
-          <TouchableOpacity onPress={() => router.push("/inspector/history" as any)}>
-            <Text style={styles.sectionLink}>View History</Text>
-          </TouchableOpacity>
+          <Text style={styles.sectionTitle}>Inspection Standards & Rubric</Text>
         </View>
 
-        <View style={styles.cardList}>
-          {stats.recent_stalls && stats.recent_stalls.length > 0 ? (
-            stats.recent_stalls.slice(0, 5).map((stall) => (
-              <View key={`stall-${stall.id}`} style={styles.recordItem}>
-                <View style={styles.recordIconCircle}>
-                  <MaterialCommunityIcons name="store" size={20} color="#2E7D32" />
-                </View>
-                <View style={{ flex: 1, marginLeft: 10 }}>
-                  <Text style={styles.recordName}>{stall.business_name}</Text>
-                  <Text style={styles.recordSub}>
-                    {stall.stall_number} • Score: {stall.score}% (Grade {stall.grade})
-                  </Text>
-                </View>
-                <View style={styles.passedBadge}>
-                  <Text style={styles.passedBadgeText}>{stall.status}</Text>
-                </View>
-              </View>
-            ))
-          ) : (
-            <View style={styles.emptyStallsCard}>
-              <MaterialCommunityIcons name="clipboard-text-outline" size={26} color="#9AA998" />
-              <Text style={styles.emptyStallsText}>No certified stalls recorded yet.</Text>
+        {/* Grade Rubric Reference Card */}
+        <View style={styles.guidelineCard}>
+          <Text style={styles.guidelineCardTitle}>Official Evaluation Thresholds</Text>
+          <View style={styles.gradeRow}>
+            <View style={[styles.gradePillBadge, { backgroundColor: "#E8F8EE", borderColor: "#B2DFDB" }]}>
+              <Text style={[styles.gradePillLetter, { color: "#2E7D32" }]}>Grade A</Text>
+              <Text style={styles.gradePillScore}>90% - 100%</Text>
+              <Text style={styles.gradePillDesc}>Certified Clean Stall</Text>
             </View>
-          )}
+
+            <View style={[styles.gradePillBadge, { backgroundColor: "#FFF8E1", borderColor: "#FFE082" }]}>
+              <Text style={[styles.gradePillLetter, { color: "#F57F17" }]}>Grade B</Text>
+              <Text style={styles.gradePillScore}>75% - 89%</Text>
+              <Text style={styles.gradePillDesc}>Satisfactory Rating</Text>
+            </View>
+
+            <View style={[styles.gradePillBadge, { backgroundColor: "#FFEBEE", borderColor: "#FFCDD2" }]}>
+              <Text style={[styles.gradePillLetter, { color: "#C62828" }]}>Grade C</Text>
+              <Text style={styles.gradePillScore}>Below 75%</Text>
+              <Text style={styles.gradePillDesc}>Action Required</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Core Field Checklist Criteria */}
+        <View style={styles.guidelineCard}>
+          <Text style={styles.guidelineCardTitle}>Field Audit Checklist Pillars</Text>
+          <View style={styles.criterionItem}>
+            <MaterialCommunityIcons name="check-circle-outline" size={16} color="#2E7D32" />
+            <Text style={styles.criterionText}>Waste Segregation: Separate wet/dry labeled receptacles at stall</Text>
+          </View>
+          <View style={styles.criterionItem}>
+            <MaterialCommunityIcons name="check-circle-outline" size={16} color="#2E7D32" />
+            <Text style={styles.criterionText}>Premises & Drainage: Clean grease traps and free-flowing floor drains</Text>
+          </View>
+          <View style={styles.criterionItem}>
+            <MaterialCommunityIcons name="check-circle-outline" size={16} color="#2E7D32" />
+            <Text style={styles.criterionText}>Pest Prevention: Elevated storage pallets and vector proofing</Text>
+          </View>
+          <View style={styles.criterionItem}>
+            <MaterialCommunityIcons name="check-circle-outline" size={16} color="#2E7D32" />
+            <Text style={styles.criterionText}>Public Display: KatokKalinis Official QR badge visibly posted</Text>
+          </View>
+        </View>
+
+        {/* Dispatch & Escalation Hotlines */}
+        <View style={styles.guidelineCard}>
+          <Text style={styles.guidelineCardTitle}>Field Dispatch & Sanitation Contacts</Text>
+          <View style={styles.hotlineRow}>
+            <MaterialCommunityIcons name="phone" size={16} color="#1565C0" />
+            <View style={{ flex: 1, marginLeft: 8 }}>
+              <Text style={styles.hotlineName}>City Health Office (CHO) Sanitation</Text>
+              <Text style={styles.hotlineNum}>(088) 857-3188 • Mon-Fri 8AM-5PM</Text>
+            </View>
+          </View>
+          <View style={styles.hotlineRow}>
+            <MaterialCommunityIcons name="radio-handheld" size={16} color="#2E7D32" />
+            <View style={{ flex: 1, marginLeft: 8 }}>
+              <Text style={styles.hotlineName}>CLENRO Market Inspector Dispatch</Text>
+              <Text style={styles.hotlineNum}>0917-825-4647 • Sector 1 Field Desk</Text>
+            </View>
+          </View>
         </View>
 
         {/* 5. LOGOUT BUTTON (Guarded) */}
@@ -205,44 +241,8 @@ export default function InspectorProfile() {
         </TouchableOpacity>
       </ScrollView>
 
-      {/* 6. BOTTOM NAVIGATION (Requirement 16: Home, Inspections, History, Profile) */}
-      <View style={styles.bottomNav}>
-        <TouchableOpacity
-          style={styles.navItem}
-          activeOpacity={0.8}
-          onPress={() => router.push("/inspector/dashboard" as any)}
-        >
-          <MaterialCommunityIcons name="home-outline" size={24} color="#7A8D78" />
-          <Text style={styles.navItemText}>Home</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.navItem}
-          activeOpacity={0.8}
-          onPress={() => router.push("/inspector/inspections" as any)}
-        >
-          <MaterialCommunityIcons name="clipboard-check-outline" size={24} color="#7A8D78" />
-          <Text style={styles.navItemText}>Inspections</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.navItem}
-          activeOpacity={0.8}
-          onPress={() => router.push("/inspector/history" as any)}
-        >
-          <MaterialCommunityIcons name="history" size={24} color="#7A8D78" />
-          <Text style={styles.navItemText}>History</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.navItem}
-          activeOpacity={0.8}
-          onPress={() => {}}
-        >
-          <MaterialCommunityIcons name="account" size={24} color="#2E7D32" />
-          <Text style={[styles.navItemText, styles.navItemTextActive]}>Profile</Text>
-        </TouchableOpacity>
-      </View>
+      {/* 6. CONNECTED INSPECTOR HOTBAR */}
+      <InspectorHotbar activeTab="profile" />
     </View>
   );
 }
@@ -518,55 +518,89 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#FFCDD2",
     gap: 8,
-    marginBottom: 10,
+    marginTop: 10,
+    marginBottom: 20,
   },
   logoutButtonText: {
     color: "#C62828",
     fontSize: 14,
     fontWeight: "800",
   },
-  bottomNav: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 65,
+  guidelineCard: {
     backgroundColor: "#FFFFFF",
-    borderTopWidth: 1,
-    borderTopColor: "#EEF5ED",
-    flexDirection: "row",
-    justifyContent: "space-around",
-    alignItems: "center",
-    paddingBottom: 4,
-  },
-  navItem: {
-    alignItems: "center",
-    paddingVertical: 4,
-  },
-  navItemText: {
-    fontSize: 10,
-    color: "#7A8D78",
-    marginTop: 2,
-    fontWeight: "600",
-  },
-  navItemTextActive: {
-    color: "#2E7D32",
-    fontWeight: "800",
-  },
-  emptyStallsCard: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 14,
-    padding: 20,
-    alignItems: "center",
-    justifyContent: "center",
+    borderRadius: 16,
+    padding: 16,
     borderWidth: 1,
     borderColor: "#EDF4EC",
+    marginBottom: 14,
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
+  },
+  guidelineCardTitle: {
+    fontSize: 13.5,
+    fontWeight: "800",
+    color: "#1E331B",
+    marginBottom: 10,
+  },
+  gradeRow: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  gradePillBadge: {
+    flex: 1,
+    paddingVertical: 10,
+    paddingHorizontal: 6,
+    borderRadius: 12,
+    borderWidth: 1,
+    alignItems: "center",
+  },
+  gradePillLetter: {
+    fontSize: 15,
+    fontWeight: "900",
+  },
+  gradePillScore: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: "#4A6148",
+    marginTop: 2,
+  },
+  gradePillDesc: {
+    fontSize: 9.5,
+    color: "#6B8468",
+    marginTop: 2,
+    textAlign: "center",
+    fontWeight: "600",
+  },
+  criterionItem: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 8,
     marginBottom: 8,
   },
-  emptyStallsText: {
+  criterionText: {
+    flex: 1,
     fontSize: 12,
-    color: "#7A8D78",
-    marginTop: 6,
-    fontWeight: "500",
+    color: "#384E35",
+    lineHeight: 17,
+  },
+  hotlineRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F2F7F1",
+  },
+  hotlineName: {
+    fontSize: 12.5,
+    fontWeight: "700",
+    color: "#1E331B",
+  },
+  hotlineNum: {
+    fontSize: 11,
+    color: "#6B8468",
+    marginTop: 1,
   },
 });

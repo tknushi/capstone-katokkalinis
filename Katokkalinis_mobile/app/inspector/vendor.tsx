@@ -11,6 +11,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import InspectorHotbar from "../../components/InspectorHotbar";
 import {
   fetchVendorByCodeOrId,
   verifyVendorQrToken,
@@ -468,37 +469,8 @@ export default function Vendor() {
         )}
       </ScrollView>
 
-      {/* 5. BOTTOM NAVIGATION (Matching Image 2 & 3 Green Bar) */}
-      <View style={styles.bottomNav}>
-        <TouchableOpacity
-          style={styles.navItem}
-          onPress={() => router.push("/inspector/dashboard" as any)}
-        >
-          <MaterialCommunityIcons name="home-outline" size={24} color="rgba(255, 255, 255, 0.85)" />
-          <Text style={styles.navText}>Home</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.navItem}
-          onPress={() => router.push("/inspector/inspections" as any)}
-        >
-          <MaterialCommunityIcons name="clipboard-check-outline" size={22} color="rgba(255, 255, 255, 0.85)" />
-          <Text style={styles.navText}>Report</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.navItem} onPress={() => {}}>
-          <MaterialCommunityIcons name="qrcode-scan" size={24} color="#FFFFFF" />
-          <Text style={[styles.navText, { fontWeight: "800" }]}>Scan</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.navItem}
-          onPress={() => router.push("/inspector/profile" as any)}
-        >
-          <MaterialCommunityIcons name="account-outline" size={22} color="rgba(255, 255, 255, 0.85)" />
-          <Text style={styles.navText}>Profile</Text>
-        </TouchableOpacity>
-      </View>
+      {/* 5. CONNECTED INSPECTOR HOTBAR */}
+      <InspectorHotbar activeTab="inspections" />
     </View>
   );
 }

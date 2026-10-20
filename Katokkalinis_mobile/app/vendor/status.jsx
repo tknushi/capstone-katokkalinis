@@ -287,7 +287,7 @@ export default function VendorStatusScreen() {
           <View style={[styles.breakdownRow, { borderBottomWidth: 0 }]}>
             <View>
               <Text style={styles.breakdownLabel}>Violations Record</Text>
-              <Text style={styles.breakdownSub}>Municipal citations issued</Text>
+              <Text style={styles.breakdownSub}>Citations issued</Text>
             </View>
             <Text style={[styles.breakdownVal, { color: "#2E7D32" }]}>
               {evaluation.violations_count ?? 0} Violations
@@ -313,7 +313,7 @@ export default function VendorStatusScreen() {
 
           <View style={styles.reportRemarksBox}>
             <Text style={styles.reportRemarksText}>
-              {evaluation.notes || "Official audit certified in compliance with municipal sanitation requirements."}
+              {evaluation.notes || "Official audit certified in compliance with environmental sanitation requirements."}
             </Text>
           </View>
 
@@ -321,7 +321,7 @@ export default function VendorStatusScreen() {
             <MaterialCommunityIcons name="shield-check" size={18} color={gradeColor} />
             <Text style={[styles.reportPassText, { color: gradeColor }]}>
               {evaluation.total_score >= 75
-                ? "All municipal environmental standards satisfied."
+                ? "All environmental sanitation standards satisfied."
                 : "Notice: Remedial cleanup and compliance actions advised."}
             </Text>
           </View>

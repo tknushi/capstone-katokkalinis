@@ -48,13 +48,6 @@ class UserSeeder extends Seeder
             password: 'Driver@123',
             roleName: 'driver'
         );
-
-        $this->createUserWithRole(
-            name: 'Juan Driver',
-            email: 'driver1@katokkalinis.com',
-            password: 'Driver@123',
-            roleName: 'driver'
-        );
         /*
         |--------------------------------------------------------------------------
         | INSPECTOR

@@ -27,6 +27,42 @@ class Attendance extends Model
         'archived_at' => 'datetime',
     ];
 
+    protected $appends = [
+        'time_in_formatted',
+        'time_out_formatted',
+        'date_formatted',
+    ];
+
+    public function getTimeInFormattedAttribute(): ?string
+    {
+        if (!$this->time_in) return null;
+        try {
+            return \Carbon\Carbon::parse($this->time_in)->format('g:i A');
+        } catch (\Throwable $e) {
+            return substr($this->time_in, 0, 5);
+        }
+    }
+
+    public function getTimeOutFormattedAttribute(): ?string
+    {
+        if (!$this->time_out) return null;
+        try {
+            return \Carbon\Carbon::parse($this->time_out)->format('g:i A');
+        } catch (\Throwable $e) {
+            return substr($this->time_out, 0, 5);
+        }
+    }
+
+    public function getDateFormattedAttribute(): ?string
+    {
+        if (!$this->date) return null;
+        try {
+            return \Carbon\Carbon::parse($this->date)->format('M d, Y');
+        } catch (\Throwable $e) {
+            return (string)$this->date;
+        }
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

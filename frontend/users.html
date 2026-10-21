@@ -44,6 +44,210 @@
             width: auto;
             margin-right: 8px;
         }
+
+        /* Recently Edited Reminder Notification Banner */
+        .recently-edited-banner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+            border: 1px solid #86efac;
+            border-left: 5px solid #16a34a;
+            border-radius: 8px;
+            padding: 11px 16px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 8px rgba(22, 163, 74, 0.08);
+            animation: slideDownFade 0.28s ease-out;
+        }
+        [data-theme="dark"] .recently-edited-banner {
+            background: linear-gradient(135deg, #0d2818 0%, #102e1c 100%);
+            border-color: #1e5e34;
+            border-left-color: #22c55e;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+        }
+        .recently-edited-main {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 0;
+            flex: 1;
+        }
+        .recently-edited-icon-box {
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            background: #dcfce7;
+            color: #15803d;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        [data-theme="dark"] .recently-edited-icon-box {
+            background: #194627;
+            color: #4ade80;
+        }
+        .recently-edited-info {
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .recently-edited-title {
+            font-size: 13.5px;
+            color: #14532d;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        [data-theme="dark"] .recently-edited-title {
+            color: #dcfce7;
+        }
+        .recently-edited-target-name {
+            font-weight: 700;
+            color: #0f3d20;
+        }
+        [data-theme="dark"] .recently-edited-target-name {
+            color: #86efac;
+        }
+        .recently-edited-email {
+            font-size: 12px;
+            color: #40604b;
+        }
+        [data-theme="dark"] .recently-edited-email {
+            color: #a7c4b0;
+        }
+        .recently-edited-sub {
+            font-size: 12px;
+            color: #2e603d;
+        }
+        [data-theme="dark"] .recently-edited-sub {
+            color: #9cd4ac;
+        }
+        .recently-edited-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+        .btn-highlight-recent {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: #ffffff;
+            color: #15803d;
+            border: 1px solid #86efac;
+            padding: 5px 11px;
+            font-size: 12px;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .btn-highlight-recent:hover {
+            background: #dcfce7;
+            border-color: #4ade80;
+            color: #0f3d20;
+            transform: translateY(-1px);
+        }
+        [data-theme="dark"] .btn-highlight-recent {
+            background: #14351d;
+            color: #86efac;
+            border-color: #225e36;
+        }
+        [data-theme="dark"] .btn-highlight-recent:hover {
+            background: #1d4b29;
+            color: #ffffff;
+        }
+        .recently-edited-dismiss {
+            background: transparent;
+            border: none;
+            color: #526c5b;
+            font-size: 18px;
+            line-height: 1;
+            padding: 4px 6px;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: color 0.15s ease, background 0.15s ease;
+        }
+        .recently-edited-dismiss:hover {
+            color: #14532d;
+            background: rgba(0, 0, 0, 0.05);
+        }
+        [data-theme="dark"] .recently-edited-dismiss:hover {
+            color: #ecfdf5;
+            background: rgba(255, 255, 255, 0.1);
+        }
+        @keyframes slideDownFade {
+            from { opacity: 0; transform: translateY(-8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* In-table badge and row pulse for recently edited */
+        .pill-recently-edited {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 7px;
+            margin-left: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            border-radius: 10px;
+            background: #dcfce7;
+            color: #15803d;
+            border: 1px solid #86efac;
+            vertical-align: middle;
+            animation: pulseSoft 2.5s infinite;
+        }
+        [data-theme="dark"] .pill-recently-edited {
+            background: #14351d;
+            color: #4ade80;
+            border-color: #166534;
+        }
+        @keyframes pulseSoft {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.72; }
+        }
+        tr.recently-edited-row {
+            background-color: #f0fdf4 !important;
+            transition: background-color 0.4s ease;
+        }
+        [data-theme="dark"] tr.recently-edited-row {
+            background-color: rgba(34, 197, 94, 0.12) !important;
+        }
+        tr.recently-edited-row.pulse-glow {
+            animation: rowGlow 1.8s ease-out;
+        }
+        @keyframes rowGlow {
+            0% { background-color: #bbf7d0 !important; }
+            50% { background-color: #dcfce7 !important; }
+            100% { background-color: #f0fdf4 !important; }
+        }
+
+        /* Protected Super Admin styles */
+        .action-locked-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            background: #f1f5f9;
+            color: #64748b;
+            border: 1px dashed #cbd5e1;
+            cursor: help;
+        }
+        [data-theme="dark"] .action-locked-badge {
+            background: #1e293b;
+            color: #94a3b8;
+            border-color: #334155;
+        }
+        .row-select-checkbox.is-protected {
+            cursor: not-allowed;
+            opacity: 0.45;
+        }
     </style>
 </head>
 <body>
@@ -65,14 +269,78 @@
             </header>
             
             <section class="content">
+                <div class="exec-command-center">
+                    <!-- Standard Executive Header Banner -->
+                    <div class="exec-header-banner">
+                        <div class="exec-header-left">
+                            <div class="exec-shield-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 2l8 4.5v6c0 5-3.5 9.5-8 11.5-4.5-2-8-6.5-8-11.5v-6z"/>
+                                    <path d="M8 12h8M12 8v8"/>
+                                </svg>
+                            </div>
+                            <div class="exec-title-block">
+                                <h1>User Accounts &amp; Access Governance</h1>
+                                <p>SYSTEM SECURITY &bull; SUPER ADMIN &amp; BARANGAY ADMIN IDENTITIES &bull; CAGAYAN DE ORO CITY</p>
+                            </div>
+                            <div class="exec-clenro-pill">
+                                <span class="live-dot"></span>
+                                RBAC ACCESS CONTROL
+                            </div>
+                        </div>
+                        <div class="exec-header-right">
+                            <a href="archives.html" class="exec-btn-cross-connect" title="Open System Archives">
+                                <span>&#128451;</span> Archives
+                            </a>
+                            <a href="activity-logs.html" class="exec-btn-cross-connect" title="Open Security Audit Logs">
+                                <span>&#128220;</span> Audit Logs
+                            </a>
+                            <a href="analytics.html" class="exec-btn-cross-connect" title="Open Executive Dashboard">
+                                <span>&#128202;</span> Executive Analytics
+                            </a>
+                            <a href="barangay-overview.html" class="exec-btn-cross-connect" title="Open Barangay Command">
+                                <span>&#127963;</span> Barangay Command
+                            </a>
+                        </div>
+                    </div>
+
                 <div class="card">
                     <div class="card-header" style="display: flex; align-items: center; justify-content: space-between;">
                         <h3 class="users-section-title">Users</h3>
                     </div>
 
+                    <!-- Recently Edited Notification / Reminder Bar -->
+                    <div id="recently-edited-banner" class="recently-edited-banner" style="display: none;" role="status">
+                        <div class="recently-edited-main">
+                            <div class="recently-edited-icon-box">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M12 20h9"></path>
+                                    <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                                </svg>
+                            </div>
+                            <div class="recently-edited-info">
+                                <div class="recently-edited-title">
+                                    <strong>Recently Edited:</strong>
+                                    <span id="recently-edited-name" class="recently-edited-target-name">User Name</span>
+                                    <span id="recently-edited-email" class="recently-edited-email">(user@katokkalinis.com)</span>
+                                </div>
+                                <div class="recently-edited-sub">
+                                    Account details and role permissions updated <span id="recently-edited-time-ago" class="recently-edited-timestamp">just now</span>.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="recently-edited-actions">
+                            <button type="button" class="btn-highlight-recent" onclick="scrollToRecentlyEditedRow()">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                                Find in Table
+                            </button>
+                            <button type="button" class="recently-edited-dismiss" onclick="dismissRecentlyEditedAlert()" aria-label="Dismiss notification">&times;</button>
+                        </div>
+                    </div>
+
                     <!-- Search, Status, and Role Filter Bar -->
                     <div class="filter-bar">
-                        <select id="status-filter" aria-label="Filter by Status" onchange="onFilterChange()">
+                        <select id="status-filter" aria-label="Filter by Status">
                             <option value="all" selected>All Users</option>
                             <option value="active">Active Users</option>
                             <option value="archived">Archived Users</option>
@@ -143,6 +411,7 @@
 
                     <!-- Reusable Pagination Bar -->
                     <div id="pagination-container" class="pagination-container"></div>
+                </div>
                 </div>
             </section>
         </main>
@@ -306,17 +575,25 @@
         function getInitialState() {
             const urlParams = new URLSearchParams(window.location.search);
 
-            let page = parseInt(urlParams.get('page') || localStorage.getItem(STORAGE_PAGE) || '1', 10);
+            let page = parseInt(urlParams.get('page') || sessionStorage.getItem(STORAGE_PAGE) || localStorage.getItem(STORAGE_PAGE) || '1', 10);
             if (isNaN(page) || page < 1) page = 1;
 
             let rows = parseInt(urlParams.get('rows') || localStorage.getItem(STORAGE_ROWS) || '10', 10);
             if (![10, 20, 50, 100].includes(rows)) rows = 10;
 
-            let status = urlParams.get('status') || localStorage.getItem(STORAGE_STATUS) || 'all';
+            let status = urlParams.get('status') || sessionStorage.getItem(STORAGE_STATUS) || localStorage.getItem(STORAGE_STATUS) || 'all';
+            status = String(status).toLowerCase();
             if (!['all', 'active', 'archived'].includes(status)) status = 'all';
 
-            let role = urlParams.get('role') || localStorage.getItem(STORAGE_ROLE) || '';
-            let search = urlParams.get('search') || localStorage.getItem(STORAGE_SEARCH) || '';
+            let role = urlParams.get('role');
+            if (role === null) {
+                role = sessionStorage.getItem(STORAGE_ROLE) || localStorage.getItem(STORAGE_ROLE) || '';
+            }
+
+            let search = urlParams.get('search');
+            if (search === null) {
+                search = sessionStorage.getItem(STORAGE_SEARCH) || localStorage.getItem(STORAGE_SEARCH) || '';
+            }
 
             let sort = { column: null, direction: 'asc' };
             const paramSortCol = urlParams.get('sort');
@@ -325,7 +602,7 @@
                 sort = { column: paramSortCol, direction: paramSortDir === 'desc' ? 'desc' : 'asc' };
             } else {
                 try {
-                    const saved = JSON.parse(localStorage.getItem(STORAGE_SORT) || '{}');
+                    const saved = JSON.parse(sessionStorage.getItem(STORAGE_SORT) || localStorage.getItem(STORAGE_SORT) || '{}');
                     if (saved && saved.column) {
                         sort = { column: saved.column, direction: saved.direction === 'desc' ? 'desc' : 'asc' };
                     }
@@ -344,18 +621,22 @@
 
         function persistState() {
             try {
+                const statusVal = document.getElementById('status-filter')?.value || 'all';
+                const roleVal = document.getElementById('role-filter')?.value || '';
+                const searchVal = document.getElementById('search-box')?.value || '';
+
+                sessionStorage.setItem(STORAGE_PAGE, String(currentPage));
+                sessionStorage.setItem(STORAGE_ROWS, String(rowsPerPage));
+                sessionStorage.setItem(STORAGE_STATUS, statusVal);
+                sessionStorage.setItem(STORAGE_ROLE, roleVal);
+                sessionStorage.setItem(STORAGE_SEARCH, searchVal);
+                sessionStorage.setItem(STORAGE_SORT, JSON.stringify(currentSort));
+
                 localStorage.setItem(STORAGE_PAGE, String(currentPage));
                 localStorage.setItem(STORAGE_ROWS, String(rowsPerPage));
-
-                const statusVal = document.getElementById('status-filter')?.value || 'all';
                 localStorage.setItem(STORAGE_STATUS, statusVal);
-
-                const roleVal = document.getElementById('role-filter')?.value || '';
                 localStorage.setItem(STORAGE_ROLE, roleVal);
-
-                const searchVal = document.getElementById('search-box')?.value || '';
                 localStorage.setItem(STORAGE_SEARCH, searchVal);
-
                 localStorage.setItem(STORAGE_SORT, JSON.stringify(currentSort));
 
                 // Sync URL query parameters without reloading
@@ -372,11 +653,8 @@
                     url.searchParams.delete('rows');
                 }
 
-                if (statusVal && statusVal !== 'all') {
-                    url.searchParams.set('status', statusVal);
-                } else {
-                    url.searchParams.delete('status');
-                }
+                // Explicitly persist status to URL so browser refresh always retains current category
+                url.searchParams.set('status', statusVal);
 
                 if (roleVal) {
                     url.searchParams.set('role', roleVal);
@@ -459,6 +737,8 @@
                 const filterSelect = document.getElementById('role-filter');
                 const bulkRoleSelect = document.getElementById('bulk-role-target');
 
+                const currentSelectedRole = filterSelect?.value || initialState.role || '';
+
                 filterSelect.innerHTML = '<option value="">All Roles</option>';
                 bulkRoleSelect.innerHTML = '';
 
@@ -527,6 +807,11 @@
                         bulkRoleSelect.appendChild(optgroup);
                     }
                 });
+
+                // Maintain the selected role after populating
+                if (currentSelectedRole && filterSelect) {
+                    filterSelect.value = currentSelectedRole;
+                }
             } catch (error) {
                 console.error('Failed to load roles', error);
             }
@@ -629,6 +914,17 @@
             const tbody = document.getElementById('table-body');
             const isCallerSuper = isCurrentUserSuperAdmin();
 
+            const recentlyEditedRaw = sessionStorage.getItem('katok_recently_edited_user');
+            let recentlyEditedId = null;
+            if (recentlyEditedRaw) {
+                try {
+                    const parsed = JSON.parse(recentlyEditedRaw);
+                    if (Date.now() - parsed.timestamp <= 3600000) {
+                        recentlyEditedId = parsed.id;
+                    }
+                } catch (e) {}
+            }
+
             if (pagedUsers.length === 0) {
                 const emptyMsg = statusFilterVal === 'archived'
                     ? 'No archived users found.'
@@ -637,28 +933,36 @@
             } else {
                 tbody.innerHTML = pagedUsers.map(item => {
                     const isSelected = selectedUserIds.has(item.id);
+                    const isRecentlyEdited = (item.id === recentlyEditedId);
                     const roleBadges = (item.roles || []).map(r => `<span class="role-badge">${escapeHtml(formatRoleTitle(r.name))}</span>`).join('');
                     const joined = item.created_at ? item.created_at.substring(0, 10) : '-';
                     const isSuper = (item.roles || []).some(role => role.name === 'super_admin');
-                    const isProtected = isSuper && !isCallerSuper;
                     const isArchived = Boolean(item.is_archived || item.archived_at);
 
                     return `
-                        <tr class="${isSelected ? 'selected-row' : ''}">
+                        <tr class="${isSelected ? 'selected-row' : ''} ${isRecentlyEdited ? 'recently-edited-row' : ''}" id="user-row-${item.id}">
                             <td class="col-checkbox">
-                                ${isProtected ? `
-                                    <input type="checkbox" class="row-select-checkbox is-protected" disabled title="Super Admin accounts cannot be selected by lower hierarchy roles" aria-label="Protected Super Admin account">
+                                ${isSuper ? `
+                                    <input type="checkbox" class="row-select-checkbox is-protected" disabled title="Super Administrator accounts are system protected and cannot be deleted or archived" aria-label="Protected Super Admin account">
                                 ` : `
                                     <input type="checkbox" class="row-select-checkbox" data-id="${item.id}" ${isSelected ? 'checked' : ''} onchange="toggleRowSelection(${item.id}, event)" aria-label="Select ${escapeHtml(item.name)}">
                                 `}
                             </td>
-                            <td><strong>${escapeHtml(item.name)}</strong></td>
+                            <td>
+                                <strong>${escapeHtml(item.name)}</strong>
+                                ${isRecentlyEdited ? `
+                                    <span class="pill-recently-edited" title="Recently edited user profile">
+                                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                        Recently Edited
+                                    </span>
+                                ` : ''}
+                            </td>
                             <td>${escapeHtml(item.email)}</td>
                             <td>${roleBadges || '-'}</td>
                             <td>${joined}</td>
                             <td>
                                 <div class="row-actions-cell">
-                                    ${isProtected ? `
+                                    ${isSuper && !isCallerSuper ? `
                                         <button type="button" class="action-icon-btn is-disabled has-tooltip" data-tooltip="Protected Super Admin" aria-label="Protected Super Admin" onclick="showSuperAdminBlockedToast()">
                                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity: 0.45;">
                                                 <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
@@ -671,22 +975,31 @@
                                                 <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
                                             </svg>
                                         </button>
-                                        ${!isArchived ? `
-                                            <button type="button" class="action-icon-btn has-tooltip" data-tooltip="Archive User" aria-label="Archive User" onclick="promptArchiveUser(${item.id}, '${escapeHtml(item.name).replace(/'/g, "\\'")}')">
-                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                    <polyline points="21 8 21 21 3 21 3 8"></polyline>
-                                                    <rect x="1" y="3" width="22" height="5"></rect>
-                                                    <line x1="10" y1="12" x2="14" y2="12"></line>
+                                        ${isSuper ? `
+                                            <span class="action-locked-badge has-tooltip" data-tooltip="Protected Super Admin: Permanent removal and archival disabled" aria-label="Protected Super Admin">
+                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                                                 </svg>
-                                            </button>
-                                        ` : `
-                                            <button type="button" class="action-icon-btn has-tooltip" data-tooltip="Restore User" aria-label="Restore User" onclick="promptRestoreUser(${item.id}, '${escapeHtml(item.name).replace(/'/g, "\\'")}')">
-                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                    <polyline points="1 4 1 10 7 10"></polyline>
-                                                    <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
-                                                </svg>
-                                            </button>
-                                        `}
+                                            </span>
+                                        ` : (
+                                            !isArchived ? `
+                                                <button type="button" class="action-icon-btn has-tooltip" data-tooltip="Archive User" aria-label="Archive User" onclick="promptArchiveUser(${item.id}, '${escapeHtml(item.name).replace(/'/g, "\\'")}')">
+                                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                        <polyline points="21 8 21 21 3 21 3 8"></polyline>
+                                                        <rect x="1" y="3" width="22" height="5"></rect>
+                                                        <line x1="10" y1="12" x2="14" y2="12"></line>
+                                                    </svg>
+                                                </button>
+                                            ` : `
+                                                <button type="button" class="action-icon-btn has-tooltip" data-tooltip="Restore User" aria-label="Restore User" onclick="promptRestoreUser(${item.id}, '${escapeHtml(item.name).replace(/'/g, "\\'")}')">
+                                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                        <polyline points="1 4 1 10 7 10"></polyline>
+                                                        <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+                                                    </svg>
+                                                </button>
+                                            `
+                                        )}
                                     `}
                                 </div>
                             </td>
@@ -764,11 +1077,10 @@
          */
         function handleSelectAllToggle(event) {
             const isChecked = event.target.checked;
-            const isCallerSuper = isCurrentUserSuperAdmin();
             pagedUsers.forEach(u => {
                 const isSuper = (u.roles || []).some(role => role.name === 'super_admin');
-                if (isSuper && !isCallerSuper) {
-                    return; // Skip protected Super Admin rows
+                if (isSuper) {
+                    return; // Super Admin accounts are permanently protected and never selectable for removal/archival
                 }
                 if (isChecked) {
                     selectedUserIds.add(u.id);
@@ -829,7 +1141,7 @@
             const countEl = document.getElementById('bulk-selected-count');
             const count = selectedUserIds.size;
 
-            const statusFilterVal = (document.getElementById('status-filter')?.value || 'active').toLowerCase().trim();
+            const statusFilterVal = (document.getElementById('status-filter')?.value || 'all').toLowerCase().trim();
             const btnArchive = document.getElementById('btn-bulk-archive-trigger');
             const btnRestore = document.getElementById('btn-bulk-restore-trigger');
 
@@ -903,17 +1215,28 @@
 
         async function executeBulkArchive() {
             const btn = document.getElementById('btn-confirm-bulk-archive');
-            const ids = Array.from(selectedUserIds);
-            if (ids.length === 0) return;
+            // Filter out any super_admin accounts so they can never be archived
+            const safeIds = Array.from(selectedUserIds).filter(id => {
+                const u = rawUsers.find(user => user.id === id);
+                return !u || !(u.roles || []).some(r => r.name === 'super_admin');
+            });
+
+            if (safeIds.length === 0) {
+                closeBulkArchiveModal();
+                selectedUserIds.clear();
+                showToast('Super Administrator accounts are system protected and cannot be archived.', 'warning');
+                applyPipeline();
+                return;
+            }
 
             btn.disabled = true;
             btn.textContent = 'Archiving...';
 
             try {
-                const res = await apiRequest('/users/bulk-archive', 'PATCH', { ids });
+                const res = await apiRequest('/users/bulk-archive', 'PATCH', { ids: safeIds });
                 closeBulkArchiveModal();
                 selectedUserIds.clear();
-                showToast(res.message || `${ids.length} users archived successfully.`, 'success');
+                showToast(res.message || `${safeIds.length} users archived successfully.`, 'success');
                 await loadData();
             } catch (err) {
                 console.error('Bulk archive failed:', err);
@@ -1008,8 +1331,8 @@
 
         function promptArchiveUser(userId, userName) {
             const user = rawUsers.find(u => u.id === userId);
-            if (user && (user.roles || []).some(r => r.name === 'super_admin') && !isCurrentUserSuperAdmin()) {
-                showSuperAdminBlockedToast();
+            if (user && (user.roles || []).some(r => r.name === 'super_admin')) {
+                showToast('Super Administrator accounts are system protected and cannot be archived or removed.', 'warning');
                 return;
             }
             pendingActionUserId = userId;
@@ -1157,12 +1480,12 @@
 
         document.getElementById('data-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const id = document.getElementById('item-id').value;
-            const payload = {
-                name: document.getElementById('name').value,
-                email: document.getElementById('email').value,
-            };
+            const id = parseInt(document.getElementById('item-id').value, 10);
+            const name = document.getElementById('name').value.trim();
+            const email = document.getElementById('email').value.trim();
             const pwd = document.getElementById('password').value;
+
+            const payload = { name, email };
             if (pwd) payload.password = pwd;
 
             const roleIds = Array.from(document.querySelectorAll('#roles-checklist input:checked')).map(cb => parseInt(cb.value, 10));
@@ -1171,12 +1494,76 @@
                 await apiRequest(`${endpoint}/${id}`, 'PUT', payload);
                 await apiRequest(`${endpoint}/${id}/roles`, 'PUT', { role_ids: roleIds });
                 closeModal();
-                showToast('User updated successfully.', 'success');
-                loadData();
-            } catch (e) {
-                showToast('Error saving user: ' + e.message, 'error');
+
+                // Save recently edited user record to sessionStorage for reminder/notification
+                const now = new Date();
+                const recentlyEdited = {
+                    id: id,
+                    name: name,
+                    email: email,
+                    timestamp: now.getTime(),
+                    timeFormatted: now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true })
+                };
+                sessionStorage.setItem('katok_recently_edited_user', JSON.stringify(recentlyEdited));
+
+                showToast(`Recently edited: ${name} (${email})`, 'success');
+                checkRecentlyEditedBanner();
+                await loadData();
+
+                // Auto-scroll and gently pulse the recently edited row
+                setTimeout(() => {
+                    scrollToRecentlyEditedRow();
+                }, 200);
+            } catch (err) {
+                showToast('Error saving user: ' + (err.message || 'Server error'), 'error');
             }
         });
+
+        function checkRecentlyEditedBanner() {
+            const banner = document.getElementById('recently-edited-banner');
+            if (!banner) return;
+
+            const raw = sessionStorage.getItem('katok_recently_edited_user');
+            if (!raw) {
+                banner.style.display = 'none';
+                return;
+            }
+
+            try {
+                const info = JSON.parse(raw);
+                if (Date.now() - info.timestamp > 3600000) {
+                    sessionStorage.removeItem('katok_recently_edited_user');
+                    banner.style.display = 'none';
+                    return;
+                }
+
+                document.getElementById('recently-edited-name').textContent = info.name || 'User';
+                document.getElementById('recently-edited-email').textContent = info.email ? `(${info.email})` : '';
+                document.getElementById('recently-edited-time-ago').textContent = `at ${info.timeFormatted || 'recently'}`;
+                banner.style.display = 'flex';
+            } catch (e) {
+                banner.style.display = 'none';
+            }
+        }
+
+        function dismissRecentlyEditedAlert() {
+            sessionStorage.removeItem('katok_recently_edited_user');
+            const banner = document.getElementById('recently-edited-banner');
+            if (banner) banner.style.display = 'none';
+            applyPipeline();
+        }
+
+        function scrollToRecentlyEditedRow() {
+            const row = document.querySelector('tr.recently-edited-row');
+            if (row) {
+                row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                row.classList.remove('pulse-glow');
+                void row.offsetWidth; // trigger reflow
+                row.classList.add('pulse-glow');
+            } else {
+                showToast('Recently edited user is not on the current filtered view or page.', 'info');
+            }
+        }
 
         // Initialize Page
         document.addEventListener('DOMContentLoaded', async () => {
@@ -1199,6 +1586,8 @@
             if (roleEl && initialState.role) {
                 roleEl.value = initialState.role;
             }
+
+            checkRecentlyEditedBanner();
 
             await loadData();
         });

@@ -1,6 +1,6 @@
-# Dependencies
 node_modules/
-vendor/
+backend/vendor/
+!Katokkalinis_mobile/app/vendor/
 
 # Environment files
 .env

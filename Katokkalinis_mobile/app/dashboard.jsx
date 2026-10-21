@@ -1,5 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import {
@@ -62,6 +63,15 @@ function computeCountdown(dateStr, timeStr) {
   }
 }
 
+const QUICK_ACTIONS = [
+  { id: "schedule", label: "Schedule", icon: "calendar-clock-outline", color: "#1976D2", bg: "#E3F2FD", route: "/schedule", keywords: ["schedule", "pickup", "calendar", "time", "date", "trash"] },
+  { id: "post", label: "Submit Report", icon: "camera-plus-outline", color: "#2E7D32", bg: "#E8F8EE", route: "/post", keywords: ["report", "complaint", "issue", "dumping", "spill", "bin", "camera", "photo"] },
+  { id: "notifications", label: "Notifications", icon: "bell-ring-outline", color: "#F57F17", bg: "#FFF8E1", route: "/notifications", keywords: ["notification", "alert", "notice", "truck approaching"] },
+  { id: "feedback", label: "Feedback", icon: "message-text-outline", color: "#7B1FA2", bg: "#F3E5F5", route: "/feedback", keywords: ["feedback", "suggestion", "support", "community", "message"] },
+  { id: "reports_list", label: "All Reports", icon: "file-document-outline", color: "#455A64", bg: "#ECEFF1", route: "/report", keywords: ["view reports", "history", "resolved", "my reports"] },
+  { id: "profile", label: "Profile", icon: "account-outline", color: "#00796B", bg: "#E0F2F1", route: "/profile", keywords: ["profile", "account", "barangay", "contact", "settings"] },
+];
+
 export default function Dashboard() {
   const router = useRouter();
   const [userName, setUserName] = useState("Jane Doe");
@@ -97,40 +107,24 @@ export default function Dashboard() {
     }
   };
 
-  const loadScheduleData = useCallback(async () => {
+  const loadScheduleData = useCallback(async (isSilent = false) => {
     try {
-      setLoadingSchedule(true);
+      if (!isSilent) setLoadingSchedule(true);
       const res = await fetchNextSchedule(barangayId, userLocation);
       if (res && res.success && res.schedule) {
         setNextSchedule(res.schedule);
         const cd = computeCountdown(res.schedule.date, res.schedule.pickup_time);
         setCountdownText(cd);
       } else {
-        // Default smart fallback based on current date
-        const fallbackTarget = new Date();
-        fallbackTarget.setDate(fallbackTarget.getDate() + 2);
-        const fallbackDateStr = fallbackTarget.toISOString().split("T")[0];
-        setNextSchedule({
-          date: fallbackDateStr,
-          day: fallbackTarget.toLocaleDateString("en-US", { weekday: "long" }),
-          pickup_time: "08:00",
-          status: "scheduled",
-        });
-        setCountdownText("in 2 days");
+        setNextSchedule(null);
+        setCountdownText("No schedule set");
       }
     } catch (e) {
-      console.warn("Could not fetch remote schedule, using local fallback:", e);
-      const fallbackTarget = new Date();
-      fallbackTarget.setDate(fallbackTarget.getDate() + 2);
-      setNextSchedule({
-        date: fallbackTarget.toISOString().split("T")[0],
-        day: fallbackTarget.toLocaleDateString("en-US", { weekday: "long" }),
-        pickup_time: "08:00",
-        status: "scheduled",
-      });
-      setCountdownText("in 2 days");
+      console.warn("Could not fetch remote schedule:", e);
+      setNextSchedule(null);
+      setCountdownText("No schedule set");
     } finally {
-      setLoadingSchedule(false);
+      if (!isSilent) setLoadingSchedule(false);
       setRefreshing(false);
     }
   }, [barangayId, userLocation]);
@@ -141,6 +135,14 @@ export default function Dashboard() {
 
   useEffect(() => {
     loadScheduleData();
+  }, [loadScheduleData]);
+
+  // Periodic background check so web schedule changes update on mobile dashboard
+  useEffect(() => {
+    const timer = setInterval(() => {
+      loadScheduleData(true);
+    }, 10000);
+    return () => clearInterval(timer);
   }, [loadScheduleData]);
 
   useEffect(() => {
@@ -154,37 +156,88 @@ export default function Dashboard() {
   }, [nextSchedule?.date, nextSchedule?.pickup_time]);
 
   const onRefresh = () => {
+    try {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    } catch {
+      // Haptics fallback
+    }
     setRefreshing(true);
     loadScheduleData();
   };
 
+  const displayedActions = searchQuery.trim()
+    ? QUICK_ACTIONS.filter(
+        (a) =>
+          a.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          a.keywords.some((k) => k.toLowerCase().includes(searchQuery.toLowerCase()))
+      )
+    : QUICK_ACTIONS.slice(0, 4);
+
+  const handleSearchSubmit = () => {
+    if (displayedActions.length > 0) {
+      try {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      } catch {
+        // Haptics fallback
+      }
+      router.push(displayedActions[0].route);
+    }
+  };
+
   // Format date display (e.g. "Friday, May 2, 2026")
   const formattedCollectionDate = nextSchedule?.date
-    ? new Date(nextSchedule.date).toLocaleDateString("en-US", {
+    ? new Date(String(nextSchedule.date).slice(0, 10) + "T00:00:00").toLocaleDateString("en-US", {
         weekday: "long",
         month: "long",
         day: "numeric",
         year: "numeric",
       })
-    : "Friday, May 2, 2026";
+    : "No Upcoming Schedule";
 
   const pickupTimeDisplay = nextSchedule?.pickup_time
     ? nextSchedule.pickup_time.slice(0, 5)
-    : "08:00 AM";
+    : "Not Set";
 
   useEffect(() => {
-    // Top banner alert when app is opened if truck is active in area
-    const timer = setTimeout(() => {
-      setTopBanner({
-        visible: true,
-        title: "Garbage Truck Approaching",
-        message: "Compactor Truck #04 is now active in your barangay cluster.",
-        type: "truck",
-      });
-    }, 1200);
+    // Only pop up the collection alert on the actual SET DATE
+    if (!nextSchedule?.date) {
+      setTopBanner((prev) => ({ ...prev, visible: false }));
+      return;
+    }
 
-    return () => clearTimeout(timer);
-  }, []);
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    const day = String(now.getDate()).padStart(2, "0");
+    const todayStr = `${year}-${month}-${day}`;
+
+    const scheduleDateStr = String(nextSchedule.date).slice(0, 10);
+    const isSetDate = scheduleDateStr === todayStr;
+
+    if (isSetDate) {
+      const timer = setTimeout(() => {
+        setTopBanner({
+          visible: true,
+          title: "Garbage Collection Today",
+          message: `Scheduled pickup today at ${pickupTimeDisplay} for ${userLocation}. Please have your bins ready.`,
+          type: "truck",
+        });
+
+        // Also fire native system push notification into notification tray
+        import("../services/pushNotification").then(({ triggerLocalNotification }) => {
+          triggerLocalNotification(
+            "Garbage Collection Today",
+            `Scheduled pickup today at ${pickupTimeDisplay} for ${userLocation}. Please have your bins ready.`
+          );
+        }).catch(() => {});
+      }, 1200);
+
+      return () => clearTimeout(timer);
+    } else {
+      // Do not pop up if today is not the set date
+      setTopBanner((prev) => ({ ...prev, visible: false }));
+    }
+  }, [nextSchedule?.date, pickupTimeDisplay, userLocation]);
 
   return (
     <View style={styles.container}>
@@ -248,7 +301,17 @@ export default function Dashboard() {
             placeholderTextColor="#9AA998"
             value={searchQuery}
             onChangeText={setSearchQuery}
+            onSubmitEditing={handleSearchSubmit}
+            returnKeyType="search"
           />
+          {searchQuery.length > 0 && (
+            <TouchableOpacity
+              onPress={() => setSearchQuery("")}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <MaterialCommunityIcons name="close-circle" size={18} color="#A5B8A3" />
+            </TouchableOpacity>
+          )}
         </View>
 
         {/* 4. MAIN HERO CARD: NEXT COLLECTION WITH LIVE DB COUNTDOWN */}
@@ -271,7 +334,9 @@ export default function Dashboard() {
             </View>
 
             <Text style={styles.heroSubDetail}>
-              Pickup starts at {pickupTimeDisplay}
+              {nextSchedule?.pickup_time
+                ? `Pickup starts at ${pickupTimeDisplay}`
+                : "Tap to view city collection calendar"}
             </Text>
           </View>
 
@@ -285,56 +350,31 @@ export default function Dashboard() {
         </TouchableOpacity>
 
         {/* 5. QUICK ACTIONS GRID */}
-        <Text style={styles.sectionTitle}>Quick Actions</Text>
+        <View style={styles.quickActionsHeaderRow}>
+          <Text style={styles.sectionTitle}>
+            {searchQuery.trim() ? `Search Results (${displayedActions.length})` : "Quick Actions"}
+          </Text>
+          {searchQuery.trim().length > 0 && (
+            <TouchableOpacity onPress={() => setSearchQuery("")}>
+              <Text style={styles.clearSearchLink}>Clear</Text>
+            </TouchableOpacity>
+          )}
+        </View>
 
         <View style={styles.quickActionsGrid}>
-          {/* 1: View Schedule */}
-          <TouchableOpacity
-            style={styles.actionGridCard}
-            activeOpacity={0.85}
-            onPress={() => router.push("/schedule")}
-          >
-            <View style={[styles.actionIconBox, { backgroundColor: "#E3F2FD" }]}>
-              <MaterialCommunityIcons name="calendar-clock-outline" size={26} color="#1976D2" />
-            </View>
-            <Text style={styles.actionLabel}>Schedule</Text>
-          </TouchableOpacity>
-
-          {/* 2: Submit Report */}
-          <TouchableOpacity
-            style={styles.actionGridCard}
-            activeOpacity={0.85}
-            onPress={() => router.push("/post")}
-          >
-            <View style={[styles.actionIconBox, { backgroundColor: "#E8F8EE" }]}>
-              <MaterialCommunityIcons name="camera-plus-outline" size={26} color="#2E7D32" />
-            </View>
-            <Text style={styles.actionLabel}>Submit Report</Text>
-          </TouchableOpacity>
-
-          {/* 3: Notifications */}
-          <TouchableOpacity
-            style={styles.actionGridCard}
-            activeOpacity={0.85}
-            onPress={() => router.push("/notifications")}
-          >
-            <View style={[styles.actionIconBox, { backgroundColor: "#FFF8E1" }]}>
-              <MaterialCommunityIcons name="bell-ring-outline" size={26} color="#F57F17" />
-            </View>
-            <Text style={styles.actionLabel}>Notifications</Text>
-          </TouchableOpacity>
-
-          {/* 4: Feedback & Support */}
-          <TouchableOpacity
-            style={styles.actionGridCard}
-            activeOpacity={0.85}
-            onPress={() => router.push("/feedback")}
-          >
-            <View style={[styles.actionIconBox, { backgroundColor: "#F3E5F5" }]}>
-              <MaterialCommunityIcons name="message-text-outline" size={26} color="#7B1FA2" />
-            </View>
-            <Text style={styles.actionLabel}>Feedback</Text>
-          </TouchableOpacity>
+          {displayedActions.map((action) => (
+            <TouchableOpacity
+              key={action.id}
+              style={styles.actionGridCard}
+              activeOpacity={0.85}
+              onPress={() => router.push(action.route)}
+            >
+              <View style={[styles.actionIconBox, { backgroundColor: action.bg }]}>
+                <MaterialCommunityIcons name={action.icon} size={26} color={action.color} />
+              </View>
+              <Text style={styles.actionLabel}>{action.label}</Text>
+            </TouchableOpacity>
+          ))}
         </View>
       </ScrollView>
 
@@ -533,11 +573,21 @@ const styles = StyleSheet.create({
   },
 
   // SECTION & ACTIONS GRID
+  quickActionsHeaderRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 14,
+  },
   sectionTitle: {
     fontSize: 17,
     fontWeight: "800",
     color: "#1E331B",
-    marginBottom: 14,
+  },
+  clearSearchLink: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#2E7D32",
   },
   quickActionsGrid: {
     flexDirection: "row",

@@ -28,6 +28,7 @@ export default function Signup() {
   const [contactNumber, setContactNumber] = useState("");
   const [contactTouched, setContactTouched] = useState(false);
   const [barangay, setBarangay] = useState("");
+  const [barangayId, setBarangayId] = useState(null);
   const [barangayTouched, setBarangayTouched] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -116,7 +117,8 @@ export default function Signup() {
         confirmPassword,
         "resident",
         contactNumber.trim(),
-        barangay.trim()
+        barangay.trim(),
+        barangayId
       );
 
       if (!result.success) {
@@ -127,7 +129,11 @@ export default function Signup() {
       // Persist contact number and barangay locally so all other screens can reuse it
       await AsyncStorage.setItem("userContact", contactNumber.trim());
       await AsyncStorage.setItem("userBarangay", barangay.trim());
+      if (barangayId) {
+        await AsyncStorage.setItem("userBarangayId", String(barangayId));
+      }
       await AsyncStorage.setItem("userName", fullName.trim());
+      await AsyncStorage.setItem("userReportsCount", "0");
 
       Alert.alert(
         "Registration Successful",
@@ -234,6 +240,7 @@ export default function Signup() {
               selectedBarangay={barangay}
               onSelect={(b) => {
                 setBarangay(b.name);
+                setBarangayId(b.id);
                 setBarangayTouched(true);
               }}
               placeholder="Select Barangay"

@@ -1,6 +1,6 @@
 import { apiRequest } from "./api";
 
-export type UserRole = "resident" | "vendor" | "driver" | "inspector" | "admin" | "super_admin";
+export type UserRole = "resident" | "vendor" | "driver" | "inspector";
 
 export interface User {
   id: number;
@@ -8,6 +8,11 @@ export interface User {
   email: string;
   role: UserRole;
   roles?: { id?: number; name: string }[] | string[];
+  avatar?: string | null;
+  avatar_url?: string | null;
+  barangay_id?: number | null;
+  barangay?: { id?: number; name?: string } | null;
+  address?: string | null;
 }
 
 export interface AuthResponse {
@@ -69,11 +74,19 @@ export async function loginUser(
     }
 
     // Validate expected role if supplied
-    if (expectedRole && roleName !== expectedRole && roleName !== "super_admin") {
+    if (expectedRole && roleName !== expectedRole) {
       return {
         success: false,
         message: `This account does not have access to the ${expectedRole} portal.`,
       };
+    }
+
+    // Register push notification device token in background
+    try {
+      const { registerDevicePushToken } = await import("./pushNotification");
+      registerDevicePushToken(roleName, data.user?.barangay_id).catch(() => {});
+    } catch {
+      // Background push registration non-blocking
     }
 
     return {
@@ -86,6 +99,8 @@ export async function loginUser(
         email: data.user.email || email,
         role: roleName,
         roles: roles,
+        avatar: data.user.avatar || null,
+        avatar_url: data.user.avatar_url || null,
       },
     };
   } catch (error: any) {
@@ -109,7 +124,8 @@ export async function registerUser(
   passwordConfirmation: string,
   role: UserRole = "resident",
   phone?: string,
-  address?: string
+  address?: string,
+  barangayId?: number | null
 ): Promise<AuthResponse> {
   try {
     const data = await apiRequest("/register", {
@@ -123,6 +139,8 @@ export async function registerUser(
         phone,
         contact_number: phone,
         address,
+        barangay: address,
+        barangay_id: barangayId,
       }),
     });
 
@@ -216,15 +234,24 @@ export const AUTH_KEYS = [
   "userContact",
   "selectedRole",
   "rememberMe",
+  "userAvatar",
 ];
 
 export async function logoutUser(router: any): Promise<void> {
   try {
-    // 1. Invalidate tokens and session keys from storage
+    // 1. Unregister device push token from backend
+    try {
+      const { unregisterDevicePushToken } = await import("./pushNotification");
+      await unregisterDevicePushToken();
+    } catch (e) {
+      console.warn("Could not unregister push token during logout:", e);
+    }
+
+    // 2. Invalidate tokens and session keys from storage
     const AsyncStorage = (await import("@react-native-async-storage/async-storage")).default;
     await AsyncStorage.multiRemove(AUTH_KEYS);
 
-    // 2. Clear navigation stack and redirect to Welcome/Login
+    // 3. Clear navigation stack and redirect to Welcome/Login
     if (router) {
       if (typeof router.dismissAll === "function") {
         try {

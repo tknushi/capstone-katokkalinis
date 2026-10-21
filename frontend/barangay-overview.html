@@ -6,38 +6,118 @@
     <title>Barangay Overview - KatokKalinis</title>
     <link rel="stylesheet" href="css/style.css">
     <style>
-        /* Single-viewport height and responsive grid optimizations */
+        /* Fluid CSS Grid for KPI Stat Cards (No Fixed Column Counts) */
         .overview-stats-grid-6 {
             display: grid;
-            grid-template-columns: repeat(6, 1fr);
-            gap: 8px;
-            margin-bottom: 8px;
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+            gap: 12px;
+            margin-bottom: 14px;
         }
-        @media (max-width: 1200px) {
+
+        @media (max-width: 480px) {
             .overview-stats-grid-6 {
-                grid-template-columns: repeat(3, 1fr);
-            }
-        }
-        @media (max-width: 680px) {
-            .overview-stats-grid-6 {
-                grid-template-columns: repeat(2, 1fr);
+                grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+                gap: 8px;
             }
         }
 
-        /* Compact Two-column layout */
-        .two-col {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
+        /* Lightweight Metric Cards */
+        .card.overview-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 14px 16px;
+            margin-bottom: 0;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .card.overview-card:hover {
+            border-color: rgba(34, 197, 94, 0.3);
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+        }
+
+        .card.overview-card .card-header {
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
             gap: 8px;
         }
-        @media (max-width: 980px) {
-            .two-col { grid-template-columns: 1fr; }
+
+        .card.overview-card .card-header h3 {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--green-900);
+            margin: 0;
+        }
+
+        .overview-stat-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px 14px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: transform 0.15s ease, border-color 0.15s ease;
+        }
+
+        .overview-stat-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(34, 197, 94, 0.35);
+        }
+
+        .overview-stat-num {
+            font-size: 26px;
+            font-weight: 800;
+            color: var(--text);
+            margin: 2px 0;
+            line-height: 1.15;
+            letter-spacing: -0.5px;
+        }
+
+        .overview-stat-label {
+            font-size: 11.5px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+        }
+
+        .overview-stat-meta {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        /* Responsive Layout Columns */
+        .two-col {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 12px;
+        }
+
+        .three-col {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 12px;
+        }
+
+        @media (max-width: 768px) {
+            .two-col,
+            .three-col {
+                grid-template-columns: 1fr;
+            }
         }
 
         /* Compact action buttons */
         .overview-panel-btn {
             width: auto;
-            padding: 3px 8px;
+            padding: 4px 10px;
             font-size: 11.5px;
             font-weight: 600;
             border-radius: 6px;
@@ -45,95 +125,327 @@
             align-items: center;
             gap: 4px;
             text-decoration: none;
+            background: var(--surface-alt);
+            color: var(--green-800);
+            border: 1px solid var(--border);
+            transition: all 0.15s ease;
         }
 
-        /* Compact thumbnail preview */
+        .overview-panel-btn:hover {
+            background: var(--green-600);
+            color: #ffffff;
+            border-color: var(--green-600);
+        }
+
+        /* Thumbnail preview */
         .issue-thumb {
-            width: 34px;
-            height: 34px;
-            border-radius: 6px;
+            width: 36px;
+            height: 36px;
+            border-radius: 7px;
             object-fit: cover;
             border: 1px solid var(--border);
             flex-shrink: 0;
             transition: transform 0.15s ease;
         }
+
         .issue-thumb:hover {
-            transform: scale(1.05);
+            transform: scale(1.08);
         }
 
         .issue-thumb-fallback {
-            width: 34px;
-            height: 34px;
-            border-radius: 6px;
+            width: 36px;
+            height: 36px;
+            border-radius: 7px;
             background: var(--surface-alt);
             border: 1px solid var(--border);
             display: flex;
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
-            font-size: 15px;
+            font-size: 16px;
             color: var(--text-muted);
         }
 
-        /* Viewport compactness refinements */
-        .card.overview-card {
-            padding: 10px 14px;
-            margin-bottom: 0;
-            border-radius: 10px;
-        }
-        .card.overview-card .card-header {
-            margin-bottom: 6px;
-            padding-bottom: 6px;
-        }
-        .card.overview-card .card-header h3 {
-            font-size: 14.5px;
-        }
         .overview-section-header {
-            margin: 7px 0 5px 0;
-        }
-        .overview-stat-card {
-            padding: 8px 12px;
-        }
-        .overview-stat-num {
-            font-size: 24px;
-            margin: 0 0 1px;
-        }
-        .overview-stat-label {
-            font-size: 12.5px;
-        }
-        .overview-stat-meta {
-            font-size: 11px;
-        }
-        .scannable-item {
-            padding: 6px 0;
-        }
-        .scannable-title {
-            font-size: 13.5px;
-            margin-bottom: 1px;
-        }
-        .scannable-row {
-            font-size: 11.5px;
-            gap: 4px 8px;
-        }
-        .compliance-simple-grid {
-            margin: 2px 0 6px;
+            margin: 12px 0 8px 0;
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            flex-wrap: wrap;
             gap: 6px;
         }
+
+        .overview-section-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .overview-section-desc {
+            font-size: 11.5px;
+            color: var(--text-muted);
+        }
+
+        .scannable-item {
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .scannable-item:last-child {
+            border-bottom: none;
+        }
+
+        .scannable-title {
+            font-size: 13.5px;
+            font-weight: 600;
+            margin-bottom: 2px;
+            color: var(--text);
+        }
+
+        .scannable-row {
+            font-size: 11.5px;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .compliance-simple-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            margin: 6px 0 10px;
+            gap: 8px;
+        }
+
         .compliance-card-simple {
-            padding: 6px 4px;
+            padding: 8px 6px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid var(--border);
+            background: var(--surface-alt);
         }
+
         .compliance-card-simple .c-num {
-            font-size: 20px;
+            font-size: 22px;
+            font-weight: 800;
+            line-height: 1.1;
         }
+
         .compliance-card-simple .c-label {
             font-size: 11.5px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            margin-top: 3px;
         }
+
+        .compliance-card-simple .c-hint {
+            font-size: 10px;
+            color: var(--text-muted);
+            margin-top: 1px;
+        }
+
+        .compliance-card-simple.status-good {
+            border-color: #bbf7d0;
+            background: #f0fdf4;
+            color: #15803d;
+        }
+
+        .compliance-card-simple.status-warn {
+            border-color: #fde68a;
+            background: #fefce8;
+            color: #b45309;
+        }
+
+        .compliance-card-simple.status-bad {
+            border-color: #fecaca;
+            background: #fef2f2;
+            color: #b91c1c;
+        }
+
+        [data-theme="dark"] .compliance-card-simple.status-good {
+            background: #10331b;
+            border-color: #194d28;
+            color: #86efac;
+        }
+
+        [data-theme="dark"] .compliance-card-simple.status-warn {
+            background: #36260a;
+            border-color: #523b10;
+            color: #fde047;
+        }
+
+        [data-theme="dark"] .compliance-card-simple.status-bad {
+            background: #381212;
+            border-color: #591d1d;
+            color: #fca5a5;
+        }
+
+        .progress-simple-box {
+            padding: 4px 0;
+        }
+
+        .progress-summary-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 8px;
+        }
+
+        .progress-big-stat {
+            display: flex;
+            align-items: baseline;
+            gap: 6px;
+        }
+
         .progress-big-number {
-            font-size: 22px;
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--text);
+            letter-spacing: -0.5px;
         }
+
+        .progress-big-pct {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--green-700);
+        }
+
+        .progress-pct-badge {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 999px;
+            background: #dcfce7;
+            color: #15803d;
+            border: 1px solid #bbf7d0;
+        }
+
+        .progress-container {
+            margin: 6px 0 10px;
+        }
+
+        .progress-track {
+            background: var(--surface-alt);
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            background: linear-gradient(90deg, #22c55e, #15803d);
+            height: 100%;
+            border-radius: 999px;
+            transition: width 0.4s ease;
+        }
+
         .progress-plain-sentence {
             font-size: 12.5px;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 6px;
+        }
+
+        /* Scheduled Pickup Notification Cards */
+        .notif-section-heading {
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: var(--text-muted);
+            padding: 8px 4px 4px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .notif-item-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 9px;
+            padding: 10px 12px;
+            margin-bottom: 8px;
+            transition: all 0.15s ease;
+            position: relative;
+        }
+        .notif-item-card.unread {
+            background: rgba(34, 197, 94, 0.06);
+            border-color: rgba(34, 197, 94, 0.35);
+        }
+        .notif-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 6px;
+            margin-bottom: 4px;
+        }
+        .notif-item-title {
+            font-size: 12.5px;
+            font-weight: 700;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .notif-unread-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #16a34a;
+            display: inline-block;
+            flex-shrink: 0;
+            box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.25);
+        }
+        .notif-grid-details {
+            font-size: 11.5px;
+            color: var(--text-muted);
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4px;
+            margin: 6px 0;
+            padding: 6px 8px;
+            background: var(--surface-alt);
+            border-radius: 6px;
+        }
+        .notif-grid-item strong {
+            color: var(--text);
+            font-weight: 600;
+        }
+        .notif-footer-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-top: 4px;
+        }
+        .notif-toggle-btn {
+            background: none;
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            font-size: 10.5px;
+            font-weight: 600;
+            padding: 3px 8px;
+            cursor: pointer;
+            color: var(--text-muted);
+            transition: all 0.12s ease;
+        }
+        .notif-toggle-btn:hover {
+            border-color: var(--green-600);
+            color: var(--green-700);
+            background: rgba(34, 197, 94, 0.08);
+        }
+        .notif-toggle-btn.btn-is-read {
+            color: #15803d;
+            background: #dcfce7;
+            border-color: #86efac;
         }
     </style>
 </head>
@@ -201,26 +513,61 @@
                 </div>
             </header>
 
-            <section class="content" style="padding: 10px 24px 14px;">
+            <section class="content" style="padding: 14px 24px;">
+                <div class="exec-command-center">
 
-                <!-- SECTION 1: Key Numbers at a Glance -->
-                <div class="overview-section-header">
-                    <div class="overview-section-title">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
-                            <line x1="8" y1="21" x2="16" y2="21"></line>
-                            <line x1="12" y1="17" x2="12" y2="21"></line>
-                        </svg>
-                        Key Numbers at a Glance
+                    <!-- Top Executive Header Banner with Cross-Connect to Dashboard Analytics -->
+                    <div class="exec-header-banner">
+                        <div class="exec-header-left">
+                            <div class="exec-shield-icon">
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                                    <path d="m9 12 2 2 4-4"/>
+                                </svg>
+                            </div>
+                            <div class="exec-header-title-wrap">
+                                <div class="exec-header-title-row">
+                                    <h2 id="exec-barangay-title">Barangay Operations Command</h2>
+                                    <span class="exec-clenro-pill">Barangay Admin</span>
+                                </div>
+                                <p class="exec-header-subtitle">Field Operations &bull; City Environment &amp; Natural Resources Office &bull; Cagayan de Oro City</p>
+                            </div>
+                        </div>
+
+                        <div class="exec-header-right">
+                            <a href="analytics.html" class="exec-btn-cross-connect" title="Cross-Connect: Switch to CLENRO Executive Command Center">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+                                </svg>
+                                CLENRO Executive Analytics &rarr;
+                            </a>
+                            <button type="button" class="exec-btn-brief" onclick="triggerManualRefresh()" title="Refresh Field Telemetry">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                    <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+                                </svg>
+                                Live Refresh
+                            </button>
+                        </div>
                     </div>
-                    <span class="overview-section-desc">Live counts from mobile accounts and field records</span>
-                </div>
 
-                <!-- 6 Accessible & Compact Stat Cards -->
-                <div class="stats-grid overview-stats-grid-6">
-                    <div class="overview-stat-card">
-                        <div class="overview-stat-label">Total Residents</div>
-                        <div class="overview-stat-num" id="stat-residents">...</div>
+                    <!-- SECTION 1: Key Numbers at a Glance -->
+                    <div class="overview-section-header">
+                        <div class="overview-section-title">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                                <line x1="8" y1="21" x2="16" y2="21"></line>
+                                <line x1="12" y1="17" x2="12" y2="21"></line>
+                            </svg>
+                            Key Numbers at a Glance
+                        </div>
+                        <span class="overview-section-desc">Live counts from mobile accounts and field records</span>
+                    </div>
+
+                    <!-- 6 Accessible & Compact Stat Cards -->
+                    <div class="stats-grid overview-stats-grid-6">
+                        <div class="overview-stat-card">
+                            <div class="overview-stat-label">Total Residents</div>
+                            <div class="overview-stat-num" id="stat-residents">...</div>
                         <div class="overview-stat-meta" id="stat-residents-sub">Registered mobile accounts</div>
                     </div>
 
@@ -404,7 +751,7 @@
                         </div>
                     </div>
                 </div>
-
+                </div>
             </section>
         </main>
     </div>
@@ -696,7 +1043,7 @@
                         const truckNo = escapeHtml(r.truck_number || r.truck?.truck_number || 'Truck -');
                         const driverName = escapeHtml(r.driver_name || r.driver?.name || 'Assigned Driver');
                         const dateStr = formatShortDate(r.collection_date || r.date);
-                        const timeWindow = r.start_time ? `${r.start_time}${r.end_time ? ' - ' + r.end_time : ''}` : '';
+                        const timeWindow = r.start_time ? `${formatStandardTime(r.start_time)}${r.end_time ? ' - ' + formatStandardTime(r.end_time) : ''}` : '';
 
                         return `
                             <div class="scannable-item">
@@ -739,7 +1086,7 @@
                         const truckNo = escapeHtml(s.truck_number || s.truck?.truck_number || s.truck || '-');
                         const driverName = escapeHtml(s.driver_name || s.driver?.name || s.driver || 'Driver unassigned');
                         const dateStr = formatShortDate(s.collection_date || s.date);
-                        const timeRange = s.pickup_time || ((s.start_time && s.end_time) ? `${s.start_time} - ${s.end_time}` : (s.start_time || 'Regular Run'));
+                        const timeRange = s.pickup_time ? formatStandardTime(s.pickup_time) : ((s.start_time && s.end_time) ? `${formatStandardTime(s.start_time)} - ${formatStandardTime(s.end_time)}` : (s.start_time ? formatStandardTime(s.start_time) : 'Regular Run'));
 
                         return `
                             <div class="scannable-item">
@@ -815,15 +1162,45 @@
                     }).join('');
                 }
 
-                // 7. RECENT ACTIVITY FEED (In Header Notification Dropdown)
+                // 7. NOTIFICATIONS & SCHEDULED PICKUP ALERTS (Header Bell Dropdown)
                 const activitiesContainer = document.getElementById('recent-activities');
                 const activityList = res.recent_activities || [];
 
-                // Update Bell Badge Count
+                // Fetch day-of-pickup notifications and alerts
+                let notifList = [];
+                try {
+                    let notifRes = null;
+                    try {
+                        notifRes = await apiRequest('/notifications');
+                    } catch (e) {
+                        notifRes = await apiRequest('/public/notifications');
+                    }
+                    if (notifRes && Array.isArray(notifRes.notifications)) {
+                        notifList = notifRes.notifications;
+                    }
+                } catch (e) {
+                    notifList = [];
+                }
+
+                // If empty on first load, trigger scheduled pickup checker to populate today's pickups
+                if (notifList.length === 0) {
+                    try {
+                        await apiRequest('/schedules/check-notifications', 'POST');
+                        const retryRes = await apiRequest('/notifications');
+                        if (retryRes && Array.isArray(retryRes.notifications)) {
+                            notifList = retryRes.notifications;
+                        }
+                    } catch (e) {}
+                }
+
+                const unreadNotifs = notifList.filter(n => !n.is_read);
+
+                // Update Bell Badge Count with actual unread notifications
                 const bellBadge = document.getElementById('bell-count-badge');
                 if (bellBadge) {
-                    if (activityList.length > 0) {
-                        bellBadge.textContent = activityList.length > 99 ? '99+' : activityList.length;
+                    const countToShow = unreadNotifs.length;
+                    if (countToShow > 0) {
+                        bellBadge.textContent = countToShow > 99 ? '99+' : countToShow;
                         bellBadge.classList.remove('empty');
                     } else {
                         bellBadge.textContent = '0';
@@ -831,7 +1208,7 @@
                     }
                 }
 
-                if (activityList.length === 0) {
+                if (notifList.length === 0 && activityList.length === 0) {
                     activitiesContainer.innerHTML = `
                         <div class="empty-state-box" style="padding: 24px 12px;">
                             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-muted); margin-bottom: 6px;">
@@ -839,37 +1216,109 @@
                                 <line x1="12" y1="8" x2="12" y2="12"></line>
                                 <line x1="12" y1="16" x2="12.01" y2="16"></line>
                             </svg>
-                            <div style="font-weight: 600; font-size: 13.5px; margin-bottom: 2px;">No recent activity</div>
-                            <div style="font-size: 12px; color: var(--text-muted);">Actions from mobile apps and web admin will stream here.</div>
+                            <div style="font-weight: 600; font-size: 13.5px; margin-bottom: 2px;">No notifications or activity</div>
+                            <div style="font-size: 12px; color: var(--text-muted);">Scheduled pickups and driver runs will appear here automatically.</div>
                         </div>
                     `;
                 } else {
-                    activitiesContainer.innerHTML = `
-                        <div style="display: flex; flex-direction: column;">
-                            ${activityList.map(a => {
-                                const iconMeta = getActivityIcon(a.action);
-                                const actorName = escapeHtml(a.actor || a.user?.name || 'System');
-                                const cleanSentence = escapeHtml(simplifyActivitySentence(a));
-                                const relTime = formatRelativeTime(a.created_at);
+                    let html = '';
 
-                                return `
-                                    <div class="activity-simple-item">
-                                        <div class="activity-icon-wrap ${iconMeta.className}">
-                                            ${iconMeta.svg}
+                    // Scheduled Pickup Notifications Section
+                    if (notifList.length > 0) {
+                        html += `
+                            <div class="notif-section-heading">
+                                <span>Day-of-Pickup Notifications</span>
+                                <span style="font-size:10px; color:var(--green-700);">${unreadNotifs.length} Unread</span>
+                            </div>
+                            <div style="display:flex; flex-direction:column; gap:4px; margin-bottom:10px;">
+                        `;
+
+                        html += notifList.slice(0, 8).map(n => {
+                            const isUnread = !n.is_read;
+                            const timeStr = formatRelativeTime(n.created_at);
+
+                            // Extract details from message if formatted
+                            const msg = n.message || '';
+                            let loc = 'Barangay 12';
+                            let time = '10:14 AM';
+                            let driver = 'Danilo Ramos (KAL-101)';
+                            let status = 'Scheduled';
+
+                            const locMatch = msg.match(/Pickup:\s*([^at]+)\s+at/i);
+                            if (locMatch) loc = locMatch[1].trim();
+
+                            const timeMatch = msg.match(/at\s+([^.]+)\.\s+Assigned/i);
+                            if (timeMatch) time = timeMatch[1].trim();
+
+                            const drvMatch = msg.match(/Assigned Driver:\s*([^.]+)\.\s+Status/i);
+                            if (drvMatch) driver = drvMatch[1].trim();
+
+                            const stMatch = msg.match(/Status:\s*([^.]+)\./i);
+                            if (stMatch) status = stMatch[1].trim();
+
+                            return `
+                                <div class="notif-item-card ${isUnread ? 'unread' : ''}">
+                                    <div class="notif-item-header">
+                                        <div class="notif-item-title">
+                                            ${isUnread ? '<span class="notif-unread-dot" title="Unread notification"></span>' : ''}
+                                            <span>${escapeHtml(n.title)}</span>
                                         </div>
-                                        <div style="flex: 1; min-width: 0;">
-                                            <div class="activity-simple-sentence">${cleanSentence}</div>
-                                            <div class="activity-simple-meta">
-                                                <strong style="color: var(--green-700);">${actorName}</strong>
-                                                <span>&bull;</span>
-                                                <span>${relTime}</span>
+                                        <span class="status-chip chip-${status.toLowerCase().replace(/\s+/g, '_')}" style="font-size:10px; padding:1px 6px;">
+                                            ${escapeHtml(status)}
+                                        </span>
+                                    </div>
+                                    <div class="notif-grid-details">
+                                        <div class="notif-grid-item">📍 Location: <strong>${escapeHtml(loc)}</strong></div>
+                                        <div class="notif-grid-item">🕒 Time: <strong>${escapeHtml(time)}</strong></div>
+                                        <div class="notif-grid-item" style="grid-column: span 2;">🚛 Driver: <strong>${escapeHtml(driver)}</strong></div>
+                                    </div>
+                                    <div class="notif-footer-row">
+                                        <span style="font-size:10.5px; color:var(--text-muted);">${timeStr}</span>
+                                        <button type="button" class="notif-toggle-btn ${isUnread ? '' : 'btn-is-read'}" onclick="toggleNotificationRead(${n.id}, event)">
+                                            ${isUnread ? 'Mark as Read' : '✓ Read'}
+                                        </button>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('');
+
+                        html += `</div>`;
+                    }
+
+                    // Activity Logs Section
+                    if (activityList.length > 0) {
+                        html += `
+                            <div class="notif-section-heading">
+                                <span>Recent Operations Activity</span>
+                            </div>
+                            <div style="display: flex; flex-direction: column;">
+                                ${activityList.slice(0, 5).map(a => {
+                                    const iconMeta = getActivityIcon(a.action);
+                                    const actorName = escapeHtml(a.actor || a.user?.name || 'System');
+                                    const cleanSentence = escapeHtml(simplifyActivitySentence(a));
+                                    const relTime = formatRelativeTime(a.created_at);
+
+                                    return `
+                                        <div class="activity-simple-item">
+                                            <div class="activity-icon-wrap ${iconMeta.className}">
+                                                ${iconMeta.svg}
+                                            </div>
+                                            <div style="flex: 1; min-width: 0;">
+                                                <div class="activity-simple-sentence">${cleanSentence}</div>
+                                                <div class="activity-simple-meta">
+                                                    <strong style="color: var(--green-700);">${actorName}</strong>
+                                                    <span>&bull;</span>
+                                                    <span>${relTime}</span>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                `;
-                            }).join('')}
-                        </div>
-                    `;
+                                    `;
+                                }).join('')}
+                            </div>
+                        `;
+                    }
+
+                    activitiesContainer.innerHTML = html;
                 }
 
                 // Safely update "Last updated" timestamp if element exists
@@ -933,22 +1382,42 @@
             }
         });
 
+        // Toggle Notification Read / Unread Status
+        async function toggleNotificationRead(id, e) {
+            if (e) {
+                e.stopPropagation();
+                e.preventDefault();
+            }
+            try {
+                let res = null;
+                try {
+                    res = await apiRequest(`/notifications/${id}/toggle-read`, 'POST');
+                } catch (err) {
+                    res = await apiRequest(`/public/notifications/${id}/toggle-read`, 'POST');
+                }
+                loadOverview();
+            } catch (err) {
+                console.warn('Could not toggle notification status:', err);
+            }
+        }
+        window.toggleNotificationRead = toggleNotificationRead;
+
         // Trigger manual refresh via icon button
         function triggerManualRefresh() {
             loadOverview();
         }
 
-        // Initialize and setup 30s auto-refresh in silent background
+        // Initialize and setup 5s auto-refresh for instant real-time driver sync
         document.addEventListener('DOMContentLoaded', () => {
             loadOverview();
 
-            // Auto-refresh silently every 30 seconds
+            // Auto-refresh silently every 5 seconds (real-time sync without reload)
             if (refreshTimer) clearInterval(refreshTimer);
             refreshTimer = setInterval(() => {
                 if (document.visibilityState === 'visible') {
                     loadOverview();
                 }
-            }, 30000);
+            }, 5000);
 
             // Immediate silent sync when returning to active tab
             document.addEventListener('visibilitychange', () => {

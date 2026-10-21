@@ -27,28 +27,102 @@
             </header>
             
             <section class="content">
-                <div class="stats-grid report-stats">
-                    <div class="stat-card"><h3>Reports This Month</h3><div class="value" id="stat-total">...</div></div>
-                    <div class="stat-card"><h3>Pending Review</h3><div class="value" id="stat-pending">...</div></div>
-                    <div class="stat-card"><h3>Completed</h3><div class="value" id="stat-completed">...</div></div>
-                    <div class="stat-card"><h3>Avg Response Time</h3><div class="value" id="stat-response">...</div></div>
-                </div>
+                <div class="exec-command-center">
 
-                <!-- CLENRO Decision Support Callout Banner -->
-                <div class="card" style="background: linear-gradient(135deg, #1b5e20 0%, #388e3c 100%); color: #fff; margin-bottom: 20px; padding: 18px 22px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; border-radius: 10px;">
-                    <div>
-                        <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; opacity: 0.85;">CLENRO Department · Cagayan de Oro City</div>
-                        <h3 style="color: #fff; margin: 4px 0 2px; font-size: 17px;">Historical Garbage Pile-Up Reports &amp; Decision Directives</h3>
-                        <p style="margin: 0; font-size: 13px; opacity: 0.95;">Decision support system covering Barangay 1 to 40, Cogon Market, and Carmen Market.</p>
-                    </div>
-                    <a href="clenro-reports.html" class="btn" style="background: #fff; color: #1b5e20; font-weight: 700; text-decoration: none; border: none; padding: 9px 18px; border-radius: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.15);">Open CLENRO Analytics &rarr;</a>
-                </div>
+                    <!-- Top Executive Header Banner with Cross-Connect Buttons -->
+                    <div class="exec-header-banner">
+                        <div class="exec-header-left">
+                            <div class="exec-shield-icon">
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                                    <path d="m9 12 2 2 4-4"/>
+                                </svg>
+                            </div>
+                            <div class="exec-header-title-wrap">
+                                <div class="exec-header-title-row">
+                                    <h2>Incident Reports &amp; Pileup Tracking</h2>
+                                    <span class="exec-clenro-pill">CLENRO &bull; Barangay</span>
+                                </div>
+                                <p class="exec-header-subtitle">Citizen &amp; Field Incident Directives &bull; City Environment &amp; Natural Resources Office &bull; Cagayan de Oro City</p>
+                            </div>
+                        </div>
 
-                <div class="card recent-reports-card">
-                    <div class="card-header">
-                        <h3>Recent Reports</h3>
+                        <div class="exec-header-right">
+                            <a href="analytics.html" class="exec-btn-brief" title="Return to Executive Analytics">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                                Executive Analytics
+                            </a>
+                            <a href="barangay-overview.html" class="exec-btn-brief" title="Open Barangay Operations">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+                                Barangay Command
+                            </a>
+                            <a href="clenro-reports.html" class="exec-btn-cross-connect" title="Open CLENRO Decision Support Analytics">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                                Historical DSS Analytics &rarr;
+                            </a>
+                        </div>
                     </div>
-                    <div id="table-body" class="report-list"><p>Loading reports...</p></div>
+
+                    <!-- Executive KPI Cards -->
+                    <div class="exec-stats-grid">
+                        <div class="exec-kpi-card">
+                            <div class="exec-kpi-top">
+                                <span class="exec-kpi-label">Reports This Month</span>
+                                <div class="exec-kpi-icon-wrap exec-kpi-icon-blue">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                                </div>
+                            </div>
+                            <div class="exec-kpi-value-row">
+                                <span class="exec-kpi-num" id="stat-total">...</span>
+                            </div>
+                            <p class="exec-kpi-subtext">Total verified incidents filed</p>
+                        </div>
+                        <div class="exec-kpi-card">
+                            <div class="exec-kpi-top">
+                                <span class="exec-kpi-label">Pending Review</span>
+                                <div class="exec-kpi-icon-wrap exec-kpi-icon-amber">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                                </div>
+                            </div>
+                            <div class="exec-kpi-value-row">
+                                <span class="exec-kpi-num" id="stat-pending" style="color:#d97706;">...</span>
+                                <span class="exec-kpi-trend negative">&#9888; Action Req</span>
+                            </div>
+                            <p class="exec-kpi-subtext">Awaiting administrative clearance</p>
+                        </div>
+                        <div class="exec-kpi-card">
+                            <div class="exec-kpi-top">
+                                <span class="exec-kpi-label">Completed &amp; Cleared</span>
+                                <div class="exec-kpi-icon-wrap exec-kpi-icon-green">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                </div>
+                            </div>
+                            <div class="exec-kpi-value-row">
+                                <span class="exec-kpi-num" id="stat-completed" style="color:#16a34a;">...</span>
+                                <span class="exec-kpi-trend positive">&#10003; Cleared</span>
+                            </div>
+                            <p class="exec-kpi-subtext">Resolved within SLA timeline</p>
+                        </div>
+                        <div class="exec-kpi-card">
+                            <div class="exec-kpi-top">
+                                <span class="exec-kpi-label">Avg Response Time</span>
+                                <div class="exec-kpi-icon-wrap exec-kpi-icon-purple">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                                </div>
+                            </div>
+                            <div class="exec-kpi-value-row">
+                                <span class="exec-kpi-num" id="stat-response">...</span>
+                            </div>
+                            <p class="exec-kpi-subtext">Average incident clearance time</p>
+                        </div>
+                    </div>
+
+                    <div class="card recent-reports-card" style="margin-top: 6px;">
+                        <div class="card-header">
+                            <h3>Recent Incident Directives</h3>
+                        </div>
+                        <div id="table-body" class="report-list"><p>Loading reports...</p></div>
+                    </div>
                 </div>
             </section>
         </main>
@@ -126,6 +200,8 @@
                     return;
                 }
 
+                const isSuperAdmin = typeof getUserRole === 'function' ? getUserRole() === 'super_admin' : false;
+
                 container.innerHTML = data.slice(0, 8).map(item => {
                     const imgUrl = resolveMediaUrl(item.image_url || item.image);
                     const safeTitle = escapeHtml(item.title || 'Untitled report');
@@ -159,8 +235,12 @@
                         <div class="report-card-actions">
                             <button class="btn report-outline" onclick="viewReport(${item.id})">View Details</button>
                             <button class="btn report-outline" onclick="downloadReport(${item.id})">Download</button>
-                            <button class="btn" onclick="openStatusModal(${item.id}, '${safeStatus}')">Update Status</button>
-                            <button class="btn report-delete" onclick="deleteItem(${item.id})">Delete</button>
+                            ${isSuperAdmin ? `
+                                <button class="btn" onclick="openStatusModal(${item.id}, '${safeStatus}')">Update Status</button>
+                                <button class="btn report-delete" onclick="deleteItem(${item.id})">Delete</button>
+                            ` : `
+                                <span style="font-size: 11.5px; color: var(--text-muted); font-style: italic; padding: 6px 4px;">Barangay Read-Only</span>
+                            `}
                         </div>
                     </article>
                     `;

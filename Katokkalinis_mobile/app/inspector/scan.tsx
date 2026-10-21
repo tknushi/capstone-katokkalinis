@@ -1,4 +1,5 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import * as Haptics from "expo-haptics";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
@@ -14,10 +15,9 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { fetchVendorByCodeOrId } from "../../services/inspector";
+import { fetchVendorByCodeOrId, verifyVendorQrToken } from "../../services/inspector";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
-const isSmall = SCREEN_WIDTH < 360;
 const QR_BOX_SIZE = Math.min(270, SCREEN_WIDTH * 0.72);
 
 export default function Scan() {
@@ -37,28 +37,38 @@ export default function Scan() {
       let codeToSearch = rawCode.trim();
       try {
         const parsed = JSON.parse(rawCode);
-        if (parsed.vendor_code) codeToSearch = parsed.vendor_code;
+        if (parsed.qr_token) codeToSearch = parsed.qr_token;
+        else if (parsed.vendor_code) codeToSearch = parsed.vendor_code;
         else if (parsed.code) codeToSearch = parsed.code;
         else if (parsed.id) codeToSearch = String(parsed.id);
       } catch {
-        // Plain string
+        // Plain string token
       }
 
-      console.log("Processing scanned code:", codeToSearch);
-      const res = await fetchVendorByCodeOrId(codeToSearch);
+      console.log("Processing scanned QR code:", codeToSearch);
+      const res = await verifyVendorQrToken(codeToSearch);
 
       if (res.success && res.vendor) {
+        try {
+          await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        } catch {
+          // Haptics fallback
+        }
         router.push({
           pathname: "/inspector/vendor",
           params: { vendor_id: res.vendor.id },
         });
       } else {
+        const alertTitle = res.error_type === "REVOKED_OR_INACTIVE"
+          ? "Stall Suspended / Inactive"
+          : (res.error_type === "NOT_REGISTERED" ? "Unregistered QR Code" : "Verification Failed");
+
         Alert.alert(
-          "Vendor Not Found",
-          res.message || `No vendor stall registered under code: ${codeToSearch}`,
+          alertTitle,
+          res.message || `No authorized market stall registered under code: ${codeToSearch}`,
           [
             {
-              text: "Try Again",
+              text: "Scan Another",
               onPress: () => setScanned(false),
             },
           ]
@@ -66,8 +76,8 @@ export default function Scan() {
       }
     } catch (error: any) {
       Alert.alert(
-        "Scan Error",
-        error?.message || "An error occurred while connecting to system.",
+        "Verification Error",
+        error?.message || "An error occurred while connecting to central database.",
         [
           {
             text: "OK",
@@ -206,35 +216,42 @@ export default function Scan() {
         </View>
       </ScrollView>
 
-      {/* 4. BOTTOM NAVIGATION (Matching Image 2 & 3 Green Bar) */}
+      {/* 4. BOTTOM NAVIGATION BAR (Matches Inspector Dashboard, Inspections, History, Profile) */}
       <View style={styles.bottomNav}>
         <TouchableOpacity
           style={styles.navItem}
+          activeOpacity={0.8}
           onPress={() => router.push("/inspector/dashboard" as any)}
         >
-          <MaterialCommunityIcons name="home-outline" size={24} color="rgba(255, 255, 255, 0.85)" />
-          <Text style={styles.navText}>Home</Text>
+          <MaterialCommunityIcons name="home-outline" size={24} color="#7A8D78" />
+          <Text style={styles.navItemText}>Home</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.navItem}
+          activeOpacity={0.8}
           onPress={() => router.push("/inspector/inspections" as any)}
         >
-          <MaterialCommunityIcons name="clipboard-check-outline" size={22} color="rgba(255, 255, 255, 0.85)" />
-          <Text style={styles.navText}>Report</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.navItem} onPress={() => {}}>
-          <MaterialCommunityIcons name="qrcode-scan" size={24} color="#FFFFFF" />
-          <Text style={[styles.navText, { fontWeight: "800" }]}>Scan</Text>
+          <MaterialCommunityIcons name="clipboard-check-outline" size={24} color="#7A8D78" />
+          <Text style={styles.navItemText}>Inspections</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.navItem}
+          activeOpacity={0.8}
+          onPress={() => router.push("/inspector/history" as any)}
+        >
+          <MaterialCommunityIcons name="history" size={24} color="#7A8D78" />
+          <Text style={styles.navItemText}>History</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.navItem}
+          activeOpacity={0.8}
           onPress={() => router.push("/inspector/profile" as any)}
         >
-          <MaterialCommunityIcons name="account-outline" size={22} color="rgba(255, 255, 255, 0.85)" />
-          <Text style={styles.navText}>Profile</Text>
+          <MaterialCommunityIcons name="account-outline" size={24} color="#7A8D78" />
+          <Text style={styles.navItemText}>Profile</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -465,20 +482,26 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 65,
-    backgroundColor: "#68B93C",
+    backgroundColor: "#FFFFFF",
+    borderTopWidth: 1,
+    borderTopColor: "#EEF5ED",
     flexDirection: "row",
     justifyContent: "space-around",
     alignItems: "center",
+    paddingBottom: 4,
   },
-
   navItem: {
     alignItems: "center",
     paddingVertical: 4,
   },
-
-  navText: {
-    color: "#FFFFFF",
+  navItemText: {
     fontSize: 10,
+    color: "#7A8D78",
     marginTop: 2,
+    fontWeight: "600",
+  },
+  navItemTextActive: {
+    color: "#2E7D32",
+    fontWeight: "800",
   },
 });

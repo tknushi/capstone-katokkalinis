@@ -11,7 +11,15 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { fetchVendorByCodeOrId, VendorItem } from "../../services/inspector";
+import {
+  fetchVendorByCodeOrId,
+  verifyVendorQrToken,
+  recordViolation,
+  VendorItem,
+  InspectionItem,
+} from "../../services/inspector";
+import * as Haptics from "expo-haptics";
+import { Alert, Modal, TextInput } from "react-native";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const isSmall = SCREEN_WIDTH < 360;
@@ -21,29 +29,51 @@ export default function Vendor() {
   const params = useLocalSearchParams();
   const [vendor, setVendor] = useState<VendorItem | null>(null);
   const [loading, setLoading] = useState(true);
+  const [complianceInfo, setComplianceInfo] = useState<{
+    score: number;
+    grade: string;
+    status_label: string;
+  }>({
+    score: 85,
+    grade: "Grade A",
+    status_label: "Certified Compliant",
+  });
+  const [recentInspections, setRecentInspections] = useState<InspectionItem[]>([]);
+  const [recentViolations, setRecentViolations] = useState<any[]>([]);
+
+  // Violation recording modal
+  const [violationModalVisible, setViolationModalVisible] = useState(false);
+  const [violationType, setViolationType] = useState("Improper Waste Segregation");
+  const [violationDescription, setViolationDescription] = useState("");
+  const [violationPenalty, setViolationPenalty] = useState("Written Warning (1st Offense)");
+  const [correctiveAction, setCorrectiveAction] = useState("");
+  const [submittingViolation, setSubmittingViolation] = useState(false);
 
   const loadVendor = React.useCallback(async () => {
     try {
       setLoading(true);
       const idOrCode = (params.vendor_id as string) || "2026012345";
-      const res = await fetchVendorByCodeOrId(idOrCode);
+      const res = await verifyVendorQrToken(idOrCode);
       if (res.success && res.vendor) {
         setVendor(res.vendor);
+        if (res.compliance) {
+          setComplianceInfo({
+            score: res.compliance.score,
+            grade: res.compliance.grade,
+            status_label: res.compliance.status_label,
+          });
+        }
+        if (res.recent_inspections) {
+          setRecentInspections(res.recent_inspections);
+        }
+        if (res.recent_violations) {
+          setRecentViolations(res.recent_violations);
+        }
       } else {
-        setVendor({
-          id: 1,
-          vendor_code: "2026012345",
-          business_name: "KatokKalimpyo Fresh Fruits",
-          owner_name: "Juan Dela Cruz",
-          contact_number: "09467802940",
-          address: "Divisoria Public Market, Section B",
-          status: "active",
-          user: {
-            id: 1,
-            name: "Juan Dela Cruz",
-            email: "vendor@katokkalinis.com",
-          },
-        });
+        const fallbackRes = await fetchVendorByCodeOrId(idOrCode);
+        if (fallbackRes.success && fallbackRes.vendor) {
+          setVendor(fallbackRes.vendor);
+        }
       }
     } catch (e) {
       console.error(e);
@@ -61,10 +91,48 @@ export default function Vendor() {
       pathname: "/inspector/grade",
       params: {
         vendor_id: vendor?.id || 1,
-        vendor_name: vendor?.business_name || "KatokKalimpyo",
-        vendor_code: vendor?.vendor_code || "2026012345",
+        vendor_name: vendor?.business_name || "Market Vendor Stall",
+        vendor_code: vendor?.vendor_code || "VND-COG-001",
       },
     });
+  };
+
+  const handleSubmitViolation = async () => {
+    if (!violationDescription.trim()) {
+      Alert.alert("Missing Description", "Please describe the sanitation violation observed.");
+      return;
+    }
+    if (!vendor?.id) return;
+
+    try {
+      setSubmittingViolation(true);
+      const res = await recordViolation({
+        vendor_id: vendor.id,
+        violation_type: violationType,
+        description: violationDescription.trim(),
+        penalty: violationPenalty,
+        corrective_action: correctiveAction.trim() || undefined,
+      });
+
+      if (res.success) {
+        try {
+          await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        } catch {
+          // fallback
+        }
+        Alert.alert("Violation Recorded", "Official sanitation violation notice has been logged to central CLENRO database.");
+        setViolationModalVisible(false);
+        setViolationDescription("");
+        setCorrectiveAction("");
+        loadVendor();
+      } else {
+        Alert.alert("Recording Failed", res.message || "Failed to record violation.");
+      }
+    } catch (err: any) {
+      Alert.alert("Error", err?.message || "An error occurred.");
+    } finally {
+      setSubmittingViolation(false);
+    }
   };
 
   return (
@@ -197,20 +265,205 @@ export default function Vendor() {
               </View>
             </View>
 
-            {/* 4. PROCEED ACTION BUTTON (Matching Dashboard/Profile Primary Button) */}
-            <TouchableOpacity
-              style={styles.continueButton}
-              onPress={handleContinue}
-              activeOpacity={0.85}
+            {/* 4. COMPLIANCE & GRADE CERTIFICATION CARD */}
+            <View style={[styles.detailsCard, { marginTop: 14 }]}>
+              <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+                <View>
+                  <Text style={{ fontSize: 11, fontWeight: "700", color: "#6B8468", textTransform: "uppercase", letterSpacing: 0.6 }}>
+                    Compliance Certification
+                  </Text>
+                  <Text style={{ fontSize: 18, fontWeight: "800", color: "#1E331B", marginTop: 2 }}>
+                    {complianceInfo.grade} · {complianceInfo.score}%
+                  </Text>
+                </View>
+                <View style={{
+                  paddingHorizontal: 12,
+                  paddingVertical: 5,
+                  borderRadius: 20,
+                  backgroundColor: complianceInfo.score >= 85 ? "#E8F8EE" : (complianceInfo.score >= 70 ? "#E3F2FD" : "#FFEBEE"),
+                }}>
+                  <Text style={{
+                    fontSize: 12,
+                    fontWeight: "800",
+                    color: complianceInfo.score >= 85 ? "#2E7D32" : (complianceInfo.score >= 70 ? "#1976D2" : "#C62828"),
+                  }}>
+                    {complianceInfo.status_label}
+                  </Text>
+                </View>
+              </View>
+
+              {recentInspections.length > 0 && (
+                <View style={{ marginTop: 12, borderTopWidth: 1, borderTopColor: "#E2ECE0", paddingTop: 10 }}>
+                  <Text style={{ fontSize: 12, fontWeight: "700", color: "#1E331B", marginBottom: 6 }}>
+                    Recent Sanitation Audits ({recentInspections.length})
+                  </Text>
+                  {recentInspections.slice(0, 3).map((item, idx) => (
+                    <View key={`insp-${item.id || idx}`} style={{ flexDirection: "row", justifyContent: "space-between", paddingVertical: 4 }}>
+                      <Text style={{ fontSize: 12, color: "#5C7858" }}>
+                        {item.inspected_at ? item.inspected_at.substring(0, 10) : "Recent Audit"}
+                      </Text>
+                      <Text style={{ fontSize: 12, fontWeight: "700", color: "#1E331B" }}>
+                        Score: {item.total_score}% · {item.total_score >= 85 ? "Grade A" : (item.total_score >= 70 ? "Grade B" : "Grade C")}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              )}
+            </View>
+
+            {/* 5. ACTION BUTTONS: INSPECTION & VIOLATION RECORDING */}
+            <View style={{ marginTop: 16, gap: 10 }}>
+              <TouchableOpacity
+                style={styles.continueButton}
+                onPress={handleContinue}
+                activeOpacity={0.85}
+              >
+                <MaterialCommunityIcons name="clipboard-check-outline" size={20} color="#FFFFFF" style={{ marginRight: 8 }} />
+                <Text style={styles.buttonText}>Start Sanitation Inspection</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.continueButton, { backgroundColor: "#FFF", borderWidth: 1.5, borderColor: "#C62828" }]}
+                onPress={() => setViolationModalVisible(true)}
+                activeOpacity={0.85}
+              >
+                <MaterialCommunityIcons name="alert-octagon-outline" size={20} color="#C62828" style={{ marginRight: 8 }} />
+                <Text style={[styles.buttonText, { color: "#C62828" }]}>Record Violation / Notice</Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* 6. RECORD VIOLATION MODAL */}
+            <Modal
+              visible={violationModalVisible}
+              animationType="slide"
+              transparent={true}
+              onRequestClose={() => setViolationModalVisible(false)}
             >
-              <Text style={styles.buttonText}>Proceed to Grade Stall</Text>
-              <MaterialCommunityIcons
-                name="arrow-right"
-                size={20}
-                color="#FFFFFF"
-                style={{ marginLeft: 8 }}
-              />
-            </TouchableOpacity>
+              <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", padding: 20 }}>
+                <View style={{ backgroundColor: "#FFF", borderRadius: 16, padding: 20, maxHeight: "85%" }}>
+                  <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+                    <Text style={{ fontSize: 17, fontWeight: "800", color: "#1E331B" }}>Record Violation Notice</Text>
+                    <TouchableOpacity onPress={() => setViolationModalVisible(false)}>
+                      <MaterialCommunityIcons name="close" size={22} color="#666" />
+                    </TouchableOpacity>
+                  </View>
+
+                  <ScrollView showsVerticalScrollIndicator={false}>
+                    <Text style={{ fontSize: 12, fontWeight: "700", color: "#1E331B", marginBottom: 4 }}>Violation Category</Text>
+                    {[
+                      "Improper Waste Segregation",
+                      "Unsanitary Food Handling Area",
+                      "Drainage / Grease Trap Obstruction",
+                      "Expired Sanitary Permit",
+                      "Lack of Segregated Covered Bins",
+                    ].map((type) => (
+                      <TouchableOpacity
+                        key={type}
+                        onPress={() => setViolationType(type)}
+                        style={{
+                          padding: 10,
+                          borderRadius: 8,
+                          marginBottom: 6,
+                          backgroundColor: violationType === type ? "#FFEBEE" : "#F8FAF8",
+                          borderWidth: 1,
+                          borderColor: violationType === type ? "#C62828" : "#E2ECE0",
+                        }}
+                      >
+                        <Text style={{ fontSize: 13, fontWeight: violationType === type ? "700" : "500", color: violationType === type ? "#C62828" : "#333" }}>
+                          {type}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+
+                    <Text style={{ fontSize: 12, fontWeight: "700", color: "#1E331B", marginTop: 10, marginBottom: 4 }}>
+                      Inspector Observations / Evidence Notes
+                    </Text>
+                    <TextInput
+                      style={{
+                        backgroundColor: "#F8FAF8",
+                        borderWidth: 1,
+                        borderColor: "#E2ECE0",
+                        borderRadius: 8,
+                        padding: 10,
+                        minHeight: 70,
+                        fontSize: 13,
+                        textAlignVertical: "top",
+                      }}
+                      placeholder="Specify observed sanitary violation or non-compliance..."
+                      placeholderTextColor="#999"
+                      multiline
+                      value={violationDescription}
+                      onChangeText={setViolationDescription}
+                    />
+
+                    <Text style={{ fontSize: 12, fontWeight: "700", color: "#1E331B", marginTop: 10, marginBottom: 4 }}>
+                      Sanction / Penalty
+                    </Text>
+                    {[
+                      "Written Warning (1st Offense)",
+                      "Administrative Fine - Php 500 (2nd Offense)",
+                      "Stall Closure Recommendation (3rd Offense)",
+                    ].map((pen) => (
+                      <TouchableOpacity
+                        key={pen}
+                        onPress={() => setViolationPenalty(pen)}
+                        style={{
+                          padding: 10,
+                          borderRadius: 8,
+                          marginBottom: 6,
+                          backgroundColor: violationPenalty === pen ? "#FFF3E0" : "#F8FAF8",
+                          borderWidth: 1,
+                          borderColor: violationPenalty === pen ? "#E65100" : "#E2ECE0",
+                        }}
+                      >
+                        <Text style={{ fontSize: 13, fontWeight: violationPenalty === pen ? "700" : "500", color: violationPenalty === pen ? "#E65100" : "#333" }}>
+                          {pen}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+
+                    <Text style={{ fontSize: 12, fontWeight: "700", color: "#1E331B", marginTop: 10, marginBottom: 4 }}>
+                      Corrective Action Required
+                    </Text>
+                    <TextInput
+                      style={{
+                        backgroundColor: "#F8FAF8",
+                        borderWidth: 1,
+                        borderColor: "#E2ECE0",
+                        borderRadius: 8,
+                        padding: 10,
+                        minHeight: 50,
+                        fontSize: 13,
+                        textAlignVertical: "top",
+                      }}
+                      placeholder="E.g. Clear stall drainage and clean preparation surface within 24h"
+                      placeholderTextColor="#999"
+                      value={correctiveAction}
+                      onChangeText={setCorrectiveAction}
+                    />
+
+                    <TouchableOpacity
+                      style={{
+                        backgroundColor: "#C62828",
+                        paddingVertical: 13,
+                        borderRadius: 10,
+                        alignItems: "center",
+                        marginTop: 18,
+                        marginBottom: 10,
+                      }}
+                      onPress={handleSubmitViolation}
+                      disabled={submittingViolation}
+                    >
+                      {submittingViolation ? (
+                        <ActivityIndicator color="#FFF" size="small" />
+                      ) : (
+                        <Text style={{ color: "#FFF", fontWeight: "800", fontSize: 15 }}>Submit Violation Notice</Text>
+                      )}
+                    </TouchableOpacity>
+                  </ScrollView>
+                </View>
+              </View>
+            </Modal>
           </>
         )}
       </ScrollView>

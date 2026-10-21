@@ -3,380 +3,1561 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Analytics - KatokKalinis</title>
+    <title>Katok Kalinis Executive Command Center - Dashboard Analytics</title>
     <link rel="stylesheet" href="css/style.css">
-    <!-- Leaflet.js — lightweight OSM tile map, no framework change -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV/XN/WLs=" crossorigin=""></script>
     <style>
-        .clenro-overview-banner {
-            background: linear-gradient(135deg, var(--green-800) 0%, var(--green-600) 100%);
+        /* ── Executive Command Center Theme ────────────────────── */
+        .exec-command-center {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* 1. Top Executive Header Banner */
+        .exec-header-banner {
+            background: linear-gradient(135deg, #072a15 0%, #0d3a1e 50%, #15572b 100%);
             color: #ffffff;
-            border-radius: var(--radius-lg);
-            padding: 22px 26px;
-            margin-bottom: 24px;
-            box-shadow: var(--shadow-md);
+            border-radius: 14px;
+            padding: 16px 22px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
             gap: 16px;
+            box-shadow: 0 4px 16px rgba(7, 42, 21, 0.22);
             position: relative;
             overflow: hidden;
         }
-        .clenro-overview-banner::after {
+
+        .exec-header-banner::after {
             content: '';
             position: absolute;
-            right: -20px;
+            right: -25px;
             bottom: -30px;
-            width: 160px;
-            height: 160px;
-            background: rgba(255, 255, 255, 0.08);
+            width: 170px;
+            height: 170px;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0) 70%);
             border-radius: 50%;
             pointer-events: none;
         }
-        .clenro-banner-content h3 {
-            color: #ffffff;
-            margin: 4px 0 6px;
-            font-size: 20px;
-            font-weight: 700;
-        }
-        .clenro-banner-content p {
-            margin: 0;
-            font-size: 13.5px;
-            opacity: 0.95;
-            max-width: 650px;
-            line-height: 1.5;
-        }
-        .cdo-badge-pill {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: rgba(255, 255, 255, 0.2);
-            color: #ffffff;
-            font-size: 11px;
-            font-weight: 700;
-            padding: 4px 10px;
-            border-radius: 20px;
-            text-transform: uppercase;
-            letter-spacing: 0.6px;
-        }
-        .clenro-kpi-strip {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 16px;
-            margin-bottom: 24px;
-        }
-        .clenro-kpi-item {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-md);
-            padding: 16px 18px;
-            box-shadow: var(--shadow-sm);
-            border-left: 4px solid var(--green-600);
-            transition: transform var(--transition);
-        }
-        .clenro-kpi-item:hover {
-            transform: translateY(-2px);
-        }
-        .clenro-kpi-item.warning { border-left-color: #f59e0b; }
-        .clenro-kpi-item.info { border-left-color: #0284c7; }
-        .clenro-kpi-item.danger { border-left-color: #ef4444; }
-        .kpi-metric-label {
-            font-size: 11.5px;
-            font-weight: 700;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        .kpi-metric-val {
-            font-size: 26px;
-            font-weight: 800;
-            color: var(--text);
-            margin: 4px 0 2px;
-            line-height: 1.2;
-        }
-        .kpi-metric-sub {
-            font-size: 12px;
-            color: var(--text-muted);
-        }
-        .directives-mini-card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-md);
-            padding: 18px 20px;
-            margin-bottom: 24px;
-            box-shadow: var(--shadow-sm);
-        }
-        .directives-mini-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 14px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid var(--border);
-        }
-        .directives-mini-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 14px;
-        }
-        .directive-mini-box {
-            background: var(--bg);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-sm);
-            padding: 12px 14px;
-            font-size: 13px;
-        }
-        .directive-mini-title {
-            font-weight: 700;
-            color: var(--text);
-            margin-bottom: 4px;
+
+        .exec-header-left {
             display: flex;
             align-items: center;
-            gap: 6px;
-        }
-        .directive-mini-desc {
-            color: var(--text-muted);
-            font-size: 12.5px;
-            line-height: 1.4;
-        }
-        /* ── Zone Drill-Down Panel ─────────────────────────────── */
-        .zone-drilldown-card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-lg);
-            padding: 0;
-            margin-bottom: 24px;
-            box-shadow: var(--shadow-md);
-            overflow: hidden;
-        }
-        .zone-drilldown-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 16px 20px;
-            border-bottom: 1px solid var(--border);
-            flex-wrap: wrap;
             gap: 12px;
         }
-        .zone-drilldown-header h3 {
-            font-size: 15px;
-            font-weight: 700;
-            margin: 0;
-            color: var(--text);
+
+        .exec-shield-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+            border: 1.5px solid rgba(74, 222, 128, 0.45);
+            background: rgba(22, 101, 52, 0.55);
             display: flex;
             align-items: center;
-            gap: 8px;
+            justify-content: center;
+            color: #4ade80;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            flex-shrink: 0;
         }
-        .zone-selector-wrap {
+
+        .exec-header-title-wrap {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .exec-header-title-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .exec-header-title-row h2 {
+            font-size: 19px;
+            font-weight: 800;
+            color: #ffffff;
+            margin: 0;
+            letter-spacing: -0.2px;
+        }
+
+        .exec-clenro-pill {
+            background: #166534;
+            color: #86efac;
+            font-size: 10.5px;
+            font-weight: 800;
+            padding: 2px 8px;
+            border-radius: 12px;
+            letter-spacing: 0.6px;
+            border: 1px solid rgba(134, 239, 172, 0.35);
+            text-transform: uppercase;
+        }
+
+        .exec-header-subtitle {
+            font-size: 12.5px;
+            color: rgba(255, 255, 255, 0.88);
+            margin: 0;
+        }
+
+        .exec-header-right {
             display: flex;
             align-items: center;
             gap: 10px;
             flex-wrap: wrap;
+            position: relative;
+            z-index: 2;
         }
-        .zone-selector-label {
-            font-size: 12px;
+
+        .exec-shift-select {
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.28);
+            color: #ffffff;
+            font-size: 12.5px;
             font-weight: 600;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        #zone-select {
-            padding: 7px 12px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            background: var(--bg);
-            color: var(--text);
-            font-size: 13px;
-            font-weight: 600;
+            padding: 7px 14px;
+            border-radius: 20px;
             cursor: pointer;
-            min-width: 220px;
+            outline: none;
+            transition: background 0.2s, border-color 0.2s;
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            padding-right: 32px;
         }
-        .zone-body {
-            display: block;
+
+        .exec-shift-select option {
+            background: #0d3a1e;
+            color: #fff;
         }
-        /* Barangay list */
-        .brgy-list-panel {
-            padding: 16px 20px;
-            border-right: none;
-            max-height: 520px;
-            overflow-y: auto;
+
+        .exec-btn-brief {
+            background: #ffffff;
+            color: #0d3a1e;
+            font-size: 12.5px;
+            font-weight: 700;
+            padding: 7px 16px;
+            border-radius: 20px;
+            border: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            transition: transform 0.15s, box-shadow 0.15s;
         }
-        .brgy-grid {
+
+        .exec-btn-brief:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.22);
+        }
+
+        .exec-btn-dispatch {
+            background: #e11d48;
+            color: #ffffff;
+            font-size: 12.5px;
+            font-weight: 700;
+            padding: 7px 16px;
+            border-radius: 20px;
+            border: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 2px 8px rgba(225, 29, 72, 0.35);
+            transition: transform 0.15s, box-shadow 0.15s;
+        }
+
+        .exec-btn-dispatch:hover {
+            background: #be123c;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(225, 29, 72, 0.45);
+        }
+
+        .exec-user-badge {
+            background: #6ee7b7;
+            color: #064e3b;
+            font-weight: 800;
+            font-size: 12px;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            letter-spacing: 0.5px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        }
+
+        /* 2. 4 Executive KPI Cards (2x2 Grid) */
+        .exec-kpi-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+
+        @media (max-width: 860px) {
+            .exec-kpi-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .exec-kpi-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            padding: 18px 22px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 12px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .exec-kpi-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+        }
+
+        .exec-kpi-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .exec-kpi-label {
+            font-size: 11.5px;
+            font-weight: 800;
+            letter-spacing: 0.7px;
+            text-transform: uppercase;
+            color: #475569;
+        }
+
+        .exec-kpi-label.danger {
+            color: #be123c;
+        }
+
+        .exec-icon-circle {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+        }
+
+        .exec-icon-circle.green {
+            background: #ecfdf5;
+            color: #10b981;
+            border: 1px solid #a7f3d0;
+        }
+
+        .exec-icon-circle.red {
+            background: #fff1f2;
+            color: #f43f5e;
+            border: 1px solid #fecdd3;
+        }
+
+        .exec-icon-circle.blue {
+            background: #f0f9ff;
+            color: #0284c7;
+            border: 1px solid #bae6fd;
+        }
+
+        .exec-icon-circle.amber {
+            background: #fffbeb;
+            color: #f59e0b;
+            border: 1px solid #fde68a;
+        }
+
+        .exec-kpi-mid {
+            display: flex;
+            align-items: baseline;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .exec-kpi-val {
+            font-size: 28px;
+            font-weight: 800;
+            line-height: 1;
+            color: #0f172a;
+            letter-spacing: -0.5px;
+        }
+
+        .exec-kpi-val.danger {
+            color: #dc2626;
+        }
+
+        .exec-tag {
+            font-size: 11.5px;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 6px;
+            white-space: nowrap;
+        }
+
+        .exec-tag.green {
+            background: #ecfdf5;
+            color: #059669;
+            border: 1px solid #a7f3d0;
+        }
+
+        .exec-tag.red {
+            background: #fee2e2;
+            color: #b91c1c;
+            border: 1px solid #fca5a5;
+        }
+
+        .exec-tag.blue {
+            background: #e0f2fe;
+            color: #0369a1;
+            border: 1px solid #bae6fd;
+        }
+
+        .exec-tag.subtle {
+            background: #f1f5f9;
+            color: #475569;
+            border: 1px solid #e2e8f0;
+        }
+
+        .exec-kpi-bottom {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12.5px;
+            color: #64748b;
+            padding-top: 10px;
+            border-top: 1px solid #f1f5f9;
+        }
+
+        .exec-kpi-bottom .bold-green {
+            color: #059669;
+            font-weight: 700;
+        }
+
+        .exec-kpi-bottom .bold-red {
+            color: #dc2626;
+            font-weight: 800;
+        }
+
+        .exec-kpi-bottom .bold-dark {
+            color: #0f172a;
+            font-weight: 700;
+        }
+
+        /* 3. Barangay & Commercial Sector Status Container */
+        .exec-sectors-container {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 22px 24px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+        }
+
+        .exec-sectors-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 12px;
+        }
+
+        .exec-sectors-title-wrap {
+            display: flex;
+            align-items: center;
             gap: 12px;
         }
-        .zone-total-row {
+
+        .exec-pin-icon-wrap {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: #ecfdf5;
+            color: #059669;
+            border: 1px solid #a7f3d0;
             display: flex;
-            gap: 16px;
-            margin-bottom: 14px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid var(--border);
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
         }
-        .zone-total-chip {
+
+        .exec-sectors-title h3 {
+            font-size: 16.5px;
+            font-weight: 800;
+            color: #0f172a;
+            margin: 0 0 2px;
+        }
+
+        .exec-sectors-title p {
+            font-size: 12.5px;
+            color: #64748b;
+            margin: 0;
+        }
+
+        .exec-filter-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .exec-filter-pill {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            color: #475569;
+            font-size: 12.5px;
+            font-weight: 600;
+            padding: 6px 14px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .exec-filter-pill:hover {
+            background: #f1f5f9;
+            color: #0f172a;
+        }
+
+        .exec-filter-pill.active {
+            background: #0f172a;
+            color: #ffffff;
+            border-color: #0f172a;
+            font-weight: 700;
+            box-shadow: 0 2px 6px rgba(15, 23, 42, 0.15);
+        }
+
+        .exec-search-input {
+            padding: 6px 12px;
+            font-size: 12px;
+            border-radius: 20px;
+            border: 1px solid #e2e8f0;
+            background: #ffffff;
+            outline: none;
+            min-width: 170px;
+        }
+
+        .exec-search-input:focus {
+            border-color: #10b981;
+        }
+
+        .exec-legend-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 12px 0 16px;
+            border-bottom: 1px solid #f1f5f9;
+            margin-bottom: 18px;
+            font-size: 12px;
+        }
+
+        .exec-legend-items {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .exec-legend-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 600;
+            color: #334155;
+        }
+
+        .exec-legend-dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+        }
+
+        .exec-legend-dot.green { background: #16a34a; }
+        .exec-legend-dot.amber { background: #eab308; }
+        .exec-legend-dot.red { background: #dc2626; }
+
+        .exec-legend-notice {
+            color: #64748b;
+            font-size: 11.5px;
+        }
+
+        /* Sector Cards Grid */
+        .sector-cards-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 14px;
+        }
+
+        @media (max-width: 768px) {
+            .sector-cards-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .sector-card {
+            background: #ffffff;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 14px 16px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 10px;
+            cursor: pointer;
+            transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+            position: relative;
+        }
+
+        .sector-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 14px rgba(0, 0, 0, 0.05);
+        }
+
+        .sector-card.cleared {
+            border-color: #bbf7d0;
+        }
+        .sector-card.cleared:hover {
+            border-color: #86efac;
+        }
+
+        .sector-card.breach {
+            border-color: #fecaca;
+            background: #fffbfb;
+        }
+        .sector-card.breach:hover {
+            border-color: #f87171;
+        }
+
+        .sector-card.in_progress {
+            border-color: #fed7aa;
+            background: #fffdfa;
+        }
+        .sector-card.in_progress:hover {
+            border-color: #fb923c;
+        }
+
+        .sector-card-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .sector-card-title-group {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+        }
+
+        .sector-status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        .sector-status-dot.green { background: #16a34a; }
+        .sector-status-dot.amber { background: #f59e0b; }
+        .sector-status-dot.red { background: #dc2626; }
+
+        .sector-card-name {
+            font-size: 14.5px;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .sector-status-pill {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 9px;
+            border-radius: 12px;
+            white-space: nowrap;
+        }
+
+        .sector-status-pill.cleared {
+            background: #ecfdf5;
+            color: #059669;
+            border: 1px solid #a7f3d0;
+        }
+
+        .sector-status-pill.breach {
+            background: #ef4444;
+            color: #ffffff;
+            font-weight: 700;
+        }
+
+        .sector-status-pill.volume {
+            background: #fff7ed;
+            color: #c2410c;
+            border: 1px solid #fed7aa;
+        }
+
+        .sector-card-desc {
+            font-size: 12px;
+            color: #64748b;
+            margin: 0;
+            line-height: 1.35;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .sector-card-bottom {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding-top: 4px;
+        }
+
+        .sector-tags {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .sector-tag-pill {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 6px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            color: #475569;
+        }
+
+        .sector-tag-pill.fine {
+            background: #fee2e2;
+            border-color: #fca5a5;
+            color: #b91c1c;
+            font-weight: 700;
+        }
+
+        .sector-action-link {
             font-size: 12px;
             font-weight: 700;
-            padding: 4px 10px;
-            border-radius: 20px;
-            background: var(--green-50);
-            color: var(--green-800);
-            border: 1px solid var(--green-200);
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: opacity 0.15s;
         }
-        .zone-total-chip.orange {
-            background: #fff7ed;
-            color: #9a3412;
-            border-color: #fed7aa;
+
+        .sector-action-link:hover {
+            opacity: 0.8;
         }
-        .brgy-item {
+
+        .sector-action-link.green { color: #059669; }
+        .sector-action-link.red { color: #dc2626; }
+        .sector-action-link.amber { color: #d97706; }
+
+        /* ── Sector Pagination Styles ──────────────────────────── */
+        .sector-pagination-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 18px;
+            padding-top: 16px;
+            border-top: 1px solid #f1f5f9;
+        }
+
+        .sector-pagination-info {
+            font-size: 12.5px;
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        .sector-pagination-controls {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .sector-page-btn {
+            min-width: 34px;
+            height: 34px;
+            padding: 0 10px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            background: #ffffff;
+            color: #334155;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s ease;
+        }
+
+        .sector-page-btn:hover:not(:disabled) {
+            background: #f8fafc;
+            border-color: #cbd5e1;
+            color: #0f172a;
+        }
+
+        .sector-page-btn.active {
+            background: #0f172a;
+            color: #ffffff;
+            border-color: #0f172a;
+            font-weight: 700;
+            box-shadow: 0 2px 6px rgba(15, 23, 42, 0.18);
+        }
+
+        .sector-page-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            background: #f8fafc;
+        }
+
+        .sector-page-ellipsis {
+            padding: 0 4px;
+            color: #94a3b8;
+            font-size: 13px;
+            font-weight: 700;
+            user-select: none;
+        }
+
+        [data-theme="dark"] .sector-pagination-bar {
+            border-top-color: var(--border);
+        }
+
+        [data-theme="dark"] .sector-page-btn {
+            background: var(--bg);
+            border-color: var(--border);
+            color: var(--text);
+        }
+
+        [data-theme="dark"] .sector-page-btn:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        [data-theme="dark"] .sector-page-btn.active {
+            background: #16a34a;
+            border-color: #16a34a;
+            color: #ffffff;
+        }
+
+        [data-theme="dark"] .sector-pagination-info {
+            color: var(--text-muted);
+        }
+
+        /* 4. Full Historical Details Modal & Overlays */
+        .exec-modal-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(4px);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+
+        .exec-modal-backdrop.active {
+            display: flex;
+        }
+
+        .exec-modal-dialog {
+            background: #ffffff;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 860px;
+            max-height: 90vh;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            animation: execModalIn 0.2s ease-out;
+        }
+
+        @keyframes execModalIn {
+            from { opacity: 0; transform: scale(0.97) translateY(8px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .exec-modal-header {
+            background: linear-gradient(135deg, #072a15 0%, #0d3a1e 100%);
+            color: #ffffff;
+            padding: 18px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .exec-modal-header h3 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 800;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .exec-modal-close {
+            background: rgba(255, 255, 255, 0.15);
+            border: none;
+            color: #ffffff;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.15s;
+        }
+
+        .exec-modal-close:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .exec-modal-body {
+            padding: 22px 24px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .exec-modal-metrics {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+
+        @media (max-width: 640px) {
+            .exec-modal-metrics {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .exec-metric-box {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 12px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .exec-metric-box .label {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #64748b;
+            letter-spacing: 0.4px;
+        }
+
+        .exec-metric-box .val {
+            font-size: 17px;
+            font-weight: 800;
+            color: #0f172a;
+        }
+
+        .exec-dss-box {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-left: 4px solid #16a34a;
+            border-radius: 10px;
+            padding: 16px 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .exec-dss-box.breach {
+            border-left-color: #dc2626;
+            background: #fff8f8;
+        }
+
+        .exec-dss-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .exec-dss-title {
+            font-size: 11.5px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #475569;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .exec-dss-rec {
+            font-size: 14px;
+            font-weight: 700;
+            color: #0f172a;
+            line-height: 1.4;
+        }
+
+        .exec-dss-notes {
+            font-size: 12.5px;
+            color: #475569;
+            line-height: 1.45;
+        }
+
+        .exec-table-wrap {
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            overflow-x: auto;
+        }
+
+        .exec-hist-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12.5px;
+            text-align: left;
+        }
+
+        .exec-hist-table th {
+            background: #f8fafc;
+            padding: 10px 12px;
+            font-weight: 700;
+            color: #475569;
+            border-bottom: 1px solid #e2e8f0;
+            white-space: nowrap;
+        }
+
+        .exec-hist-table td {
+            padding: 9px 12px;
+            border-bottom: 1px solid #f1f5f9;
+            color: #334155;
+            white-space: nowrap;
+        }
+
+        .exec-modal-footer {
+            padding: 14px 24px;
+            border-top: 1px solid #e2e8f0;
+            background: #f8fafc;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Dark mode adjustments */
+        [data-theme="dark"] .exec-kpi-card,
+        [data-theme="dark"] .exec-sectors-container,
+        [data-theme="dark"] .sector-card,
+        [data-theme="dark"] .exec-modal-dialog {
+            background: var(--surface);
+            border-color: var(--border);
+            color: var(--text);
+        }
+
+        [data-theme="dark"] .exec-kpi-val,
+        [data-theme="dark"] .exec-sectors-title h3,
+        [data-theme="dark"] .sector-card-name,
+        [data-theme="dark"] .exec-dss-rec,
+        [data-theme="dark"] .exec-metric-box .val {
+            color: var(--text);
+        }
+
+        /* Ensure topbar toggle button is never rendered next to Dashboard Analytics */
+        .topbar #mobile-nav-toggle,
+        .topbar .mobile-nav-toggle,
+        .topbar .nav-toggle-btn {
+            display: none !important;
+        }
+
+        /* ── Operational Visual Graphs & Charts (Market Compliance, Reports, Driver Attendance) ── */
+        .analytics-visual-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 18px;
+            margin-top: 10px;
+        }
+
+        @media (max-width: 1200px) {
+            .analytics-visual-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 768px) {
+            .analytics-visual-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .analytics-chart-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            box-shadow: 0 2px 10px rgba(18, 56, 30, 0.05);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .analytics-chart-card:hover {
+            box-shadow: 0 6px 20px rgba(18, 56, 30, 0.09);
+            transform: translateY(-2px);
+        }
+
+        .chart-card-header {
+            padding: 14px 18px;
+            border-bottom: 1px solid var(--border);
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 9px 10px;
-            margin-bottom: 4px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: background 0.15s, box-shadow 0.15s;
+            gap: 12px;
+            background: linear-gradient(to right, rgba(22, 163, 74, 0.03), transparent);
+        }
+
+        .chart-header-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .chart-header-icon {
+            width: 34px;
+            height: 34px;
+            border-radius: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .chart-header-icon.market-icon {
+            background: rgba(16, 185, 129, 0.12);
+            color: #059669;
+        }
+
+        .chart-header-icon.reports-icon {
+            background: rgba(2, 132, 199, 0.12);
+            color: #0284c7;
+        }
+
+        .chart-header-icon.drivers-icon {
+            background: rgba(139, 92, 246, 0.12);
+            color: #7c3aed;
+        }
+
+        .chart-card-header h3 {
+            font-size: 13.5px;
+            font-weight: 700;
+            color: var(--text);
+            margin: 0;
+            line-height: 1.2;
+        }
+
+        .chart-header-sub {
+            font-size: 10.5px;
+            color: var(--text-muted);
+            margin: 2px 0 0;
+        }
+
+        .chart-badge {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 9px;
+            border-radius: 12px;
             border: 1px solid transparent;
+            white-space: nowrap;
+        }
+
+        .chart-badge.badge-green {
+            background: #dcfce7;
+            color: #166534;
+            border-color: #bbf7d0;
+        }
+
+        .chart-badge.badge-blue {
+            background: #e0f2fe;
+            color: #0369a1;
+            border-color: #bae6fd;
+        }
+
+        .chart-badge.badge-purple {
+            background: #f3e8ff;
+            color: #6b21a8;
+            border-color: #e9d5ff;
+        }
+
+        .chart-badge.badge-amber {
+            background: #fef3c7;
+            color: #92400e;
+            border-color: #fde68a;
+        }
+
+        [data-theme="dark"] .chart-badge.badge-green {
+            background: rgba(22, 163, 74, 0.2);
+            color: #86efac;
+            border-color: rgba(22, 163, 74, 0.35);
+        }
+
+        [data-theme="dark"] .chart-badge.badge-blue {
+            background: rgba(2, 132, 199, 0.2);
+            color: #7dd3fc;
+            border-color: rgba(2, 132, 199, 0.35);
+        }
+
+        [data-theme="dark"] .chart-badge.badge-purple {
+            background: rgba(139, 92, 246, 0.2);
+            color: #d8b4fe;
+            border-color: rgba(139, 92, 246, 0.35);
+        }
+
+        [data-theme="dark"] .chart-badge.badge-amber {
+            background: rgba(245, 158, 11, 0.2);
+            color: #fcd34d;
+            border-color: rgba(245, 158, 11, 0.35);
+        }
+
+        .analytics-chart-body {
+            padding: 16px 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            flex: 1;
+        }
+
+        /* ── Market Hero Radial Gauge ── */
+        .market-hero-wrap {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 12px 14px;
+            background: var(--surface-alt);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+        }
+
+        .radial-gauge-container {
+            position: relative;
+            width: 88px;
+            height: 88px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .radial-gauge-svg {
+            transform: rotate(-90deg);
+        }
+
+        .radial-gauge-text {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            pointer-events: none;
+        }
+
+        .radial-gauge-percent {
+            font-size: 15px;
+            font-weight: 800;
+            color: var(--text);
+            line-height: 1;
+        }
+
+        .radial-gauge-sub {
+            font-size: 8px;
+            font-weight: 700;
+            color: var(--text-muted);
+            letter-spacing: 0.5px;
+            margin-top: 2px;
+        }
+
+        .market-hero-meta {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
             gap: 8px;
+            flex: 1;
         }
-        .brgy-item:hover {
-            background: var(--green-50);
-            border-color: var(--green-200);
-        }
-        .brgy-item.selected {
-            background: linear-gradient(135deg, var(--green-50), #ecfdf5);
-            border-color: var(--green-400);
-            box-shadow: 0 2px 6px rgba(34, 197, 94, 0.12);
-        }
-        .brgy-item-left {
+
+        .market-meta-box {
             display: flex;
             flex-direction: column;
             gap: 2px;
+            padding: 6px 8px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .market-meta-box .meta-label {
+            font-size: 10px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .market-meta-box .meta-val {
+            font-size: 14px;
+            font-weight: 800;
+            color: var(--text);
+        }
+
+        /* ── Common Visual Bars ── */
+        .visual-bar-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .visual-bar-item {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .visual-bar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11.5px;
+        }
+
+        .bar-title {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        .bar-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            display: inline-block;
+            flex-shrink: 0;
+        }
+
+        .bar-value {
+            color: var(--text);
+            font-size: 11.5px;
+        }
+
+        .bar-value strong {
+            font-weight: 700;
+        }
+
+        .bar-pct {
+            color: var(--text-muted);
+            font-size: 10.5px;
+        }
+
+        .visual-bar-track {
+            height: 8px;
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        [data-theme="dark"] .visual-bar-track {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .visual-bar-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* ── Stacked Distribution Track (Reports by Status) ── */
+        .stacked-bar-wrap {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding: 10px 12px;
+            background: var(--surface-alt);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+        }
+
+        .stacked-bar-track {
+            height: 12px;
+            background: rgba(0, 0, 0, 0.06);
+            border-radius: 6px;
+            overflow: hidden;
+            display: flex;
+            width: 100%;
+        }
+
+        [data-theme="dark"] .stacked-bar-track {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .stacked-bar-segment {
+            height: 100%;
+            transition: width 0.6s ease;
+            position: relative;
+        }
+
+        .stacked-bar-segment:hover {
+            filter: brightness(1.1);
+        }
+
+        .stacked-bar-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px 12px;
+        }
+
+        .legend-chip {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 10.5px;
+            color: var(--text-muted);
+        }
+
+        .legend-chip strong {
+            color: var(--text);
+        }
+
+        .legend-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        /* ── Driver Attendance Roster Rows ── */
+        .driver-roster-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 250px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .driver-roster-container::-webkit-scrollbar {
+            width: 4px;
+        }
+        .driver-roster-container::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 4px;
+        }
+
+        .driver-roster-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 10px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            border-radius: 8px;
+            transition: all 0.15s ease;
+        }
+
+        .driver-roster-row:hover {
+            border-color: rgba(22, 163, 74, 0.3);
+            background: var(--surface-alt);
+        }
+
+        .driver-roster-row.is-active {
+            border-left: 3px solid #10b981;
+        }
+
+        .driver-avatar-circle {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: rgba(100, 116, 139, 0.15);
+            color: var(--text-muted);
+            font-size: 11px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .driver-avatar-circle.avatar-active {
+            background: rgba(16, 185, 129, 0.15);
+            color: #059669;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        [data-theme="dark"] .driver-avatar-circle.avatar-active {
+            color: #4ade80;
+        }
+
+        .driver-info-main {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            flex: 1;
             min-width: 0;
         }
-        .brgy-item-name {
-            font-size: 13px;
+
+        .driver-info-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 6px;
+        }
+
+        .driver-name {
+            font-size: 12px;
             font-weight: 600;
             color: var(--text);
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
-        .brgy-item-meta {
-            font-size: 11px;
-            color: var(--text-muted);
-        }
-        .brgy-item-pills {
-            display: flex;
+
+        .driver-status-tag {
+            font-size: 9.5px;
+            font-weight: 600;
+            padding: 1px 6px;
+            border-radius: 10px;
+            display: inline-flex;
+            align-items: center;
             gap: 4px;
             flex-shrink: 0;
         }
-        .brgy-pill {
-            font-size: 10.5px;
-            font-weight: 700;
-            padding: 2px 7px;
-            border-radius: 10px;
+
+        .driver-status-tag.tag-active {
+            background: #dcfce7;
+            color: #15803d;
         }
-        .brgy-pill-v { background: #dcfce7; color: #166534; }
-        .brgy-pill-r { background: #fee2e2; color: #991b1b; }
-        /* Right: Map + detail panel */
-        .brgy-detail-panel {
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 14px;
+
+        .driver-status-tag.tag-late {
+            background: #fef3c7;
+            color: #b45309;
         }
-        .brgy-detail-empty {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100%;
-            min-height: 220px;
+
+        .driver-status-tag.tag-absent {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .driver-status-tag.tag-standby {
+            background: rgba(100, 116, 139, 0.12);
             color: var(--text-muted);
-            font-size: 13px;
-            gap: 10px;
-            text-align: center;
         }
-        .brgy-detail-title {
-            font-size: 16px;
-            font-weight: 700;
-            color: var(--text);
-            margin-bottom: 2px;
+
+        [data-theme="dark"] .driver-status-tag.tag-active {
+            background: rgba(22, 163, 74, 0.25);
+            color: #86efac;
         }
-        .brgy-detail-stats {
-            display: flex;
-            gap: 12px;
-        }
-        .brgy-detail-stat {
-            flex: 1;
-            background: var(--bg);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 10px 12px;
-            text-align: center;
-        }
-        .brgy-detail-stat .val {
-            font-size: 22px;
-            font-weight: 800;
-            color: var(--text);
-        }
-        .brgy-detail-stat .lbl {
-            font-size: 10.5px;
+
+        [data-theme="dark"] .driver-status-tag.tag-standby {
+            background: rgba(255, 255, 255, 0.08);
             color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.4px;
-            font-weight: 600;
         }
-        /* Leaflet map container height */
-        #brgy-map-div {
+
+        .driver-pulse {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: #16a34a;
+            animation: pulseDot 1.5s infinite;
+        }
+
+        @keyframes pulseDot {
+            0% { transform: scale(0.9); opacity: 0.8; }
+            50% { transform: scale(1.4); opacity: 1; }
+            100% { transform: scale(0.9); opacity: 0.8; }
+        }
+
+        .driver-mini-bar-track {
+            height: 4px;
+            background: rgba(0, 0, 0, 0.06);
+            border-radius: 2px;
+            overflow: hidden;
+            display: flex;
             width: 100%;
-            height: 230px;
-            border-radius: 10px;
         }
-        /* Override Leaflet attribution font to match dashboard */
-        .leaflet-control-attribution {
-            font-size: 9px !important;
+
+        [data-theme="dark"] .driver-mini-bar-track {
+            background: rgba(255, 255, 255, 0.08);
         }
-        .map-badge {
-            position: absolute;
-            top: 8px;
-            right: 8px;
-            background: rgba(0,0,0,0.55);
-            color: #fff;
-            font-size: 10px;
-            font-weight: 700;
-            padding: 3px 8px;
-            border-radius: 12px;
-            letter-spacing: 0.4px;
-            pointer-events: none;
+
+        .driver-mini-seg {
+            height: 100%;
         }
-        .brgy-overview-link {
-            display: inline-flex;
+
+        .driver-standby-track {
+            font-size: 9.5px;
+            color: var(--text-muted);
+            opacity: 0.75;
+        }
+
+        .driver-counts-pills {
+            display: flex;
             align-items: center;
-            gap: 7px;
-            background: linear-gradient(135deg, var(--green-600), var(--green-800));
-            color: #fff;
-            font-weight: 700;
-            font-size: 13px;
-            padding: 10px 18px;
-            border-radius: 8px;
-            text-decoration: none;
-            transition: opacity 0.15s;
-            box-shadow: 0 3px 10px rgba(22, 163, 74, 0.25);
+            gap: 4px;
+            flex-shrink: 0;
         }
-        .brgy-overview-link:hover { opacity: 0.88; }
-        .data-src-badge {
-            font-size: 10.5px;
-            font-weight: 700;
-            padding: 3px 9px;
-            border-radius: 12px;
-            letter-spacing: 0.4px;
+
+        .driver-chip {
+            font-size: 10px;
+            font-weight: 600;
+            padding: 2px 5px;
+            border-radius: 4px;
         }
-        .data-src-live { background: #dcfce7; color: #15803d; border: 1px solid #86efac; }
-        .data-src-local { background: #fef9c3; color: #854d0e; border: 1px solid #fde047; }
+
+        .driver-chip strong {
+            font-weight: 700;
+        }
+
+        .driver-chip.chip-p {
+            background: rgba(16, 185, 129, 0.12);
+            color: #059669;
+        }
+
+        .driver-chip.chip-l {
+            background: rgba(245, 158, 11, 0.12);
+            color: #d97706;
+        }
+
+        .driver-chip.chip-a {
+            background: rgba(239, 68, 68, 0.12);
+            color: #dc2626;
+        }
+
+        [data-theme="dark"] .driver-chip.chip-p {
+            color: #34d399;
+        }
+        [data-theme="dark"] .driver-chip.chip-l {
+            color: #fbbf24;
+        }
+        [data-theme="dark"] .driver-chip.chip-a {
+            color: #f87171;
+        }
+
+        .chart-empty-state {
+            padding: 20px;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 12px;
+        }
     </style>
 </head>
 <body>
@@ -395,97 +1576,506 @@
                 <div id="topbar-user"></div>
             </header>
             <section class="content">
-                <!-- Top System Stats Grid -->
-                <div class="stats-grid">
-                    <div class="stat-card"><h3>Drivers &amp; Sweepers</h3><div class="value" id="total-employees">18</div><div class="stat-meta">Active CLENRO Roster</div></div>
-                    <div class="stat-card"><h3>Contractors</h3><div class="value" id="total-contractors">4</div><div class="stat-meta">Hauling Operators</div></div>
-                    <div class="stat-card"><h3>Market Vendors</h3><div class="value" id="total-vendors">1,240</div><div class="stat-meta">Cogon &amp; Carmen</div></div>
-                    <div class="stat-card"><h3>Total Incident Reports</h3><div class="value" id="total-reports">74</div><div class="stat-meta">2024–2026 Archive</div></div>
-                    <div class="stat-card"><h3>Fleet Vehicles</h3><div class="value" id="total-trucks">14</div><div class="stat-meta">City &amp; Contractor</div></div>
-                </div>
+                <div class="exec-command-center">
 
-                <!-- CLENRO Decision Support Callout Banner -->
-                <div class="clenro-overview-banner">
-                    <div class="clenro-banner-content">
-                        <span class="cdo-badge-pill">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-                            CLENRO Department · City Government of Cagayan de Oro
-                        </span>
-                        <h3>Historical Garbage Pile-Up &amp; Decision Directives</h3>
-                        <p>Comprehensive 2024–2026 municipal solid waste dataset covering Barangay 1 to 40 (Urban Core Poblacion), Cogon Commercial Market Zone, and Carmen Public Market Zone for executive route planning and contractor SLA enforcement.</p>
-                    </div>
-                    <a href="clenro-reports.html" class="btn btn-primary" style="background: #ffffff; color: var(--green-800); font-weight: 700; border: none; padding: 10px 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: inline-flex; align-items: center; gap: 8px;">
-                        Open CLENRO Analytics
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-                    </a>
-                </div>
+                    <!-- Top Executive Header Banner -->
+                    <div class="exec-header-banner">
+                        <div class="exec-header-left">
+                            <div class="exec-shield-icon">
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                                    <path d="m9 12 2 2 4-4"/>
+                                </svg>
+                            </div>
+                            <div class="exec-header-title-wrap">
+                                <div class="exec-header-title-row">
+                                    <h2>Katok Kalinis</h2>
+                                    <span class="exec-clenro-pill">CLENRO</span>
+                                </div>
+                                <p class="exec-header-subtitle">City Environment &amp; Natural Resources Office &bull; Cagayan de Oro City</p>
+                            </div>
+                        </div>
 
-                <!-- CLENRO Executive KPI Strip -->
-                <div class="clenro-kpi-strip">
-                    <div class="clenro-kpi-item">
-                        <div class="kpi-metric-label">Poblacion Barangay Coverage</div>
-                        <div class="kpi-metric-val">100%</div>
-                        <div class="kpi-metric-sub">All 40 Poblacion Barangays Represented</div>
-                    </div>
-                    <div class="clenro-kpi-item warning">
-                        <div class="kpi-metric-label">Market Share of Total Volume</div>
-                        <div class="kpi-metric-val">52.8%</div>
-                        <div class="kpi-metric-sub">Cogon &amp; Carmen Wholesale Night Stalls</div>
-                    </div>
-                    <div class="clenro-kpi-item info">
-                        <div class="kpi-metric-label">Avg. Resolution Turnaround</div>
-                        <div class="kpi-metric-val">11.6h</div>
-                        <div class="kpi-metric-sub">81.1% Cleared within SLA Guidelines</div>
-                    </div>
-                    <div class="clenro-kpi-item danger">
-                        <div class="kpi-metric-label">Contractor SLA Breaches</div>
-                        <div class="kpi-metric-val">14</div>
-                        <div class="kpi-metric-sub">₱160,000 Liquidated Damages Assessed</div>
-                    </div>
-                </div>
-
-                <!-- Zone Drill-Down Section (Dynamic from API) -->
-                <div class="zone-drilldown-card" id="zone-drilldown">
-                    <div class="zone-drilldown-header">
-                        <h3>
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--green-600)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-                            Barangay &amp; Zone Analytics
-                        </h3>
-                        <div class="zone-selector-wrap">
-                            <span class="zone-selector-label">Zone</span>
-                            <select id="zone-select" onchange="onZoneChange()">
-                                <option value="">— Select a Zone —</option>
+                        <div class="exec-header-right">
+                            <select class="exec-shift-select" id="shift-selector" onchange="onShiftChange(this.value)">
+                                <option value="morning">Shift: Morning Shift (05:00 - 13:00)</option>
+                                <option value="afternoon">Shift: Afternoon Shift (13:00 - 21:00)</option>
+                                <option value="night">Shift: Night Shift (21:00 - 05:00)</option>
                             </select>
+
+                            <button type="button" class="exec-btn-brief" onclick="openExecBriefModal()">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                    <polyline points="14 2 14 8 20 8"/>
+                                    <line x1="16" y1="13" x2="8" y2="13"/>
+                                    <line x1="16" y1="17" x2="8" y2="17"/>
+                                    <polyline points="10 9 9 9 8 9"/>
+                                </svg>
+                                Executive Brief
+                            </button>
+
+                            <button type="button" class="exec-btn-dispatch" onclick="openDispatchNoticeModal()">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <line x1="12" y1="8" x2="12" y2="12"/>
+                                    <line x1="12" y1="16" x2="12.01" y2="16"/>
+                                </svg>
+                                Dispatch Notice
+                            </button>
+
+                            <a href="barangay-overview.html" class="exec-btn-cross-connect" title="Cross-Connect: Open Barangay Operations Command">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+                                </svg>
+                                Barangay Command &rarr;
+                            </a>
+
+                            <div class="exec-user-badge" id="exec-user-badge" title="Super Administrator">SA</div>
                         </div>
                     </div>
 
-                    <div class="zone-body">
-                        <!-- Barangay list panel -->
-                        <div class="brgy-list-panel">
-                            <div id="zone-totals" class="zone-total-row" style="display:none"></div>
-                            <div id="brgy-list"><p style="color:var(--text-muted);font-size:13px;">Select a zone above to view barangays.</p></div>
+                    <!-- 4 Executive KPI Cards (2x2 Grid) -->
+                    <div class="exec-kpi-grid">
+                        <!-- Card 1: Citywide Collection Rate -->
+                        <div class="exec-kpi-card">
+                            <div class="exec-kpi-top">
+                                <span class="exec-kpi-label">CITYWIDE COLLECTION RATE</span>
+                                <div class="exec-icon-circle green">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                                </div>
+                            </div>
+                            <div class="exec-kpi-mid">
+                                <span class="exec-kpi-val" id="metric-collection-rate">98.4%</span>
+                                <span class="exec-tag green">+2.1% this week</span>
+                            </div>
+                            <div class="exec-kpi-bottom">
+                                <span>Target: 95.0% SLA</span>
+                                <span class="bold-green">Exceeding Standard</span>
+                            </div>
+                        </div>
+
+                        <!-- Card 2: SLA Penalties Assessed -->
+                        <div class="exec-kpi-card">
+                            <div class="exec-kpi-top">
+                                <span class="exec-kpi-label danger">SLA PENALTIES ASSESSED</span>
+                                <div class="exec-icon-circle red">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
+                                        <line x1="12" y1="9" x2="12" y2="13"/>
+                                        <line x1="12" y1="17" x2="12.01" y2="17"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="exec-kpi-mid">
+                                <span class="exec-kpi-val danger" id="metric-penalties-count">14 Flagged</span>
+                                <span class="exec-tag red">Immediate Action</span>
+                            </div>
+                            <div class="exec-kpi-bottom">
+                                <span>Liquidated Damages:</span>
+                                <span class="bold-red" id="metric-penalties-amount">&#8369;160,000 Total</span>
+                            </div>
+                        </div>
+
+                        <!-- Card 3: Active Trucks & Crews -->
+                        <div class="exec-kpi-card">
+                            <div class="exec-kpi-top">
+                                <span class="exec-kpi-label">ACTIVE TRUCKS &amp; CREWS</span>
+                                <div class="exec-icon-circle blue">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                        <rect x="1" y="3" width="15" height="13"/>
+                                        <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/>
+                                        <circle cx="5.5" cy="18.5" r="2.5"/>
+                                        <circle cx="18.5" cy="18.5" r="2.5"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="exec-kpi-mid">
+                                <span class="exec-kpi-val" id="metric-fleet-active">5 / 5 Fleet</span>
+                                <span class="exec-tag blue">100% Deployed</span>
+                            </div>
+                            <div class="exec-kpi-bottom">
+                                <span id="metric-roster-crew">5 Drivers &bull; 5 Sweepers Roster</span>
+                                <span class="bold-dark">All En Route</span>
+                            </div>
+                        </div>
+
+                        <!-- Card 4: Avg. Cleanup Turnaround -->
+                        <div class="exec-kpi-card">
+                            <div class="exec-kpi-top">
+                                <span class="exec-kpi-label">AVG. CLEANUP TURNAROUND</span>
+                                <div class="exec-icon-circle amber">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                        <circle cx="12" cy="12" r="10"/>
+                                        <polyline points="12 6 12 12 16 14"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="exec-kpi-mid">
+                                <span class="exec-kpi-val" id="metric-turnaround-val">11.6 hrs</span>
+                                <span class="exec-tag subtle">Bench: &lt; 24h</span>
+                            </div>
+                            <div class="exec-kpi-bottom">
+                                <span>Within SLA Threshold:</span>
+                                <span class="bold-green">81.1% Compliant</span>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Existing Standard Analytics Grid -->
-                <div class="analytics-grid">
-                    <div class="card">
-                        <div class="card-header"><h3>Market Compliance</h3></div>
-                        <div id="market-compliance" class="analytics-list">Loading...</div>
+                    <!-- Barangay & Commercial Sector Status Container -->
+                    <div class="exec-sectors-container">
+                        <div class="exec-sectors-header">
+                            <div class="exec-sectors-title-wrap">
+                                <div class="exec-pin-icon-wrap">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                                        <circle cx="12" cy="10" r="3"/>
+                                    </svg>
+                                </div>
+                                <div class="exec-sectors-title">
+                                    <h3>Barangay &amp; Commercial Sector Status</h3>
+                                    <p>Real-time status of CDO Urban Core (Poblacion 1&ndash;40 &amp; Commercial Markets)</p>
+                                </div>
+                            </div>
+
+                            <div class="exec-filter-bar">
+                                <button type="button" class="exec-filter-pill active" id="filter-all" onclick="setSectorFilter('all')">All 40 Sectors</button>
+                                <button type="button" class="exec-filter-pill" id="filter-attention" onclick="setSectorFilter('attention')">Attention Required (3)</button>
+                                <button type="button" class="exec-filter-pill" id="filter-markets" onclick="setSectorFilter('markets')">Public Markets (2)</button>
+                                <input type="text" class="exec-search-input" id="sector-search" placeholder="Search sector or street..." oninput="onSearchSector(this.value)">
+                            </div>
+                        </div>
+
+                        <!-- Legend & Guidance Subheader -->
+                        <div class="exec-legend-row">
+                            <div class="exec-legend-items">
+                                <span class="exec-legend-item"><span class="exec-legend-dot green"></span> Cleared &amp; Verified</span>
+                                <span class="exec-legend-item"><span class="exec-legend-dot amber"></span> Collection in Progress</span>
+                                <span class="exec-legend-item"><span class="exec-legend-dot red"></span> SLA Breach / Pile-up</span>
+                            </div>
+                            <span class="exec-legend-notice">Click any sector card to view full historical details &amp; inspector notes</span>
+                        </div>
+
+                        <!-- Dynamic Sector Cards Grid -->
+                        <div class="sector-cards-grid" id="sector-cards-grid">
+                            <!-- Populated dynamically by renderSectorCards() -->
+                        </div>
+
+                        <!-- Sector Pagination Bar -->
+                        <div class="sector-pagination-bar" id="sector-pagination-bar">
+                            <div style="display:flex; align-items:center; gap:10px;">
+                                <span class="sector-pagination-info" id="sector-pagination-info">Showing 1–6 of 42 sectors</span>
+                                <select id="sector-page-size" class="exec-search-input" style="min-width:auto; padding:4px 10px; font-size:11.5px; border-radius:8px;" onchange="onPageSizeChange(this.value)">
+                                    <option value="6" selected>6 per page</option>
+                                    <option value="8">8 per page</option>
+                                    <option value="12">12 per page</option>
+                                </select>
+                            </div>
+                            <div class="sector-pagination-controls" id="sector-pagination-controls">
+                                <!-- Generated by renderPaginationControls() -->
+                            </div>
+                        </div>
                     </div>
-                    <div class="card">
-                        <div class="card-header"><h3>Reports by Status</h3></div>
-                        <div id="report-stats" class="analytics-list">Loading...</div>
+
+                    <!-- Operational Visual Graphs & Charts (Market Compliance, Reports, Driver Attendance) -->
+                    <div class="analytics-visual-grid">
+                        <!-- 1. Market Compliance -->
+                        <div class="analytics-chart-card">
+                            <div class="chart-card-header">
+                                <div class="chart-header-left">
+                                    <div class="chart-header-icon market-icon">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                                            <path d="m9 12 2 2 4-4"/>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h3>Market Compliance</h3>
+                                        <p class="chart-header-sub">Inspection &amp; Corridor SLA</p>
+                                    </div>
+                                </div>
+                                <span class="chart-badge badge-green" id="market-compliance-badge">SLA: 60%</span>
+                            </div>
+                            <div id="market-compliance" class="analytics-chart-body">
+                                <div class="chart-empty-state">Loading compliance metrics...</div>
+                            </div>
+                        </div>
+
+                        <!-- 2. Reports by Status -->
+                        <div class="analytics-chart-card">
+                            <div class="chart-card-header">
+                                <div class="chart-header-left">
+                                    <div class="chart-header-icon reports-icon">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                            <polyline points="14 2 14 8 20 8"/>
+                                            <line x1="16" y1="13" x2="8" y2="13"/>
+                                            <line x1="16" y1="17" x2="8" y2="17"/>
+                                            <polyline points="10 9 9 9 8 9"/>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h3>Reports by Status</h3>
+                                        <p class="chart-header-sub">Pileup &amp; Ticket Resolution</p>
+                                    </div>
+                                </div>
+                                <span class="chart-badge badge-blue" id="reports-total-badge">-- Reports</span>
+                            </div>
+                            <div id="report-stats" class="analytics-chart-body">
+                                <div class="chart-empty-state">Loading report statuses...</div>
+                            </div>
+                        </div>
+
+                        <!-- 3. Driver Attendance -->
+                        <div class="analytics-chart-card">
+                            <div class="chart-card-header">
+                                <div class="chart-header-left">
+                                    <div class="chart-header-icon drivers-icon">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                                            <circle cx="9" cy="7" r="4"/>
+                                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                                            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h3>Driver Attendance</h3>
+                                        <p class="chart-header-sub">Daily Shift &amp; Crew Roster</p>
+                                    </div>
+                                </div>
+                                <span class="chart-badge badge-purple" id="drivers-active-badge">-- Active</span>
+                            </div>
+                            <div id="driver-stats" class="analytics-chart-body">
+                                <div class="chart-empty-state">Loading attendance roster...</div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="card">
-                        <div class="card-header"><h3>Driver Attendance</h3></div>
-                        <div id="driver-stats" class="analytics-list">Loading...</div>
+
+                    <!-- Hidden legacy counters for app.js compatibility -->
+                    <div style="display:none;">
+                        <span id="total-employees">18</span>
+                        <span id="total-contractors">4</span>
+                        <span id="total-vendors">1,240</span>
+                        <span id="total-reports">74</span>
+                        <span id="total-trucks">14</span>
                     </div>
+
                 </div>
             </section>
         </main>
     </div>
+
+    <!-- ── Full Sector Historical Details Modal (Replaces navigation to barangay overview) ── -->
+    <div class="exec-modal-backdrop" id="sector-details-modal" onclick="if(event.target===this) closeSectorDetailsModal()">
+        <div class="exec-modal-dialog">
+            <div class="exec-modal-header">
+                <div>
+                    <h3 id="modal-sector-title">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                            <circle cx="12" cy="10" r="3"/>
+                        </svg>
+                        <span id="modal-sector-name">Barangay 1</span> &bull; Full Historical Details
+                    </h3>
+                    <div style="font-size:12.5px; opacity:0.9; margin-top:3px;" id="modal-sector-subtitle">City Hall &amp; Riverwall Walkway Corridor</div>
+                </div>
+                <button type="button" class="exec-modal-close" onclick="closeSectorDetailsModal()">&times;</button>
+            </div>
+
+            <div class="exec-modal-body" id="modal-sector-body">
+                <!-- 4 Metrics Overview Strip -->
+                <div class="exec-modal-metrics">
+                    <div class="exec-metric-box">
+                        <span class="label">Total Historical Logs</span>
+                        <span class="val" id="modal-trips-count">12 Trips</span>
+                    </div>
+                    <div class="exec-metric-box">
+                        <span class="label">Volume &amp; Weight</span>
+                        <span class="val" id="modal-volume-tons">48.2 m&sup3; (19.3 t)</span>
+                    </div>
+                    <div class="exec-metric-box">
+                        <span class="label">Avg Payload vs 4t Cap</span>
+                        <span class="val" id="modal-payload-util">3.85 t (96%)</span>
+                    </div>
+                    <div class="exec-metric-box">
+                        <span class="label">Turnaround vs SLA</span>
+                        <span class="val" id="modal-sla-turnaround">8.2 hrs</span>
+                    </div>
+                </div>
+
+                <!-- Field Operations & Route Logistics -->
+                <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:14px 18px;">
+                    <div style="font-size:11.5px; font-weight:800; text-transform:uppercase; color:#64748b; margin-bottom:8px; letter-spacing:0.5px;">
+                        Field Operations &amp; Roster Logistics
+                    </div>
+                    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:12px; font-size:13px;">
+                        <div><strong style="color:#0f172a;">Assigned Contractor:</strong> <span id="modal-contractor" style="color:#475569;">IPM CDO Urban Haulers</span></div>
+                        <div><strong style="color:#0f172a;">Fleet Unit:</strong> <span id="modal-truck" style="color:#475569;">TRK-01 (KAL-101) &bull; Compactor</span></div>
+                        <div><strong style="color:#0f172a;">Collection Schedule:</strong> <span id="modal-schedule" style="color:#475569;">Daily Night Sweep (20:30)</span></div>
+                        <div><strong style="color:#0f172a;">Zone Priority:</strong> <span id="modal-priority" style="color:#059669; font-weight:700;">Standard Monitored</span></div>
+                    </div>
+                </div>
+
+                <!-- CLENRO Decision Support Directive -->
+                <div class="exec-dss-box" id="modal-dss-box">
+                    <div class="exec-dss-header">
+                        <div class="exec-dss-title">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                            </svg>
+                            CLENRO Decision Support Directive
+                        </div>
+                        <span class="sector-status-pill cleared" id="modal-status-badge">Cleared &amp; Verified</span>
+                    </div>
+                    <div class="exec-dss-rec" id="modal-dss-recommendation">
+                        Maintain standard collection cadence; reinforce vendor commercial waste bin segregation.
+                    </div>
+                    <div class="exec-dss-notes" id="modal-dss-notes">
+                        Inspector verification confirmed zero roadside overflow. Drainage culvert clear of plastic debris.
+                    </div>
+                </div>
+
+                <!-- Historical Solid Waste Incident & Collection Table -->
+                <div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                        <span style="font-size:12.5px; font-weight:700; color:#0f172a;">2024&ndash;2026 Historical Solid Waste Incident Logs</span>
+                        <span style="font-size:11.5px; color:#64748b;" id="modal-logs-count-sub">Showing all archived records</span>
+                    </div>
+                    <div class="exec-table-wrap">
+                        <table class="exec-hist-table">
+                            <thead>
+                                <tr>
+                                    <th>Incident / Code</th>
+                                    <th>Date</th>
+                                    <th>Volume (m&sup3;)</th>
+                                    <th>Tonnage</th>
+                                    <th>Root Cause</th>
+                                    <th>Contractor</th>
+                                    <th>Turnaround</th>
+                                    <th>SLA Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="modal-hist-table-body">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="exec-modal-footer">
+                <button type="button" class="btn" style="background:#ffffff; color:#0f172a; border:1px solid #e2e8f0; font-size:12.5px; font-weight:600; padding:7px 16px; border-radius:8px; cursor:pointer;" onclick="printSectorBrief()">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px; margin-right:4px;">
+                        <polyline points="6 9 6 2 18 2 18 9"/>
+                        <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+                        <rect x="6" y="14" width="12" height="8"/>
+                    </svg>
+                    Print Sector Brief
+                </button>
+                <button type="button" class="btn" style="background:#0f172a; color:#ffffff; border:none; font-size:12.5px; font-weight:700; padding:7px 20px; border-radius:8px; cursor:pointer;" onclick="closeSectorDetailsModal()">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Executive Brief Modal ── -->
+    <div class="exec-modal-backdrop" id="exec-brief-modal" onclick="if(event.target===this) closeExecBriefModal()">
+        <div class="exec-modal-dialog" style="max-width: 680px;">
+            <div class="exec-modal-header">
+                <h3>CLENRO Executive Command Briefing</h3>
+                <button type="button" class="exec-modal-close" onclick="closeExecBriefModal()">&times;</button>
+            </div>
+            <div class="exec-modal-body">
+                <div style="font-size:13.5px; line-height:1.6; color:#334155;">
+                    <p style="margin-top:0;"><strong>Cagayan de Oro City &bull; Municipal Solid Waste Operations</strong></p>
+                    <p>The citywide collection rate stands at <strong>98.4%</strong> (+2.1% improvement over last week), comfortably exceeding the mandated 95.0% SLA threshold. 100% of urban core Poblacion barangays (Barangay 1 through 40) are actively covered.</p>
+                    <div style="background:#fef2f2; border-left:4px solid #ef4444; padding:12px 14px; border-radius:8px; margin:14px 0;">
+                        <strong style="color:#b91c1c; font-size:13px;">Contractor SLA Liquidated Damages Flagged:</strong>
+                        <p style="margin:4px 0 0; color:#7f1d1d; font-size:12.5px;">A total of <strong>14 SLA breaches</strong> have been documented across the 2024&ndash;2026 archive resulting in <strong>&#8369;160,000 Total Liquidated Damages</strong> assessed against private hauling operators. Immediate remedial sweeps remain active in Barangay 2, Barangay 22, and Barangay 34.</p>
+                    </div>
+                    <p>Cogon and Carmen Public Market zones continue to generate <strong>52.8% of daily organic solid waste volume</strong>. In-house market sweep compactor trucks are operating on two-tier evening cycles to prevent accumulation during peak night trading hours.</p>
+                </div>
+            </div>
+            <div class="exec-modal-footer">
+                <div></div>
+                <button type="button" class="btn" style="background:#0f172a; color:#ffffff; font-weight:700; padding:7px 18px; border-radius:8px;" onclick="closeExecBriefModal()">Close Brief</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Dispatch Notice Modal ── -->
+    <div class="exec-modal-backdrop" id="dispatch-notice-modal" onclick="if(event.target===this) closeDispatchNoticeModal()">
+        <div class="exec-modal-dialog" style="max-width: 680px;">
+            <div class="exec-modal-header" style="background: linear-gradient(135deg, #991b1b 0%, #b91c1c 100%);">
+                <h3>Fleet Dispatch Alert &amp; Status Notice</h3>
+                <button type="button" class="exec-modal-close" onclick="closeDispatchNoticeModal()">&times;</button>
+            </div>
+            <div class="exec-modal-body">
+                <div style="font-size:13px; line-height:1.5;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                        <span style="font-weight:700; color:#0f172a;">Active Fleet Units &bull; 100% Deployed</span>
+                        <span class="sector-status-pill cleared">5 Active Drivers</span>
+                    </div>
+                    <div class="exec-table-wrap">
+                        <table class="exec-hist-table">
+                            <thead>
+                                <tr>
+                                    <th>Unit #</th>
+                                    <th>Plate</th>
+                                    <th>Assigned Driver</th>
+                                    <th>Current Route</th>
+                                    <th>Mobile Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>TRK-01</strong></td>
+                                    <td>KAL-101</td>
+                                    <td>Juan Driver</td>
+                                    <td>Poblacion West Sector</td>
+                                    <td><span class="sector-tag-pill" style="background:#ecfdf5; color:#059669; font-weight:700;">On Route</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>TRK-02</strong></td>
+                                    <td>KAL-102</td>
+                                    <td>Ramon Bautista</td>
+                                    <td>Divisoria Commercial Loop</td>
+                                    <td><span class="sector-tag-pill" style="background:#ecfdf5; color:#059669; font-weight:700;">On Route</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>TRK-03</strong></td>
+                                    <td>KAL-103</td>
+                                    <td>Pedro Penduko</td>
+                                    <td>Carmen Market Approach</td>
+                                    <td><span class="sector-tag-pill" style="background:#ecfdf5; color:#059669; font-weight:700;">On Route</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>TRK-04</strong></td>
+                                    <td>KAL-104</td>
+                                    <td>Carlos Mendoza</td>
+                                    <td>Cogon Public Market Perimeter</td>
+                                    <td><span class="sector-tag-pill" style="background:#ecfdf5; color:#059669; font-weight:700;">On Route</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>TRK-05</strong></td>
+                                    <td>KAL-105</td>
+                                    <td>Danilo Fernandez</td>
+                                    <td>Macabalan &amp; Agora Connector</td>
+                                    <td><span class="sector-tag-pill" style="background:#ecfdf5; color:#059669; font-weight:700;">On Route</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p style="margin:12px 0 0; color:#64748b; font-size:12px;">All units are actively reporting GPS coordinates and real-time pickup photos to CLENRO command center.</p>
+                </div>
+            </div>
+            <div class="exec-modal-footer">
+                <div></div>
+                <button type="button" class="btn" style="background:#0f172a; color:#ffffff; font-weight:700; padding:7px 18px; border-radius:8px;" onclick="closeDispatchNoticeModal()">Acknowledge</button>
+            </div>
+        </div>
+    </div>
+
     <script src="js/app.js"></script>
     <script>
         const row = (label, value) => `<div class="analytics-row"><span>${label}</span><strong>${value}</strong></div>`;
@@ -503,112 +2093,608 @@
             ]
         };
 
-        // Fallback zone/barangay data when API is offline
-        const b1to10 = [
-            { id: 1, name: 'Barangay 1', vendors: 18, reports: 2, latitude: 8.4745, longitude: 124.6432, description: 'City Hall & Riverwall Walkway Corridor' },
-            { id: 2, name: 'Barangay 2', vendors: 15, reports: 1, latitude: 8.4758, longitude: 124.6441, description: 'Capistrano & Gaerlan St. Corridor' },
-            { id: 3, name: 'Barangay 3', vendors: 12, reports: 1, latitude: 8.4770, longitude: 124.6445, description: 'Velez & Burgos St. Commercial Strip' },
-            { id: 4, name: 'Barangay 4', vendors: 10, reports: 2, latitude: 8.4741, longitude: 124.6453, description: 'San Agustin Cathedral & Plaza Corridor' },
-            { id: 5, name: 'Barangay 5', vendors: 16, reports: 1, latitude: 8.4735, longitude: 124.6461, description: 'Rizal Monument & Fernandez St.' },
-            { id: 6, name: 'Barangay 6', vendors: 14, reports: 2, latitude: 8.4728, longitude: 124.6470, description: 'Tiano Brothers & Pabayo Commercial Strip' },
-            { id: 7, name: 'Barangay 7', vendors: 20, reports: 1, latitude: 8.4722, longitude: 124.6478, description: 'Plaza Divisoria & Tirso Neri St. Kiosks' },
-            { id: 8, name: 'Barangay 8', vendors: 12, reports: 0, latitude: 8.4715, longitude: 124.6486, description: 'RN Abejuela & Central Divisoria Strip' },
-            { id: 9, name: 'Barangay 9', vendors: 14, reports: 1, latitude: 8.4708, longitude: 124.6494, description: 'Dolores & Toribio Chaves Residential' },
-            { id: 10, name: 'Barangay 10', vendors: 9, reports: 1, latitude: 8.4700, longitude: 124.6502, description: 'Macahambus & Capistrano Perimeter' },
+        /* ── Deterministic Sector Data (All 40 Poblacion Barangays + 2 Markets) ──── */
+        const sectorCorridors = [
+            "City Hall & Riverwall Walkway Corridor",
+            "Capistrano & Gaerlan St. (Poblacion North)",
+            "Velez & Burgos St. Commercial Strip",
+            "San Agustin Cathedral & Plaza Corridor",
+            "Rizal Monument & Fernandez St.",
+            "Tiano Brothers & Pabayo Commercial Strip",
+            "Plaza Divisoria & Tirso Neri St. Kiosks",
+            "RN Abejuela & Central Divisoria Strip",
+            "Dolores & Toribio Chaves Residential",
+            "Macahambus & Capistrano Perimeter",
+            "Hayes & Velez South Commercial Belt",
+            "Apolinar Velez St. Medical Belt",
+            "Pabayo & Pacana Commercial Boundary",
+            "Toribio Chaves & Corrales Corridor",
+            "Fernandez & Tiano South Strip",
+            "Mortola & San Agustin Corridor",
+            "A. Velez St. South Business Boundary",
+            "Macahambus & Pabayo South Zone",
+            "Chavez & Corrales Ave Corridor",
+            "JR Borja South Institutional Strip",
+            "Corrales Extension & Provincial Capitol",
+            "Bitan-ag Creek & Gaabucayan Corridor",
+            "Osmeña Extension & Old Railhead Belt",
+            "Limketkai Drive West Approach",
+            "Limketkai Drive Culvert Area",
+            "Valenzuela & Kolambog Transition Strip",
+            "Ramonal Village East Approach",
+            "Camaman-an Border Drainage Corridor",
+            "Pinikitan & Bitan-ag Upper Creek",
+            "Lapasan Creek & East Commercial Boundary",
+            "JR Borja West Commercial District",
+            "Yacapin West & Trading Strip",
+            "Cogon West & Capt. Vicente Roa Strip",
+            "Agora South & Osmeña Terminal Area",
+            "C.M. Recto Ave & Highway Transit",
+            "Gaabucayan Marine & Port Access Area",
+            "Corrales North & Port Terminal Corridor",
+            "Macabalan South & Coastal Approach",
+            "Cogon East Fish & Night Market Strip",
+            "Cogon North Vegetable & Fruit Strip"
         ];
-        const b11to20 = [
-            { id: 11, name: 'Barangay 11', vendors: 10, reports: 1, latitude: 8.4792, longitude: 124.6512, description: 'Hayes & Velez South Commercial Belt' },
-            { id: 12, name: 'Barangay 12', vendors: 9, reports: 1, latitude: 8.4800, longitude: 124.6520, description: 'Apolinar Velez St. Medical Belt' },
-            { id: 13, name: 'Barangay 13', vendors: 8, reports: 0, latitude: 8.4808, longitude: 124.6528, description: 'Pabayo & Pacana Commercial Boundary' },
-            { id: 14, name: 'Barangay 14', vendors: 9, reports: 1, latitude: 8.4816, longitude: 124.6536, description: 'Toribio Chaves & Corrales Corridor' },
-            { id: 15, name: 'Barangay 15', vendors: 10, reports: 1, latitude: 8.4824, longitude: 124.6544, description: 'Fernandez & Tiano South Strip' },
-            { id: 16, name: 'Barangay 16', vendors: 9, reports: 1, latitude: 8.4832, longitude: 124.6552, description: 'Mortola & San Agustin Corridor' },
-            { id: 17, name: 'Barangay 17', vendors: 10, reports: 1, latitude: 8.4840, longitude: 124.6560, description: 'A. Velez St. South Business Boundary' },
-            { id: 18, name: 'Barangay 18', vendors: 9, reports: 1, latitude: 8.4848, longitude: 124.6568, description: 'Macahambus & Pabayo South Zone' },
-            { id: 19, name: 'Barangay 19', vendors: 12, reports: 1, latitude: 8.4856, longitude: 124.6576, description: 'Chavez & Corrales Ave Corridor' },
-            { id: 20, name: 'Barangay 20', vendors: 9, reports: 1, latitude: 8.4864, longitude: 124.6584, description: 'JR Borja South Institutional Strip' },
-        ];
-        const b21to30 = [
-            { id: 21, name: 'Barangay 21', vendors: 6, reports: 1, latitude: 8.4872, longitude: 124.6592, description: 'Corrales Extension & Provincial Capitol' },
-            { id: 22, name: 'Barangay 22', vendors: 7, reports: 2, latitude: 8.4880, longitude: 124.6600, description: 'Bitan-ag Creek & Gaabucayan Corridor' },
-            { id: 23, name: 'Barangay 23', vendors: 5, reports: 1, latitude: 8.4888, longitude: 124.6608, description: 'Osmeña Extension & Old Railhead Belt' },
-            { id: 24, name: 'Barangay 24', vendors: 6, reports: 0, latitude: 8.4896, longitude: 124.6616, description: 'Limketkai Drive West Approach' },
-            { id: 25, name: 'Barangay 25', vendors: 7, reports: 1, latitude: 8.4904, longitude: 124.6624, description: 'Limketkai Drive Culvert Area' },
-            { id: 26, name: 'Barangay 26', vendors: 5, reports: 1, latitude: 8.4912, longitude: 124.6632, description: 'Valenzuela & Kolambog Transition Strip' },
-            { id: 27, name: 'Barangay 27', vendors: 6, reports: 0, latitude: 8.4920, longitude: 124.6640, description: 'Ramonal Village East Approach' },
-            { id: 28, name: 'Barangay 28', vendors: 7, reports: 1, latitude: 8.4928, longitude: 124.6648, description: 'Camaman-an Border Drainage Corridor' },
-            { id: 29, name: 'Barangay 29', vendors: 5, reports: 1, latitude: 8.4936, longitude: 124.6656, description: 'Pinikitan & Bitan-ag Upper Creek' },
-            { id: 30, name: 'Barangay 30', vendors: 6, reports: 0, latitude: 8.4944, longitude: 124.6664, description: 'Lapasan Creek & East Commercial Boundary' },
-        ];
-        const b31to40 = [
-            { id: 31, name: 'Barangay 31', vendors: 9, reports: 1, latitude: 8.4952, longitude: 124.6672, description: 'JR Borja West Commercial District' },
-            { id: 32, name: 'Barangay 32', vendors: 8, reports: 0, latitude: 8.4960, longitude: 124.6680, description: 'Yacapin West & Trading Strip' },
-            { id: 33, name: 'Barangay 33', vendors: 10, reports: 1, latitude: 8.4781, longitude: 124.6476, description: 'Cogon West & Capt. Vicente Roa Strip' },
-            { id: 34, name: 'Barangay 34', vendors: 12, reports: 2, latitude: 8.4976, longitude: 124.6696, description: 'Agora South & Osmeña Terminal Area' },
-            { id: 35, name: 'Barangay 35', vendors: 8, reports: 1, latitude: 8.4984, longitude: 124.6704, description: 'C.M. Recto Ave & Highway Transit' },
-            { id: 36, name: 'Barangay 36', vendors: 7, reports: 0, latitude: 8.4992, longitude: 124.6712, description: 'Gaabucayan Marine & Port Access Area' },
-            { id: 37, name: 'Barangay 37', vendors: 9, reports: 1, latitude: 8.5000, longitude: 124.6720, description: 'Corrales North & Port Terminal Corridor' },
-            { id: 38, name: 'Barangay 38', vendors: 8, reports: 0, latitude: 8.5008, longitude: 124.6728, description: 'Macabalan South & Coastal Approach' },
-            { id: 39, name: 'Barangay 39', vendors: 7, reports: 1, latitude: 8.4768, longitude: 124.6489, description: 'Cogon East Fish & Night Market Strip' },
-            { id: 40, name: 'Barangay 40', vendors: 7, reports: 0, latitude: 8.4772, longitude: 124.6493, description: 'Cogon North Vegetable & Fruit Strip' },
-        ];
-        const allB1to40 = [...b1to10, ...b11to20, ...b21to30, ...b31to40];
 
-        const fallbackZones = [
-            {
-                zone: 'All Barangays (Barangay 1-40)',
-                total_vendors: allB1to40.reduce((s, b) => s + b.vendors, 0),
-                total_reports: allB1to40.reduce((s, b) => s + b.reports, 0),
-                barangays: allB1to40
-            },
-            {
-                zone: 'Sector North (Barangay 1-10)',
-                total_vendors: b1to10.reduce((s, b) => s + b.vendors, 0),
-                total_reports: b1to10.reduce((s, b) => s + b.reports, 0),
-                barangays: b1to10
-            },
-            {
-                zone: 'Sector South (Barangay 11-20)',
-                total_vendors: b11to20.reduce((s, b) => s + b.vendors, 0),
-                total_reports: b11to20.reduce((s, b) => s + b.reports, 0),
-                barangays: b11to20
-            },
-            {
-                zone: 'Sector East (Barangay 21-30)',
-                total_vendors: b21to30.reduce((s, b) => s + b.vendors, 0),
-                total_reports: b21to30.reduce((s, b) => s + b.reports, 0),
-                barangays: b21to30
-            },
-            {
-                zone: 'Sector West (Barangay 31-40)',
-                total_vendors: b31to40.reduce((s, b) => s + b.vendors, 0),
-                total_reports: b31to40.reduce((s, b) => s + b.reports, 0),
-                barangays: b31to40
-            },
-            {
-                zone: 'Cogon Market Zone',
-                total_vendors: 680, total_reports: 24,
-                barangays: [
-                    { id: 101, name: 'Cogon Market Zone (Brgy 33)', vendors: 340, reports: 12, latitude: 8.4821, longitude: 124.6470, description: 'Main Cogon wholesale and retail market area.' },
-                    { id: 102, name: 'Cogon Market Zone (Brgy 34)', vendors: 220, reports: 8, latitude: 8.4835, longitude: 124.6488, description: 'Night market and produce section.' },
-                    { id: 103, name: 'Cogon Market Zone (Brgy 39)', vendors: 80, reports: 3, latitude: 8.4808, longitude: 124.6462, description: 'Fish and seafood section.' },
-                    { id: 104, name: 'Cogon Market Zone (Brgy 40)', vendors: 40, reports: 1, latitude: 8.4800, longitude: 124.6450, description: 'Dry goods corridor.' },
-                ]
-            },
-            {
-                zone: 'Carmen Market Zone',
-                total_vendors: 420, total_reports: 18,
-                barangays: [
-                    { id: 201, name: 'Carmen Public Market (Vamenta)', vendors: 240, reports: 10, latitude: 8.5012, longitude: 124.6373, description: 'Carmen market north wing.' },
-                    { id: 202, name: 'Carmen Public Market (Seriña)', vendors: 180, reports: 8, latitude: 8.5023, longitude: 124.6385, description: 'Carmen market south wing.' },
-                ]
+        // Build complete list of 42 sectors
+        const allSectors = [];
+
+        // 1. Barangay 1
+        allSectors.push({
+            id: 1,
+            name: "Barangay 1",
+            corridor: "City Hall & Riverwall Walkway Corridor",
+            status: "cleared",
+            statusText: "Cleared",
+            vendors: 1,
+            reports: 2,
+            fine: null,
+            actionLabel: "Details >",
+            actionClass: "green",
+            badgeClass: "cleared",
+            dotClass: "green",
+            isMarket: false
+        });
+
+        // 2. Barangay 2 (Flagged SLA breach)
+        allSectors.push({
+            id: 2,
+            name: "Barangay 2",
+            corridor: "Capistrano & Gaerlan St. (Poblacion North)",
+            status: "breach",
+            statusText: "SLA Breach",
+            vendors: 0,
+            reports: 3,
+            fine: "₱25k Fine",
+            actionLabel: "Review >",
+            actionClass: "red",
+            badgeClass: "breach",
+            dotClass: "red",
+            isMarket: false
+        });
+
+        // 3. Cogon Public Market
+        allSectors.push({
+            id: 101,
+            name: "Cogon Public Market",
+            corridor: "Wholesale Night Stalls & Perimeter",
+            status: "in_progress",
+            statusText: "52.8% Volume",
+            vendors: 680,
+            reports: 24,
+            fine: null,
+            tagCustom: ["5 Stalls Inspected", "2nd Haul Ongoing"],
+            actionLabel: "Monitor >",
+            actionClass: "amber",
+            badgeClass: "volume",
+            dotClass: "amber",
+            isMarket: true
+        });
+
+        // 4. Carmen Public Market
+        allSectors.push({
+            id: 201,
+            name: "Carmen Public Market",
+            corridor: "Market Axis & Vendor Terminal",
+            status: "cleared",
+            statusText: "Cleared",
+            vendors: 420,
+            reports: 18,
+            fine: null,
+            tagCustom: ["4 Vendors Checked", "0 Violations"],
+            actionLabel: "Details >",
+            actionClass: "green",
+            badgeClass: "cleared",
+            dotClass: "green",
+            isMarket: true
+        });
+
+        // 5. Remaining Barangays (Barangay 3 to 40)
+        for (let b = 3; b <= 40; b++) {
+            const isBreach = (b === 22 || b === 34);
+            const isInProgress = (b === 7 || b === 33 || b === 39);
+            const status = isBreach ? "breach" : (isInProgress ? "in_progress" : "cleared");
+            const statusText = isBreach ? "SLA Breach" : (isInProgress ? "In Progress" : "Cleared");
+            const fine = isBreach ? (b === 22 ? "₱15k Fine" : "₱20k Fine") : null;
+            const reports = isBreach ? 2 : (isInProgress ? 2 : (b % 3 === 0 ? 0 : 1));
+            const vendors = (b * 3) % 11 + 1;
+
+            allSectors.push({
+                id: b,
+                name: `Barangay ${b}`,
+                corridor: sectorCorridors[b - 1] || `Poblacion Urban Core Corridor ${b}`,
+                status: status,
+                statusText: statusText,
+                vendors: vendors,
+                reports: reports,
+                fine: fine,
+                actionLabel: isBreach ? "Review >" : (isInProgress ? "Monitor >" : "Details >"),
+                actionClass: isBreach ? "red" : (isInProgress ? "amber" : "green"),
+                badgeClass: isBreach ? "breach" : (isInProgress ? "volume" : "cleared"),
+                dotClass: isBreach ? "red" : (isInProgress ? "amber" : "green"),
+                isMarket: false
+            });
+        }
+
+        /* ── Historical Dataset Generator (Baseline + Custom Logs) ───── */
+        function generateHistoricalDataset() {
+            const data = [
+                // Cogon Public Market
+                { id: 1, incident_code: "CDO-CGN-2024-0112", location_zone: "Cogon Public Market", incident_date: "2024-01-12", waste_volume_m3: 18.5, estimated_tonnage: 7.4, contractor_assigned: "City In-House Market Sweep Team", truck_plate: "LGU-9014", severity: "high", sla_status: "within_sla", turnaround_hours: 6.2, root_cause: "market_closing_overflow", clenro_action_taken: "Wholesale vegetable discard cleared via morning compactor sweep." },
+                { id: 2, incident_code: "CDO-CGN-2024-0827", location_zone: "Cogon Public Market", incident_date: "2024-08-27", waste_volume_m3: 24.0, estimated_tonnage: 9.8, contractor_assigned: "City In-House Market Sweep Team", truck_plate: "LGU-9014", severity: "critical", sla_status: "within_sla", turnaround_hours: 5.5, root_cause: "market_closing_overflow", clenro_action_taken: "Higalaay Festival night market volume collected under 6 hours." },
+                { id: 3, incident_code: "CDO-CGN-2025-0718", location_zone: "Cogon Public Market", incident_date: "2025-07-18", waste_volume_m3: 16.8, estimated_tonnage: 6.9, contractor_assigned: "City In-House Market Sweep Team", truck_plate: "LGU-9014", severity: "moderate", sla_status: "within_sla", turnaround_hours: 7.0, root_cause: "market_closing_overflow", clenro_action_taken: "Routine dual-trip night sweep accomplished." },
+                { id: 4, incident_code: "CDO-CGN-2026-0827", location_zone: "Cogon Public Market", incident_date: "2026-08-27", waste_volume_m3: 27.5, estimated_tonnage: 11.2, contractor_assigned: "City In-House Market Sweep Team", truck_plate: "LGU-9014", severity: "critical", sla_status: "within_sla", turnaround_hours: 4.8, root_cause: "market_closing_overflow", clenro_action_taken: "Higalaay peak festival waste cleared in record time." },
+
+                // Carmen Public Market
+                { id: 5, incident_code: "CDO-CRM-2024-0219", location_zone: "Carmen Public Market", incident_date: "2024-02-19", waste_volume_m3: 14.5, estimated_tonnage: 5.8, contractor_assigned: "IPM CDO Urban Haulers", truck_plate: "ABC-4105", severity: "moderate", sla_status: "within_sla", turnaround_hours: 6.0, root_cause: "market_closing_overflow", clenro_action_taken: "Meat and fish wet market stalls cleared on schedule." },
+                { id: 6, incident_code: "CDO-CRM-2025-0520", location_zone: "Carmen Public Market", incident_date: "2025-05-20", waste_volume_m3: 9.5, estimated_tonnage: 3.8, contractor_assigned: "IPM CDO Urban Haulers", truck_plate: "ABC-4105", severity: "low", sla_status: "within_sla", turnaround_hours: 4.5, root_cause: "market_closing_overflow", clenro_action_taken: "Dry goods section waste hauled without delay." },
+                { id: 7, incident_code: "CDO-CRM-2026-0902", location_zone: "Carmen Public Market", incident_date: "2026-09-02", waste_volume_m3: 11.5, estimated_tonnage: 4.6, contractor_assigned: "IPM CDO Urban Haulers", truck_plate: "ABC-4105", severity: "moderate", sla_status: "within_sla", turnaround_hours: 5.5, root_cause: "market_closing_overflow", clenro_action_taken: "Monthly market cleanup sweep executed on schedule." },
+
+                // Barangay 2 (Flagged SLA breaches)
+                { id: 8, incident_code: "CDO-B2-2024-0511", location_zone: "Barangay 2", incident_date: "2024-05-11", waste_volume_m3: 12.0, estimated_tonnage: 4.8, contractor_assigned: "IPM CDO Urban Haulers", truck_plate: "KAL-102", severity: "critical", sla_status: "breached_24h", turnaround_hours: 28.5, root_cause: "contractor_missed_route", clenro_action_taken: "Contractor vehicle breakdown caused 28h delay. Liquidated damages assessed." },
+                { id: 9, incident_code: "CDO-B2-2025-0914", location_zone: "Barangay 2", incident_date: "2025-09-14", waste_volume_m3: 10.5, estimated_tonnage: 4.2, contractor_assigned: "IPM CDO Urban Haulers", truck_plate: "KAL-102", severity: "high", sla_status: "breached_24h", turnaround_hours: 26.0, root_cause: "illegal_commercial_dumping", clenro_action_taken: "Night commercial refuse dumped along Capistrano corridor. Notice of violation served." },
+                { id: 10, incident_code: "CDO-B2-2026-0418", location_zone: "Barangay 2", incident_date: "2026-04-18", waste_volume_m3: 14.2, estimated_tonnage: 5.7, contractor_assigned: "IPM CDO Urban Haulers", truck_plate: "KAL-104", severity: "critical", sla_status: "breached_24h", turnaround_hours: 29.0, root_cause: "contractor_missed_route", clenro_action_taken: "Second missed collection cycle. ₱25,000 SLA penalty sanctioned." },
+
+                // Barangay 22 (Bitan-ag Creek)
+                { id: 11, incident_code: "CDO-B22-2025-0612", location_zone: "Barangay 22", incident_date: "2025-06-12", waste_volume_m3: 9.8, estimated_tonnage: 3.9, contractor_assigned: "City In-House Drainage Sweep", truck_plate: "LGU-9016", severity: "critical", sla_status: "breached_24h", turnaround_hours: 25.5, root_cause: "monsoon_drainage_blockage", clenro_action_taken: "Creek waterlogged debris pulled with backhoe and hauled." },
+
+                // Barangay 34 (Agora Terminal)
+                { id: 12, incident_code: "CDO-B34-2025-1120", location_zone: "Barangay 34", incident_date: "2025-11-20", waste_volume_m3: 11.2, estimated_tonnage: 4.5, contractor_assigned: "IPM CDO Urban Haulers", truck_plate: "KAL-104", severity: "critical", sla_status: "breached_24h", turnaround_hours: 27.0, root_cause: "bus_terminal_passenger_surge", clenro_action_taken: "Surge packaging uncollected past 24h threshold. Fine imposed." }
+            ];
+
+            // Deterministic entries for all 40 barangays across 2024, 2025, 2026
+            let curId = 13;
+            for (let b = 1; b <= 40; b++) {
+                const bName = `Barangay ${b}`;
+                const baseVol = 4.0 + ((b * 7) % 9) * 0.9;
+                const baseTons = baseVol * 0.40;
+
+                // 2024
+                data.push({
+                    id: curId++,
+                    incident_code: `CDO-B${b}-2024-${String((b % 12) + 1).padStart(2, '0')}`,
+                    location_zone: bName,
+                    incident_date: `2024-${String((b % 12) + 1).padStart(2, '0')}-14`,
+                    waste_volume_m3: Number((baseVol * 0.95).toFixed(2)),
+                    estimated_tonnage: Number((baseTons * 0.95).toFixed(2)),
+                    contractor_assigned: "IPM CDO Urban Haulers",
+                    truck_plate: `KAL-10${(b % 5) + 1}`,
+                    severity: "moderate",
+                    sla_status: "within_sla",
+                    turnaround_hours: Number((7.0 + (b % 4)).toFixed(1)),
+                    root_cause: "commercial_and_residential_solid_waste",
+                    clenro_action_taken: "Standard collection sweep conducted according to zone timetable."
+                });
+
+                // 2025
+                data.push({
+                    id: curId++,
+                    incident_code: `CDO-B${b}-2025-${String(((b + 4) % 12) + 1).padStart(2, '0')}`,
+                    location_zone: bName,
+                    incident_date: `2025-${String(((b + 4) % 12) + 1).padStart(2, '0')}-18`,
+                    waste_volume_m3: Number(baseVol.toFixed(2)),
+                    estimated_tonnage: Number(baseTons.toFixed(2)),
+                    contractor_assigned: "IPM CDO Urban Haulers",
+                    truck_plate: `KAL-10${(b % 5) + 1}`,
+                    severity: "moderate",
+                    sla_status: "within_sla",
+                    turnaround_hours: Number((6.5 + (b % 3)).toFixed(1)),
+                    root_cause: "commercial_and_residential_solid_waste",
+                    clenro_action_taken: "Scheduled route cleared with photographic proof uploaded by driver."
+                });
+
+                // 2026
+                data.push({
+                    id: curId++,
+                    incident_code: `CDO-B${b}-2026-${String(((b + 8) % 8) + 1).padStart(2, '0')}`,
+                    location_zone: bName,
+                    incident_date: `2026-${String(((b + 8) % 8) + 1).padStart(2, '0')}-22`,
+                    waste_volume_m3: Number((baseVol * 1.05).toFixed(2)),
+                    estimated_tonnage: Number((baseTons * 1.05).toFixed(2)),
+                    contractor_assigned: "IPM CDO Urban Haulers",
+                    truck_plate: `KAL-10${(b % 5) + 1}`,
+                    severity: b === 2 || b === 22 || b === 34 ? "critical" : "low",
+                    sla_status: b === 2 || b === 22 || b === 34 ? "breached_24h" : "within_sla",
+                    turnaround_hours: b === 2 || b === 22 || b === 34 ? 26.5 : 5.8,
+                    root_cause: "regular_compacted_municipal_waste",
+                    clenro_action_taken: "Bi-weekly corridor audit verified zero remaining sidewalk bags."
+                });
             }
-        ];
 
-        /* ── State ───────────────────────────────────────────────── */
-        let allZones = [];
-        let selectedZone = null;
-        let selectedBrgy = null;
+            // Append custom logged logs if any exist in localStorage
+            try {
+                const custom = JSON.parse(localStorage.getItem('clenro_custom_pickup_logs') || '[]');
+                if (Array.isArray(custom)) {
+                    custom.forEach((c, idx) => {
+                        data.unshift({
+                            id: 9000 + idx,
+                            incident_code: c.incident_code || `CDO-LOG-${9000 + idx}`,
+                            location_zone: c.location_zone || "Barangay 1",
+                            incident_date: c.incident_date || new Date().toISOString().substring(0, 10),
+                            waste_volume_m3: Number(c.waste_volume_m3 || 5.0),
+                            estimated_tonnage: Number(c.estimated_tonnage || 2.0),
+                            contractor_assigned: c.contractor_assigned || "IPM CDO Urban Haulers",
+                            truck_plate: c.truck_plate || "KAL-101",
+                            severity: c.severity || "moderate",
+                            sla_status: c.sla_status || "within_sla",
+                            turnaround_hours: Number(c.turnaround_hours || 4.5),
+                            root_cause: c.root_cause || "live_mobile_collection_log",
+                            clenro_action_taken: c.clenro_action_taken || "Live collection logged by driver."
+                        });
+                    });
+                }
+            } catch (e) { }
+
+            return data;
+        }
+
+        let historicalDataset = generateHistoricalDataset();
+        let currentFilter = 'all';
+        let searchQuery = '';
+        let currentPage = 1;
+        let pageSize = 6;
+
+        /* ── Render Sector Cards Grid with Pagination ───────────── */
+        function renderSectorCards() {
+            const grid = document.getElementById('sector-cards-grid');
+            const infoEl = document.getElementById('sector-pagination-info');
+            if (!grid) return;
+
+            let filtered = allSectors.filter(s => {
+                if (currentFilter === 'attention') {
+                    return s.status === 'breach';
+                }
+                if (currentFilter === 'markets') {
+                    return s.isMarket === true;
+                }
+                return true;
+            });
+
+            if (searchQuery.trim()) {
+                const q = searchQuery.toLowerCase();
+                filtered = filtered.filter(s =>
+                    s.name.toLowerCase().includes(q) ||
+                    s.corridor.toLowerCase().includes(q) ||
+                    (s.fine && s.fine.toLowerCase().includes(q))
+                );
+            }
+
+            const totalItems = filtered.length;
+            const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+
+            // Guard current page boundaries
+            if (currentPage > totalPages) currentPage = totalPages;
+            if (currentPage < 1) currentPage = 1;
+
+            if (totalItems === 0) {
+                grid.innerHTML = `
+                    <div style="grid-column: 1 / -1; text-align:center; padding:32px; color:#64748b; font-size:13.5px;">
+                        No sectors found matching your filter criteria.
+                    </div>
+                `;
+                if (infoEl) infoEl.textContent = 'Showing 0 of 0 sectors';
+                renderPaginationControls(1);
+                return;
+            }
+
+            // Slice for current page
+            const startIndex = (currentPage - 1) * pageSize;
+            const endIndex = Math.min(startIndex + pageSize, totalItems);
+            const pageItems = filtered.slice(startIndex, endIndex);
+
+            // Update info text
+            if (infoEl) {
+                infoEl.textContent = `Showing ${startIndex + 1}–${endIndex} of ${totalItems} sectors`;
+            }
+
+            // Render cards
+            grid.innerHTML = pageItems.map(s => {
+                const customTagsHtml = s.tagCustom
+                    ? s.tagCustom.map(t => `<span class="sector-tag-pill">${escapeHtml(t)}</span>`).join('')
+                    : `
+                        <span class="sector-tag-pill">${s.vendors} Market Vendor${s.vendors === 1 ? '' : 's'}</span>
+                        <span class="sector-tag-pill">${s.reports} Incident Report${s.reports === 1 ? '' : 's'}</span>
+                        ${s.fine ? `<span class="sector-tag-pill fine">${escapeHtml(s.fine)}</span>` : ''}
+                    `;
+
+                return `
+                    <div class="sector-card ${s.status}" onclick="openSectorDetailsModal('${escapeHtml(s.name).replace(/'/g, "\\'")}')" title="Click to view full historical details">
+                        <div class="sector-card-top">
+                            <div class="sector-card-title-group">
+                                <span class="sector-status-dot ${s.dotClass}"></span>
+                                <span class="sector-card-name">${escapeHtml(s.name)}</span>
+                            </div>
+                            <span class="sector-status-pill ${s.badgeClass}">${escapeHtml(s.statusText)}</span>
+                        </div>
+                        <p class="sector-card-desc" title="${escapeHtml(s.corridor)}">${escapeHtml(s.corridor)}</p>
+                        <div class="sector-card-bottom">
+                            <div class="sector-tags">
+                                ${customTagsHtml}
+                            </div>
+                            <span class="sector-action-link ${s.actionClass}">
+                                ${escapeHtml(s.actionLabel)}
+                            </span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // Render pagination controls
+            renderPaginationControls(totalPages);
+        }
+
+        /* ── Pagination Controls Generator ───────────────────────── */
+        function renderPaginationControls(totalPages) {
+            const controls = document.getElementById('sector-pagination-controls');
+            if (!controls) return;
+
+            if (totalPages <= 1) {
+                controls.innerHTML = `
+                    <button type="button" class="sector-page-btn" disabled>&laquo; Prev</button>
+                    <button type="button" class="sector-page-btn active">1</button>
+                    <button type="button" class="sector-page-btn" disabled>Next &raquo;</button>
+                `;
+                return;
+            }
+
+            let html = `
+                <button type="button" class="sector-page-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="goToPage(${currentPage - 1})" title="Previous Page">
+                    &laquo; Prev
+                </button>
+            `;
+
+            const pagesToShow = [];
+            if (totalPages <= 7) {
+                for (let i = 1; i <= totalPages; i++) pagesToShow.push(i);
+            } else {
+                pagesToShow.push(1);
+                if (currentPage > 3) {
+                    pagesToShow.push('...');
+                }
+                const start = Math.max(2, currentPage - 1);
+                const end = Math.min(totalPages - 1, currentPage + 1);
+                for (let i = start; i <= end; i++) {
+                    pagesToShow.push(i);
+                }
+                if (currentPage < totalPages - 2) {
+                    pagesToShow.push('...');
+                }
+                pagesToShow.push(totalPages);
+            }
+
+            pagesToShow.forEach(p => {
+                if (p === '...') {
+                    html += `<span class="sector-page-ellipsis">&hellip;</span>`;
+                } else {
+                    html += `
+                        <button type="button" class="sector-page-btn ${p === currentPage ? 'active' : ''}" onclick="goToPage(${p})">
+                            ${p}
+                        </button>
+                    `;
+                }
+            });
+
+            html += `
+                <button type="button" class="sector-page-btn" ${currentPage === totalPages ? 'disabled' : ''} onclick="goToPage(${currentPage + 1})" title="Next Page">
+                    Next &raquo;
+                </button>
+            `;
+
+            controls.innerHTML = html;
+        }
+
+        function goToPage(p) {
+            currentPage = p;
+            renderSectorCards();
+            // Smoothly keep top of sector status in view if scrolled past
+            const container = document.querySelector('.exec-sectors-container');
+            if (container) {
+                const rect = container.getBoundingClientRect();
+                if (rect.top < 0) {
+                    container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }
+        }
+
+        function onPageSizeChange(val) {
+            pageSize = parseInt(val) || 6;
+            currentPage = 1;
+            renderSectorCards();
+        }
+
+        /* ── Filter & Search Controllers ─────────────────────────── */
+        function setSectorFilter(type) {
+            currentFilter = type;
+            currentPage = 1;
+            document.querySelectorAll('.exec-filter-pill').forEach(btn => btn.classList.remove('active'));
+            if (type === 'all') document.getElementById('filter-all')?.classList.add('active');
+            if (type === 'attention') document.getElementById('filter-attention')?.classList.add('active');
+            if (type === 'markets') document.getElementById('filter-markets')?.classList.add('active');
+            renderSectorCards();
+        }
+
+        function onSearchSector(val) {
+            searchQuery = val;
+            currentPage = 1;
+            renderSectorCards();
+        }
+
+        function onShiftChange(shift) {
+            const rosterEl = document.getElementById('metric-roster-crew');
+            const fleetEl = document.getElementById('metric-fleet-active');
+            if (shift === 'morning') {
+                if (rosterEl) rosterEl.textContent = '5 Drivers • 5 Sweepers Roster';
+                if (fleetEl) fleetEl.textContent = '5 / 5 Fleet';
+            } else if (shift === 'afternoon') {
+                if (rosterEl) rosterEl.textContent = '4 Drivers • 6 Sweepers Roster';
+                if (fleetEl) fleetEl.textContent = '4 / 5 Fleet';
+            } else {
+                if (rosterEl) rosterEl.textContent = '3 Drivers • Dedicated Night Compactor Crew';
+                if (fleetEl) fleetEl.textContent = '3 / 5 Fleet';
+            }
+        }
+
+        /* ── Full Sector Historical Details Modal (CRITICAL REQUIREMENT) ── */
+        function openSectorDetailsModal(sectorIdentifier) {
+            const modal = document.getElementById('sector-details-modal');
+            if (!modal) return;
+
+            // Find sector in allSectors
+            const sector = allSectors.find(s => s.name === sectorIdentifier || String(s.id) === String(sectorIdentifier)) || {
+                id: 1,
+                name: sectorIdentifier,
+                corridor: "CDO Urban Core Solid Waste Corridor",
+                status: "cleared",
+                statusText: "Cleared",
+                vendors: 4,
+                reports: 1,
+                isMarket: false
+            };
+
+            // Query matching records from historical dataset
+            const matchName = sector.name;
+            const records = historicalDataset.filter(r =>
+                r.location_zone === matchName ||
+                (sector.isMarket && r.location_zone.includes(sector.name.split(' ')[0])) ||
+                (!sector.isMarket && r.location_zone === `Barangay ${sector.id}`)
+            );
+
+            // Compute metrics from records
+            const totalVolume = records.reduce((s, r) => s + (Number(r.waste_volume_m3) || 0), 0);
+            const totalTons = records.reduce((s, r) => s + (Number(r.estimated_tonnage) || 0), 0);
+            const avgPayload = records.length > 0 ? (totalTons / records.length) : 3.8;
+            const avgPayloadPct = Math.min(100, Math.round((avgPayload / 4.0) * 100));
+            const avgTurnaround = records.length > 0
+                ? (records.reduce((s, r) => s + (Number(r.turnaround_hours) || 8.0), 0) / records.length).toFixed(1)
+                : (sector.status === 'breach' ? '28.0' : '6.5');
+
+            // Populate Modal Headers & Metrics
+            document.getElementById('modal-sector-name').textContent = sector.name;
+            document.getElementById('modal-sector-subtitle').textContent = sector.corridor;
+            document.getElementById('modal-trips-count').textContent = `${records.length || 3} Recorded Logs`;
+            document.getElementById('modal-volume-tons').innerHTML = `${totalVolume.toFixed(1)} m&sup3; (${totalTons.toFixed(2)} t)`;
+            document.getElementById('modal-payload-util').textContent = `${avgPayload.toFixed(2)} t (${avgPayloadPct}%)`;
+            document.getElementById('modal-sla-turnaround').textContent = `${avgTurnaround} hrs`;
+
+            // Field assignment
+            document.getElementById('modal-contractor').textContent = sector.isMarket ? "City In-House Market Sweep Team" : "IPM CDO Urban Haulers";
+            document.getElementById('modal-truck').textContent = sector.isMarket ? "LGU-9014 · Compactor Truck (16T Heavy)" : `KAL-10${(sector.id % 5) + 1} · Standard Compactor`;
+            document.getElementById('modal-schedule').textContent = sector.isMarket ? "Twice-Daily Sweep (14:00 & 21:00)" : "Mon / Wed / Fri Morning (06:00 - 09:00)";
+            document.getElementById('modal-priority').textContent = sector.status === 'breach' ? "Immediate Remedial Action" : "Standard Compliance";
+            document.getElementById('modal-priority').style.color = sector.status === 'breach' ? "#dc2626" : "#059669";
+
+            // DSS Recommendation and Status
+            const dssBox = document.getElementById('modal-dss-box');
+            const statusBadge = document.getElementById('modal-status-badge');
+            const dssRec = document.getElementById('modal-dss-recommendation');
+            const dssNotes = document.getElementById('modal-dss-notes');
+
+            if (sector.status === 'breach') {
+                dssBox.className = "exec-dss-box breach";
+                statusBadge.className = "sector-status-pill breach";
+                statusBadge.textContent = "SLA Breach Flagged";
+                dssRec.textContent = `Immediate Intervention: Issue contractor liquidated damages notice (${sector.fine || '₱25,000'}) and deploy backup night compactor.`;
+                dssNotes.textContent = `Inspector Dispatch Alert: Uncollected commercial waste exceeded the 24-hour SLA threshold. Route supervisor instructed to complete mandatory secondary clearing.`;
+            } else if (sector.status === 'in_progress') {
+                dssBox.className = "exec-dss-box";
+                dssBox.style.borderLeftColor = "#f59e0b";
+                statusBadge.className = "sector-status-pill volume";
+                statusBadge.textContent = "Collection in Progress";
+                dssRec.textContent = `High-Volume Market Corridor: Maintain continuous 2nd haul compactor run through midnight trading period.`;
+                dssNotes.textContent = `Audit verified 5 market produce stalls inspected. Night sweep crew active along perimeter axis with photographic verification pending.`;
+            } else {
+                dssBox.className = "exec-dss-box";
+                dssBox.style.borderLeftColor = "#16a34a";
+                statusBadge.className = "sector-status-pill cleared";
+                statusBadge.textContent = "Cleared & Verified";
+                dssRec.textContent = `Operational Standard: Maintain current scheduled routing and bi-weekly vendor segregation audits.`;
+                dssNotes.textContent = `Field inspector confirmed street corridors free of illegal pile-ups. Drainage grates unobstructed and waste disposed within color-coded municipal bins.`;
+            }
+
+            // Populate Historical Table
+            const tbody = document.getElementById('modal-hist-table-body');
+            const displayRecords = records.length > 0 ? records : [
+                { incident_code: `CDO-B${sector.id}-2026-0810`, incident_date: "2026-08-10", waste_volume_m3: 6.2, estimated_tonnage: 2.5, root_cause: "residential_waste", contractor_assigned: "IPM CDO Urban Haulers", turnaround_hours: 6.0, sla_status: "within_sla" },
+                { incident_code: `CDO-B${sector.id}-2025-0915`, incident_date: "2025-09-15", waste_volume_m3: 5.8, estimated_tonnage: 2.3, root_cause: "commercial_boxes", contractor_assigned: "IPM CDO Urban Haulers", turnaround_hours: 7.2, sla_status: "within_sla" },
+                { incident_code: `CDO-B${sector.id}-2024-0420`, incident_date: "2024-04-20", waste_volume_m3: 5.5, estimated_tonnage: 2.2, root_cause: "routine_haul", contractor_assigned: "IPM CDO Urban Haulers", turnaround_hours: 5.8, sla_status: "within_sla" }
+            ];
+
+            tbody.innerHTML = displayRecords.map((r, i) => {
+                const isBreach = r.sla_status === 'breached_24h' || (Number(r.turnaround_hours) > 24);
+                return `
+                    <tr>
+                        <td><strong>${escapeHtml(r.incident_code || `#${i + 1}`)}</strong></td>
+                        <td>${escapeHtml((r.incident_date || '').substring(0, 10) || '2026-08-15')}</td>
+                        <td><strong>${Number(r.waste_volume_m3).toFixed(2)}</strong></td>
+                        <td><strong>${Number(r.estimated_tonnage).toFixed(2)} t</strong></td>
+                        <td>${escapeHtml((r.root_cause || 'Municipal Solid Waste').replace(/_/g, ' '))}</td>
+                        <td>${escapeHtml(r.contractor_assigned || 'IPM Haulers')}</td>
+                        <td>${Number(r.turnaround_hours || 6.5).toFixed(1)} hrs</td>
+                        <td>
+                            <span class="sector-status-pill ${isBreach ? 'breach' : 'cleared'}">
+                                ${isBreach ? 'Breach (>24h)' : 'Within SLA'}
+                            </span>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            modal.classList.add('active');
+        }
+
+        function closeSectorDetailsModal() {
+            document.getElementById('sector-details-modal')?.classList.remove('active');
+        }
+
+        function openExecBriefModal() {
+            document.getElementById('exec-brief-modal')?.classList.add('active');
+        }
+
+        function closeExecBriefModal() {
+            document.getElementById('exec-brief-modal')?.classList.remove('active');
+        }
+
+        function openDispatchNoticeModal() {
+            document.getElementById('dispatch-notice-modal')?.classList.add('active');
+        }
+
+        function closeDispatchNoticeModal() {
+            document.getElementById('dispatch-notice-modal')?.classList.remove('active');
+        }
+
+        function printSectorBrief() {
+            window.print();
+        }
+
+        /* ── Keyboard shortcut to close modals on ESC ─────────────── */
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeSectorDetailsModal();
+                closeExecBriefModal();
+                closeDispatchNoticeModal();
+            }
+        });
 
         /* ── API Loaders ─────────────────────────────────────────── */
         async function loadAnalytics() {
@@ -616,97 +2702,321 @@
                 const data = await apiRequest('/analytics/overview');
                 populateSummary(data);
             } catch {
-                console.warn('Overview API unavailable — using fallback.');
+                console.warn('Overview API unavailable — using fallback data.');
                 populateSummary(fallbackAnalytics);
             }
         }
 
-        async function loadZoneAnalytics() {
+        async function loadLiveHistoricalData() {
             try {
-                const data = await apiRequest('/analytics/barangay-stats');
-                if (data && data.zones && data.zones.length > 0) {
-                    allZones = data.zones;
-                } else {
-                    throw new Error('empty');
+                const res = await fetch(`${API_BASE_URL}/public/clenro/pileup-reports?per_page=500`, {
+                    headers: { 'Accept': 'application/json' }
+                });
+                if (res.ok) {
+                    const json = await res.json();
+                    if (json.success && json.data && json.data.data && json.data.data.length > 0) {
+                        historicalDataset = json.data.data.map(item => ({
+                            id: item.id,
+                            incident_code: item.incident_code || `CDO-${item.id}`,
+                            location_zone: item.location_zone,
+                            incident_date: item.incident_date ? item.incident_date.substring(0, 10) : '',
+                            waste_volume_m3: Number(item.waste_volume_m3 || 0),
+                            estimated_tonnage: Number(item.estimated_tonnage || 0),
+                            contractor_assigned: item.contractor_assigned || 'IPM CDO Urban Haulers',
+                            truck_plate: item.truck_plate || 'KAL-101',
+                            severity: item.severity || 'moderate',
+                            sla_status: item.sla_status || 'within_sla',
+                            turnaround_hours: Number(item.turnaround_hours || 6.0),
+                            root_cause: item.root_cause || 'commercial_overflow',
+                            clenro_action_taken: item.clenro_action_taken || 'Cleared on schedule'
+                        }));
+                    }
                 }
-            } catch {
-                console.warn('Barangay analytics API unavailable — using fallback.');
-                allZones = fallbackZones;
-            }
-            populateZoneSelector();
-        }
-
-        /* ── Zone selector ───────────────────────────────────────── */
-        function populateZoneSelector() {
-            const sel = document.getElementById('zone-select');
-            sel.innerHTML = '<option value="">— Select a Zone —</option>';
-            allZones.forEach((z, i) => {
-                const opt = document.createElement('option');
-                opt.value = i;
-                opt.textContent = z.zone;
-                sel.appendChild(opt);
-            });
-            if (allZones.length > 0) {
-                sel.value = 0;
-                onZoneChange();
+            } catch (e) {
+                console.log('Using local baseline CLENRO dataset.');
             }
         }
 
-        function onZoneChange() {
-            const idx = document.getElementById('zone-select').value;
-            if (idx === '') {
-                selectedZone = null;
-                document.getElementById('zone-totals').style.display = 'none';
-                document.getElementById('brgy-list').innerHTML = '<p style="color:var(--text-muted);font-size:13px;">Select a zone above to view barangays.</p>';
-                return;
+        /* ── Operational Visual Graphs & Charts Handlers ─────────── */
+
+        function renderMarketComplianceChart(compliance) {
+            const total = Number(compliance.total_inspections || 0);
+            const flagged = Number(compliance.flagged_markets || 0);
+            const threshold = Number(compliance.threshold || 60);
+            const cleared = Math.max(0, total - flagged);
+            const passRate = total > 0 ? ((cleared / total) * 100).toFixed(1) : '100.0';
+            const flaggedRate = total > 0 ? ((flagged / total) * 100).toFixed(1) : '0.0';
+            const isPassing = Number(passRate) >= threshold;
+
+            // Circumference for r=36 is 2 * Math.PI * 36 ≈ 226.19
+            const circumference = 226.19;
+            const progressOffset = circumference - (circumference * Math.min(100, Math.max(0, Number(passRate)))) / 100;
+
+            const badgeEl = document.getElementById('market-compliance-badge');
+            if (badgeEl) {
+                badgeEl.textContent = `SLA Benchmark: ${threshold}%`;
+                badgeEl.className = `chart-badge ${isPassing ? 'badge-green' : 'badge-amber'}`;
             }
-            selectedZone = allZones[parseInt(idx)];
-            renderBrgyList(selectedZone);
-        }
 
-        function renderBrgyList(zone) {
-            // Zone totals
-            const totalsEl = document.getElementById('zone-totals');
-            totalsEl.style.display = 'flex';
-            totalsEl.innerHTML = `
-                <span class="zone-total-chip">${zone.barangays.length} Barangays</span>
-                <span class="zone-total-chip">${zone.total_vendors} Vendors</span>
-                <span class="zone-total-chip orange">${zone.total_reports} Reports</span>
-            `;
-
-            document.getElementById('brgy-list').innerHTML = `
-                <div class="brgy-grid">
-                    ${zone.barangays.map(b => `
-                        <div class="brgy-item" id="brgy-item-${b.id}" onclick="openBrgyOverview(${b.id}, '${escapeHtml(b.name).replace(/'/g, "\\'")}')" title="Click to open Barangay Overview">
-                            <div class="brgy-item-left">
-                                <div class="brgy-item-name">${escapeHtml(b.name)}</div>
-                                <div class="brgy-item-meta">${b.description ? escapeHtml(b.description.substring(0, 55)) + (b.description.length > 55 ? '…' : '') : 'Poblacion Solid Waste Corridor'}</div>
-                            </div>
-                            <div style="display:flex;align-items:center;gap:10px;">
-                                <div class="brgy-item-pills">
-                                    <span class="brgy-pill brgy-pill-v">${b.vendors} V</span>
-                                    <span class="brgy-pill brgy-pill-r">${b.reports} R</span>
-                                </div>
-                                <span style="font-size:12px;color:var(--green-700);font-weight:700;white-space:nowrap;">View &rarr;</span>
-                            </div>
+            return `
+                <div class="market-hero-wrap">
+                    <div class="radial-gauge-container">
+                        <svg class="radial-gauge-svg" viewBox="0 0 90 90" width="88" height="88">
+                            <circle class="radial-gauge-bg" cx="45" cy="45" r="36" fill="transparent" stroke="var(--border)" stroke-width="7"/>
+                            <circle class="radial-gauge-val" cx="45" cy="45" r="36" fill="transparent"
+                                stroke="${isPassing ? '#10b981' : '#f59e0b'}"
+                                stroke-width="7"
+                                stroke-dasharray="${circumference}"
+                                stroke-dashoffset="${progressOffset}"
+                                stroke-linecap="round"
+                            />
+                        </svg>
+                        <div class="radial-gauge-text">
+                            <span class="radial-gauge-percent">${passRate}%</span>
+                            <span class="radial-gauge-sub">${isPassing ? 'COMPLIANT' : 'ATTENTION'}</span>
                         </div>
-                    `).join('')}
+                    </div>
+
+                    <div class="market-hero-meta">
+                        <div class="market-meta-box">
+                            <span class="meta-label">Inspections</span>
+                            <span class="meta-val">${total}</span>
+                        </div>
+                        <div class="market-meta-box">
+                            <span class="meta-label">Cleared</span>
+                            <span class="meta-val" style="color: #10b981;">${cleared}</span>
+                        </div>
+                        <div class="market-meta-box">
+                            <span class="meta-label">Flagged</span>
+                            <span class="meta-val" style="color: ${flagged > 0 ? '#ef4444' : '#10b981'};">${flagged}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="visual-bar-group">
+                    <div class="visual-bar-item">
+                        <div class="visual-bar-header">
+                            <span class="bar-title">
+                                <span class="bar-dot" style="background:#10b981;"></span>
+                                Cleared Corridors
+                            </span>
+                            <span class="bar-value"><strong>${cleared}</strong> / ${total} <span class="bar-pct">(${passRate}%)</span></span>
+                        </div>
+                        <div class="visual-bar-track">
+                            <div class="visual-bar-fill" style="width: ${passRate}%; background: linear-gradient(90deg, #10b981, #059669);"></div>
+                        </div>
+                    </div>
+
+                    <div class="visual-bar-item">
+                        <div class="visual-bar-header">
+                            <span class="bar-title">
+                                <span class="bar-dot" style="background:#ef4444;"></span>
+                                Flagged Corridors
+                            </span>
+                            <span class="bar-value"><strong>${flagged}</strong> / ${total} <span class="bar-pct">(${flaggedRate}%)</span></span>
+                        </div>
+                        <div class="visual-bar-track">
+                            <div class="visual-bar-fill" style="width: ${flaggedRate}%; background: linear-gradient(90deg, #f59e0b, #ef4444);"></div>
+                        </div>
+                    </div>
+
+                    <div class="visual-bar-item">
+                        <div class="visual-bar-header">
+                            <span class="bar-title">
+                                <span class="bar-dot" style="background:#3b82f6;"></span>
+                                CLENRO SLA Standard
+                            </span>
+                            <span class="bar-value">Target &ge; <strong>${threshold}%</strong> <span class="bar-pct">${isPassing ? '(&#10003; Compliant)' : '(&#9888; Action Req.)'}</span></span>
+                        </div>
+                        <div class="visual-bar-track">
+                            <div class="visual-bar-fill" style="width: ${threshold}%; background: linear-gradient(90deg, #60a5fa, #2563eb);"></div>
+                        </div>
+                    </div>
                 </div>
             `;
         }
 
-        function openBrgyOverview(id, name) {
-            window.location.href = `barangay-overview.html?barangay=${id}&name=${encodeURIComponent(name)}`;
-        }
+        function renderReportsByStatusChart(reports) {
+            const entries = Object.entries(reports || {});
+            const totalReports = entries.reduce((sum, [, count]) => sum + Number(count || 0), 0);
 
-        function selectBrgy(brgy) {
-            if (brgy && brgy.id) {
-                openBrgyOverview(brgy.id, brgy.name);
+            const badgeEl = document.getElementById('reports-total-badge');
+            if (badgeEl) {
+                badgeEl.textContent = `${totalReports} Total Reports`;
             }
+
+            if (totalReports === 0) {
+                return `<div class="chart-empty-state">No report activity recorded.</div>`;
+            }
+
+            const statusConfig = {
+                'pending': { label: 'Pending Review', color: '#f59e0b', gradient: 'linear-gradient(90deg, #f59e0b, #d97706)' },
+                'reviewed': { label: 'Under Review', color: '#0284c7', gradient: 'linear-gradient(90deg, #0284c7, #38bdf8)' },
+                'resolved': { label: 'Resolved & Cleared', color: '#10b981', gradient: 'linear-gradient(90deg, #10b981, #059669)' },
+                'investigating': { label: 'Investigating', color: '#8b5cf6', gradient: 'linear-gradient(90deg, #8b5cf6, #7c3aed)' },
+                'rejected': { label: 'Flagged / Rejected', color: '#ef4444', gradient: 'linear-gradient(90deg, #ef4444, #dc2626)' }
+            };
+
+            const getStatusStyle = (rawKey) => {
+                const key = rawKey.toLowerCase();
+                for (const [k, cfg] of Object.entries(statusConfig)) {
+                    if (key.includes(k)) return cfg;
+                }
+                return { label: rawKey.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()), color: '#64748b', gradient: 'linear-gradient(90deg, #64748b, #475569)' };
+            };
+
+            const segmentsHtml = entries.map(([statusKey, count]) => {
+                const countNum = Number(count || 0);
+                const pct = totalReports > 0 ? ((countNum / totalReports) * 100).toFixed(1) : '0';
+                if (countNum <= 0) return '';
+                const cfg = getStatusStyle(statusKey);
+                return `<div class="stacked-bar-segment" style="width: ${pct}%; background: ${cfg.gradient};" title="${cfg.label}: ${countNum} (${pct}%)"></div>`;
+            }).join('');
+
+            const rowsHtml = entries.map(([statusKey, count]) => {
+                const countNum = Number(count || 0);
+                const pct = totalReports > 0 ? ((countNum / totalReports) * 100).toFixed(1) : '0';
+                const cfg = getStatusStyle(statusKey);
+
+                return `
+                    <div class="visual-bar-item">
+                        <div class="visual-bar-header">
+                            <span class="bar-title">
+                                <span class="bar-dot" style="background: ${cfg.color};"></span>
+                                ${cfg.label}
+                            </span>
+                            <span class="bar-value">
+                                <strong>${countNum}</strong> <span class="bar-pct">(${pct}%)</span>
+                            </span>
+                        </div>
+                        <div class="visual-bar-track">
+                            <div class="visual-bar-fill" style="width: ${pct}%; background: ${cfg.gradient};"></div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            return `
+                <div class="stacked-bar-wrap">
+                    <div class="stacked-bar-track">
+                        ${segmentsHtml}
+                    </div>
+                    <div class="stacked-bar-legend">
+                        ${entries.map(([statusKey, count]) => {
+                            const cfg = getStatusStyle(statusKey);
+                            return `<span class="legend-chip"><span class="legend-dot" style="background:${cfg.color};"></span>${cfg.label}: <strong>${count}</strong></span>`;
+                        }).join('')}
+                    </div>
+                </div>
+
+                <div class="visual-bar-group">
+                    ${rowsHtml}
+                </div>
+            `;
         }
 
-        function clearBrgyDetail() {
-            selectedBrgy = null;
+        function renderDriverAttendanceChart(attendance) {
+            if (!attendance || attendance.length === 0) {
+                return `<div class="chart-empty-state">No attendance records logged for this shift.</div>`;
+            }
+
+            const totalDrivers = attendance.length;
+            const activeDrivers = attendance.filter(d => (Number(d.present || 0) > 0)).length;
+            const activeRate = totalDrivers > 0 ? ((activeDrivers / totalDrivers) * 100).toFixed(0) : 0;
+
+            const badgeEl = document.getElementById('drivers-active-badge');
+            if (badgeEl) {
+                badgeEl.textContent = `${activeDrivers} / ${totalDrivers} Active Today`;
+                badgeEl.className = `chart-badge ${activeDrivers > 0 ? 'badge-purple' : 'badge-amber'}`;
+            }
+
+            const topBarHtml = `
+                <div class="visual-bar-item" style="margin-bottom: 4px;">
+                    <div class="visual-bar-header">
+                        <span class="bar-title">
+                            <span class="bar-dot" style="background: #8b5cf6;"></span>
+                            Shift Crew Deployment
+                        </span>
+                        <span class="bar-value"><strong>${activeDrivers} of ${totalDrivers} Active</strong> <span class="bar-pct">(${activeRate}%)</span></span>
+                    </div>
+                    <div class="visual-bar-track">
+                        <div class="visual-bar-fill" style="width: ${activeRate}%; background: linear-gradient(90deg, #8b5cf6, #6366f1);"></div>
+                    </div>
+                </div>
+            `;
+
+            const driversHtml = attendance.map(driver => {
+                const present = Number(driver.present || 0);
+                const late = Number(driver.late || 0);
+                const absent = Number(driver.absent || 0);
+                const totalLogged = present + late + absent;
+                const isActive = present > 0;
+
+                const initials = (driver.name || 'D')
+                    .split(' ')
+                    .filter(Boolean)
+                    .map(w => w[0].toUpperCase())
+                    .slice(0, 2)
+                    .join('');
+
+                let statusTag = '';
+                if (present > 0) {
+                    statusTag = `<span class="driver-status-tag tag-active"><span class="driver-pulse"></span> Active</span>`;
+                } else if (late > 0) {
+                    statusTag = `<span class="driver-status-tag tag-late">Delayed (${late}d)</span>`;
+                } else if (absent > 0) {
+                    statusTag = `<span class="driver-status-tag tag-absent">Absent (${absent}d)</span>`;
+                } else {
+                    statusTag = `<span class="driver-status-tag tag-standby">Standby</span>`;
+                }
+
+                let barHtml = '';
+                if (totalLogged > 0) {
+                    const pPct = ((present / totalLogged) * 100).toFixed(0);
+                    const lPct = ((late / totalLogged) * 100).toFixed(0);
+                    const aPct = ((absent / totalLogged) * 100).toFixed(0);
+                    barHtml = `
+                        <div class="driver-mini-bar-track" title="${present} Present, ${late} Late, ${absent} Absent">
+                            ${present > 0 ? `<div class="driver-mini-seg" style="width:${pPct}%; background:#10b981;"></div>` : ''}
+                            ${late > 0 ? `<div class="driver-mini-seg" style="width:${lPct}%; background:#f59e0b;"></div>` : ''}
+                            ${absent > 0 ? `<div class="driver-mini-seg" style="width:${aPct}%; background:#ef4444;"></div>` : ''}
+                        </div>
+                    `;
+                } else {
+                    barHtml = `
+                        <div class="driver-standby-track">
+                            <span>Ready on Standby</span>
+                        </div>
+                    `;
+                }
+
+                return `
+                    <div class="driver-roster-row ${isActive ? 'is-active' : ''}">
+                        <div class="driver-avatar-circle ${isActive ? 'avatar-active' : ''}">
+                            ${initials}
+                        </div>
+                        <div class="driver-info-main">
+                            <div class="driver-info-header">
+                                <span class="driver-name">${driver.name}</span>
+                                ${statusTag}
+                            </div>
+                            ${barHtml}
+                        </div>
+                        <div class="driver-counts-pills">
+                            <span class="driver-chip chip-p" title="Present days"><strong>${present}</strong>P</span>
+                            <span class="driver-chip chip-l" title="Late days"><strong>${late}</strong>L</span>
+                            <span class="driver-chip chip-a" title="Absent days"><strong>${absent}</strong>A</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            return `
+                ${topBarHtml}
+                <div class="driver-roster-container">
+                    ${driversHtml}
+                </div>
+            `;
         }
 
         /* ── Summary panel populators ────────────────────────────── */
@@ -723,26 +3033,32 @@
                 if (el) el.textContent = totals[key] ?? 0;
             });
 
+            // 1. Market Compliance Visual Chart
             const compliance = data.market_compliance || fallbackAnalytics.market_compliance;
-            document.getElementById('market-compliance').innerHTML =
-                row('Total inspections conducted', compliance.total_inspections ?? 148) +
-                row('Flagged market corridors', compliance.flagged_markets ?? 3) +
-                row('SLA compliance threshold', `${compliance.threshold ?? 85}%`);
+            const compEl = document.getElementById('market-compliance');
+            if (compEl) {
+                compEl.innerHTML = renderMarketComplianceChart(compliance);
+            }
 
+            // 2. Reports by Status Visual Chart & Segmented Bar
             const reports = data.reports_by_status || fallbackAnalytics.reports_by_status;
-            document.getElementById('report-stats').innerHTML = Object.entries(reports).map(
-                ([label, value]) => row(label, value)
-            ).join('');
+            const repEl = document.getElementById('report-stats');
+            if (repEl) {
+                repEl.innerHTML = renderReportsByStatusChart(reports);
+            }
 
+            // 3. Driver Attendance Visual Roster & Deployment Meter
             const attendance = data.employee_attendance || fallbackAnalytics.employee_attendance;
-            document.getElementById('driver-stats').innerHTML = attendance.map(item =>
-                row(item.name, `${item.present} present · ${item.late} late · ${item.absent} absent`)
-            ).join('');
+            const drivEl = document.getElementById('driver-stats');
+            if (drivEl) {
+                drivEl.innerHTML = renderDriverAttendanceChart(attendance);
+            }
         }
 
         document.addEventListener('DOMContentLoaded', () => {
+            renderSectorCards();
             loadAnalytics();
-            loadZoneAnalytics();
+            loadLiveHistoricalData();
         });
     </script>
 </body>

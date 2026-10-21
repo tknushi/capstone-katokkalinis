@@ -7,15 +7,17 @@ return new class extends Migration
 {
     public function up(): void
     {
-        DB::statement("
-            ALTER TABLE reports
-            MODIFY status ENUM(
-                'pending',
-                'reviewed',
-                'resolved',
-                'rejected'
-            ) NOT NULL DEFAULT 'pending'
-        ");
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("
+                ALTER TABLE reports
+                MODIFY status ENUM(
+                    'pending',
+                    'reviewed',
+                    'resolved',
+                    'rejected'
+                ) NOT NULL DEFAULT 'pending'
+            ");
+        }
     }
 
     public function down(): void

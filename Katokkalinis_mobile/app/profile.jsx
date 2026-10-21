@@ -1,13 +1,12 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
   Dimensions,
-  Image,
   Modal,
   ScrollView,
   StyleSheet,
@@ -17,8 +16,12 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { apiRequest } from "../services/api";
+import InitialsAvatar from "../components/InitialsAvatar";
+import VendorHotbar from "../components/VendorHotbar";
+import { apiRequest, resolveMediaUrl } from "../services/api";
 import { logoutUser } from "../services/auth";
+import { fetchMyReportsCount } from "../services/resident";
+import { fetchVendorEvaluation } from "../services/vendor";
 import { sanitizePhoneNumber, validatePhilippinePhone } from "../utils/phoneValidation";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
@@ -26,23 +29,29 @@ const isSmall = SCREEN_WIDTH < 360;
 
 export default function Profile() {
   const router = useRouter();
+  const params = useLocalSearchParams();
 
   // User & role info
-  const [role, setRole] = useState("resident"); // "resident" | "vendor"
+  const initialRole = params?.role ? String(params.role) : "resident";
+  const [role, setRole] = useState(initialRole); // "resident" | "vendor"
   const [name, setName] = useState("Katok Resident");
   const [email, setEmail] = useState("resident@katokkalinis.com");
   const [contactNumber, setContactNumber] = useState("09467802940");
   const [address, setAddress] = useState("Barangay 12, Cagayan de Oro");
   const [avatarUri, setAvatarUri] = useState(null);
 
-  // Vendor specific fields
+  // Vendor specific fields (dynamically loaded from backend)
   const [vendorId, setVendorId] = useState("VEN-2026012345");
-  const stallNumber = "Stall #14, Section B";
-  const marketLocation = "Divisoria Public Market";
-  const businessType = "Fresh Produce & Food Stall";
-  const sanitationScore = "8.5 / 10";
-  const complianceHistory = "Passed 4/4 Inspections";
-  const violations = "0 Recorded Violations";
+  const [stallNumber, setStallNumber] = useState("Stall #14, Section B");
+  const [marketLocation, setMarketLocation] = useState("Divisoria Public Market");
+  const [businessType, setBusinessType] = useState("Fresh Produce & Food Stall");
+  const [sanitationScore, setSanitationScore] = useState("0.0");
+  const [complianceScore, setComplianceScore] = useState("0%");
+  const [complianceGrade, setComplianceGrade] = useState("N/A");
+  const [complianceHistory, setComplianceHistory] = useState("Pending Inspection");
+  const [violations, setViolations] = useState("0 Recorded Violations");
+  const [violationsCount, setViolationsCount] = useState(0);
+  const [recentInspection, setRecentInspection] = useState(null);
 
   // Modals state
   const [viewModalVisible, setViewModalVisible] = useState(false);
@@ -51,6 +60,9 @@ export default function Profile() {
   const [notifModalVisible, setNotifModalVisible] = useState(false);
   const [activityModalVisible, setActivityModalVisible] = useState(false);
   const [complianceModalVisible, setComplianceModalVisible] = useState(false);
+
+  // Reports count (starts at 0 for new accounts, updates when they post)
+  const [reportsCount, setReportsCount] = useState(0);
 
   // Edit form state
   const [editName, setEditName] = useState(name);
@@ -69,18 +81,16 @@ export default function Profile() {
   const [pushNotifs, setPushNotifs] = useState(true);
   const [inspectionAlerts, setInspectionAlerts] = useState(true);
 
-  useEffect(() => {
-    loadProfile();
-  }, []);
-
   const loadProfile = async () => {
     try {
       const storedRole = await AsyncStorage.getItem("userRole");
+      const effectiveRole = params?.role ? String(params.role) : (storedRole || "resident");
+      if (effectiveRole) setRole(effectiveRole);
+
       const storedName = await AsyncStorage.getItem("userName");
       const storedEmail = await AsyncStorage.getItem("userEmail");
       const storedId = await AsyncStorage.getItem("userId");
 
-      if (storedRole) setRole(storedRole);
       if (storedName) {
         setName(storedName);
         setEditName(storedName);
@@ -88,13 +98,86 @@ export default function Profile() {
       if (storedEmail) setEmail(storedEmail);
       if (storedId) setVendorId(`VEN-${storedId}`);
 
+      // Load user report count (defaults to 0 for newly created accounts)
+      const cachedCountStr = await AsyncStorage.getItem("userReportsCount");
+      if (cachedCountStr !== null) {
+        setReportsCount(parseInt(cachedCountStr, 10) || 0);
+      } else {
+        setReportsCount(0);
+      }
+
+      // Sync live count from API
+      try {
+        const liveCount = await fetchMyReportsCount(storedId);
+        setReportsCount(liveCount);
+        await AsyncStorage.setItem("userReportsCount", String(liveCount));
+      } catch (err) {
+        console.warn("Could not sync live report count:", err);
+      }
+
+      const storedAvatar = await AsyncStorage.getItem("userAvatar");
+      if (storedAvatar) setAvatarUri(storedAvatar);
+
       try {
         const res = await apiRequest("/me", { method: "GET" });
         if (res && res.user) {
+          const detectedRole = res.user.vendor
+            ? "vendor"
+            : (res.user.roles?.[0]?.name || effectiveRole || "resident");
+          if (detectedRole) {
+            setRole(detectedRole);
+            await AsyncStorage.setItem("userRole", detectedRole);
+          }
           if (res.user.name) setName(res.user.name);
           if (res.user.email) setEmail(res.user.email);
           if (res.user.contact_number) setContactNumber(res.user.contact_number);
           if (res.user.address) setAddress(res.user.address);
+          if (res.user.avatar || res.user.avatar_url) {
+            const resolved = resolveMediaUrl(res.user.avatar_url || res.user.avatar);
+            if (resolved) {
+              setAvatarUri(resolved);
+              await AsyncStorage.setItem("userAvatar", resolved);
+            }
+          }
+
+          if (res.user.vendor) {
+            const v = res.user.vendor;
+            if (v.stall_number) setStallNumber(v.stall_number);
+            if (v.market) setMarketLocation(v.market);
+            if (v.business_name) setBusinessType(v.business_name);
+            if (v.vendor_code) setVendorId(`VEN-${v.vendor_code}`);
+
+            const sScore = v.sanitation_score !== null && v.sanitation_score !== undefined
+              ? Number(v.sanitation_score).toFixed(1)
+              : "0.0";
+            const cScore = (v.compliance_score !== null && v.compliance_score !== undefined)
+              ? `${v.compliance_score}%`
+              : "0%";
+            const cGrade = v.compliance_grade ? `Grade ${v.compliance_grade.replace(/^Grade\s*/i, "")}` : "N/A";
+            const vCount = v.violations_count ?? 0;
+
+            setSanitationScore(sScore);
+            setComplianceScore(cScore);
+            setComplianceGrade(cGrade);
+            setViolationsCount(vCount);
+            setViolations(`${vCount} Recorded Violation${vCount === 1 ? "" : "s"}`);
+
+            try {
+              const evalRes = await fetchVendorEvaluation(v.id);
+              if (evalRes && evalRes.success && evalRes.evaluation) {
+                const ev = evalRes.evaluation;
+                if (ev.total_score !== undefined && ev.total_score !== null) {
+                  setComplianceScore(`${ev.total_score}%`);
+                  setSanitationScore((ev.total_score / 10).toFixed(1));
+                  setComplianceGrade(`Grade ${ev.grade}`);
+                }
+                setComplianceHistory(`Status: ${ev.status ? ev.status.toUpperCase() : 'COMPLETED'} (${ev.valid_through || 'Current Quarter'})`);
+                setRecentInspection(ev);
+              }
+            } catch (err) {
+              console.warn("Could not load vendor evaluation details:", err);
+            }
+          }
         }
       } catch {
         // Offline default fallback
@@ -103,6 +186,17 @@ export default function Profile() {
       console.error(e);
     }
   };
+
+  useEffect(() => {
+    loadProfile();
+  }, []);
+
+  // Automatically refresh report count when returning to this screen
+  useFocusEffect(
+    useCallback(() => {
+      loadProfile();
+    }, [])
+  );
 
   const handleSaveProfile = async () => {
     if (!editName.trim()) {
@@ -190,6 +284,46 @@ export default function Profile() {
     }
   };
 
+  const uploadAvatar = async (asset) => {
+    try {
+      setAvatarUri(asset.uri);
+      const effectiveName = name || (await AsyncStorage.getItem("userName")) || "User";
+      const effectiveEmail = email || (await AsyncStorage.getItem("userEmail")) || "user@katokkalinis.com";
+      const effectiveContact = contactNumber || (await AsyncStorage.getItem("userContact")) || "";
+      const effectiveAddress = address || (await AsyncStorage.getItem("userAddress")) || (await AsyncStorage.getItem("userBarangay")) || "";
+
+      const payload = {
+        name: effectiveName,
+        email: effectiveEmail,
+        contact_number: effectiveContact,
+        phone: effectiveContact,
+        address: effectiveAddress,
+      };
+      if (asset.base64) {
+        payload.avatar = `data:image/jpeg;base64,${asset.base64}`;
+      } else if (asset.uri) {
+        payload.avatar = asset.uri;
+      }
+
+      const res = await apiRequest("/profile", {
+        method: "PUT",
+        body: JSON.stringify(payload),
+      });
+
+      if (res && res.success && res.user) {
+        const perm = resolveMediaUrl(res.user.avatar_url || res.user.avatar);
+        if (perm) {
+          setAvatarUri(perm);
+          await AsyncStorage.setItem("userAvatar", perm);
+        }
+        Alert.alert("Success", "Profile photo updated and saved permanently.");
+      }
+    } catch (err) {
+      console.warn("Avatar upload error:", err);
+      await AsyncStorage.setItem("userAvatar", asset.uri);
+    }
+  };
+
   const handlePickAvatar = () => {
     Alert.alert("Profile Photo", "Choose photo source:", [
       {
@@ -204,12 +338,11 @@ export default function Profile() {
             const result = await ImagePicker.launchCameraAsync({
               allowsEditing: true,
               aspect: [1, 1],
-              quality: 0.8,
+              quality: 0.7,
+              base64: true,
             });
             if (!result.canceled && result.assets?.[0]?.uri) {
-              const uri = result.assets[0].uri;
-              setAvatarUri(uri);
-              await AsyncStorage.setItem("userAvatar", uri);
+              await uploadAvatar(result.assets[0]);
             }
           } catch (e) {
             console.error("Camera error:", e);
@@ -229,12 +362,11 @@ export default function Profile() {
               mediaTypes: ["images"],
               allowsEditing: true,
               aspect: [1, 1],
-              quality: 0.8,
+              quality: 0.7,
+              base64: true,
             });
             if (!result.canceled && result.assets?.[0]?.uri) {
-              const uri = result.assets[0].uri;
-              setAvatarUri(uri);
-              await AsyncStorage.setItem("userAvatar", uri);
+              await uploadAvatar(result.assets[0]);
             }
           } catch (e) {
             console.error("Gallery error:", e);
@@ -284,11 +416,12 @@ export default function Profile() {
         {/* PROFILE CARD */}
         <View style={styles.profileCard}>
           <View style={styles.avatarContainer}>
-            {avatarUri ? (
-              <Image source={{ uri: avatarUri }} style={styles.avatarPhoto} />
-            ) : (
-              <Ionicons name="person-circle" size={86} color="#2E7D32" />
-            )}
+            <InitialsAvatar
+              name={name}
+              avatarUri={avatarUri}
+              size={86}
+              style={styles.avatarPhoto}
+            />
             <TouchableOpacity
               style={styles.cameraBadge}
               onPress={handlePickAvatar}
@@ -322,30 +455,34 @@ export default function Profile() {
           {role === "vendor" ? (
             <View style={styles.statsContainer}>
               <View style={styles.statItem}>
-                <Text style={styles.statNumber}>8.5</Text>
+                <Text style={styles.statNumber}>{sanitationScore}</Text>
                 <Text style={styles.statLabel}>Sanitation Score</Text>
               </View>
               <View style={styles.statDivider} />
               <View style={styles.statItem}>
-                <Text style={[styles.statNumber, { color: "#4CAF50" }]}>100%</Text>
-                <Text style={styles.statLabel}>Compliance</Text>
+                <Text style={[styles.statNumber, { color: parseInt(complianceScore, 10) >= 85 ? "#2E7D32" : (parseInt(complianceScore, 10) >= 70 ? "#1976D2" : "#DC2626") }]}>
+                  {complianceScore}
+                </Text>
+                <Text style={styles.statLabel}>Compliance ({complianceGrade})</Text>
               </View>
               <View style={styles.statDivider} />
               <View style={styles.statItem}>
-                <Text style={[styles.statNumber, { color: "#2E7D32" }]}>0</Text>
+                <Text style={[styles.statNumber, { color: violationsCount > 0 ? "#DC2626" : "#2E7D32" }]}>
+                  {violationsCount}
+                </Text>
                 <Text style={styles.statLabel}>Violations</Text>
               </View>
             </View>
           ) : (
             <View style={styles.statsContainer}>
               <View style={styles.statItem}>
-                <Text style={styles.statNumber}>18</Text>
-                <Text style={styles.statLabel}>Collections</Text>
+                <Text style={[styles.statNumber, { color: "#2E7D32" }]}>{reportsCount}</Text>
+                <Text style={styles.statLabel}>Reports Submitted</Text>
               </View>
               <View style={styles.statDivider} />
               <View style={styles.statItem}>
-                <Text style={[styles.statNumber, { color: "#4CAF50" }]}>5</Text>
-                <Text style={styles.statLabel}>Reports</Text>
+                <Text style={[styles.statNumber, { color: "#1E331B" }]}>Active</Text>
+                <Text style={styles.statLabel}>Account Status</Text>
               </View>
             </View>
           )}
@@ -559,7 +696,13 @@ export default function Profile() {
               <Text style={styles.modalSectionHeader}>Current Ratings</Text>
               <View style={styles.infoRow}>
                 <Text style={styles.infoLabel}>Sanitation Score / Grade</Text>
-                <Text style={[styles.infoValue, { color: "#4CAF50", fontWeight: "700" }]}>{sanitationScore}</Text>
+                <Text style={[styles.infoValue, { color: "#2E7D32", fontWeight: "700" }]}>
+                  {sanitationScore} / 10 ({complianceGrade})
+                </Text>
+              </View>
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>Compliance Score</Text>
+                <Text style={styles.infoValue}>{complianceScore}</Text>
               </View>
               <View style={styles.infoRow}>
                 <Text style={styles.infoLabel}>Compliance History</Text>
@@ -567,18 +710,35 @@ export default function Profile() {
               </View>
               <View style={styles.infoRow}>
                 <Text style={styles.infoLabel}>Violations Record</Text>
-                <Text style={[styles.infoValue, { color: "#2E7D32" }]}>{violations}</Text>
+                <Text style={[styles.infoValue, { color: violationsCount > 0 ? "#DC2626" : "#2E7D32" }]}>
+                  {violations}
+                </Text>
               </View>
 
-              <Text style={styles.modalSectionHeader}>Recent Inspection History</Text>
-              <View style={styles.activityCard}>
-                <Ionicons name="checkmark-circle-outline" size={22} color="#4CAF50" />
-                <View style={{ marginLeft: 10, flex: 1 }}>
-                  <Text style={styles.activityTitle}>Official Inspection Passed</Text>
-                  <Text style={styles.activitySub}>Score: 8/10 • Grade: Good Sanitation</Text>
-                  <Text style={styles.activityDate}>April 30, 2026</Text>
+              <Text style={styles.modalSectionHeader}>Recent Inspection Assessment</Text>
+              {recentInspection ? (
+                <View style={styles.activityCard}>
+                  <Ionicons name="checkmark-circle-outline" size={22} color="#2E7D32" />
+                  <View style={{ marginLeft: 10, flex: 1 }}>
+                    <Text style={styles.activityTitle}>Official Inspection ({recentInspection.grade ? `Grade ${recentInspection.grade}` : 'Certified'})</Text>
+                    <Text style={styles.activitySub}>Score: {recentInspection.total_score}% • Inspector: {recentInspection.inspector_name || 'Assigned Officer'}</Text>
+                    <Text style={styles.activityDate}>{recentInspection.inspected_at_formatted || 'Recently Inspected'}</Text>
+                    {recentInspection.notes ? (
+                      <Text style={{ fontSize: 11, color: "#666", marginTop: 4, fontStyle: "italic" }}>
+                        &ldquo;{recentInspection.notes}&rdquo;
+                      </Text>
+                    ) : null}
+                  </View>
                 </View>
-              </View>
+              ) : (
+                <View style={[styles.activityCard, { opacity: 0.8 }]}>
+                  <Ionicons name="information-circle-outline" size={22} color="#7A8D78" />
+                  <View style={{ marginLeft: 10, flex: 1 }}>
+                    <Text style={styles.activityTitle}>Pending Official Inspection</Text>
+                    <Text style={styles.activitySub}>An inspector will conduct an assessment on your stall.</Text>
+                  </View>
+                </View>
+              )}
             </ScrollView>
 
             <TouchableOpacity style={styles.modalCloseButton} onPress={() => setComplianceModalVisible(false)}>
@@ -808,55 +968,55 @@ export default function Profile() {
       </Modal>
 
       {/* BOTTOM NAVIGATION */}
-      <View style={styles.bottomNav}>
-        <TouchableOpacity
-          style={styles.navItem}
-          onPress={() => router.replace(role === "vendor" ? "/vendor" : "/dashboard")}
-        >
-          <Ionicons
-            name="home-outline"
-            size={22}
-            color="rgba(255, 255, 255, 0.85)"
-          />
-          <Text style={styles.navText}>Home</Text>
-        </TouchableOpacity>
+      {role === "vendor" ? (
+        <VendorHotbar activeTab="profile" />
+      ) : (
+        <View style={styles.bottomNav}>
+          <TouchableOpacity
+            style={styles.navItem}
+            activeOpacity={0.8}
+            onPress={() => router.replace("/dashboard")}
+          >
+            <MaterialCommunityIcons name="home-outline" size={24} color="#7A8D78" />
+            <Text style={styles.navItemText}>Home</Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.navItem}
-          onPress={() => router.push(role === "vendor" ? "/vendor" : "/report")}
-        >
-          <Ionicons
-            name={role === "vendor" ? "qr-code-outline" : "document-text-outline"}
-            size={22}
-            color="rgba(255, 255, 255, 0.85)"
-          />
-          <Text style={styles.navText}>{role === "vendor" ? "QR" : "Report"}</Text>
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.navItem}
+            activeOpacity={0.8}
+            onPress={() => router.push("/report")}
+          >
+            <MaterialCommunityIcons
+              name="file-document-outline"
+              size={24}
+              color="#7A8D78"
+            />
+            <Text style={styles.navItemText}>Reports</Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.navItem}
-          onPress={() => router.push(role === "vendor" ? "/profile" : "/schedule")}
-        >
-          <Ionicons
-            name={role === "vendor" ? "shield-checkmark-outline" : "calendar-outline"}
-            size={22}
-            color="rgba(255, 255, 255, 0.85)"
-          />
-          <Text style={styles.navText}>{role === "vendor" ? "Status" : "Schedule"}</Text>
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.navItem}
+            activeOpacity={0.8}
+            onPress={() => router.push("/schedule")}
+          >
+            <MaterialCommunityIcons
+              name="calendar-month-outline"
+              size={24}
+              color="#7A8D78"
+            />
+            <Text style={styles.navItemText}>Schedule</Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.navItem}
-          onPress={() => {}}
-        >
-          <Ionicons
-            name="person"
-            size={24}
-            color="#FFFFFF"
-          />
-          <Text style={[styles.navText, { fontWeight: "800" }]}>Profile</Text>
-        </TouchableOpacity>
-      </View>
+          <TouchableOpacity
+            style={styles.navItem}
+            activeOpacity={0.8}
+            onPress={() => {}}
+          >
+            <MaterialCommunityIcons name="account" size={24} color="#2E7D32" />
+            <Text style={[styles.navItemText, styles.navItemTextActive]}>Profile</Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
 }
@@ -1238,20 +1398,31 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 65,
-    backgroundColor: "#7ED957",
+    backgroundColor: "#FFFFFF",
     flexDirection: "row",
     justifyContent: "space-around",
     alignItems: "center",
+    borderTopWidth: 1,
+    borderTopColor: "#EEF5ED",
+    paddingBottom: 4,
   },
 
   navItem: {
     alignItems: "center",
+    justifyContent: "center",
+    flex: 1,
     paddingVertical: 4,
   },
 
-  navText: {
-    color: "#FFFFFF",
-    fontSize: 10,
+  navItemText: {
+    fontSize: 11,
+    fontWeight: "600",
+    color: "#7A8D78",
     marginTop: 2,
+  },
+
+  navItemTextActive: {
+    color: "#2E7D32",
+    fontWeight: "800",
   },
 });

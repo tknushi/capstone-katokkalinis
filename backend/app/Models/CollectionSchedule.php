@@ -30,4 +30,9 @@ class CollectionSchedule extends Model
     {
         return $this->belongsTo(Barangay::class);
     }
+
+    public function tasks(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Task::class);
+    }
 }

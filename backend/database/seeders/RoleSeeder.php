@@ -40,7 +40,7 @@ class RoleSeeder extends Seeder
             ],
             [
                 'name' => 'admin',
-                'description' => 'System administrator',
+                'description' => 'Barangay or System Administrator',
             ],
             [
                 'name' => 'super_admin',

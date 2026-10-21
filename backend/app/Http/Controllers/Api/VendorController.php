@@ -126,6 +126,11 @@ class VendorController extends Controller
             'status' => $request->status ?? 'active',
         ]);
 
+        if (empty($vendor->qr_code)) {
+            $vendor->qr_code = self::generateSecureQrToken($vendor);
+            $vendor->save();
+        }
+
         $vendor->load(['user', 'barangay']);
 
         ActivityLog::record(
@@ -320,6 +325,67 @@ class VendorController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Vendor deleted successfully.',
+        ]);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | GENERATE SECURE QR TOKEN
+    |--------------------------------------------------------------------------
+    */
+    public static function generateSecureQrToken(Vendor $vendor): string
+    {
+        $marketCode = 'MKT';
+        if ($vendor->market) {
+            if (stripos($vendor->market, 'cogon') !== false) {
+                $marketCode = 'COG';
+            } elseif (stripos($vendor->market, 'carmen') !== false) {
+                $marketCode = 'CAR';
+            }
+        }
+        $stallClean = preg_replace('/[^0-9A-Za-z]/', '', $vendor->stall_number ?? '0');
+        $randomHex = bin2hex(random_bytes(12));
+        return "KK-QR-{$marketCode}-{$vendor->id}-{$stallClean}-{$randomHex}";
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | REGENERATE SECURE QR CODE (Super Admin only)
+    |--------------------------------------------------------------------------
+    */
+    public function regenerateQr(Request $request, $id)
+    {
+        $user = $request->user();
+        if (!$user || !$user->roles()->where('name', 'super_admin')->exists()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized. Only CLENRO Super Admin can regenerate vendor QR tokens.',
+            ], 403);
+        }
+
+        $vendor = Vendor::find($id);
+        if (!$vendor) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Vendor not found.',
+            ], 404);
+        }
+
+        $newToken = self::generateSecureQrToken($vendor);
+        $vendor->qr_code = $newToken;
+        $vendor->save();
+
+        ActivityLog::record(
+            'vendor.qr_regenerated',
+            "Super Admin {$user->name} regenerated secure QR token for vendor {$vendor->business_name} (#{$vendor->id}).",
+            $vendor
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Secure QR token generated successfully.',
+            'vendor' => $vendor,
+            'qr_code' => $newToken,
         ]);
     }
 }

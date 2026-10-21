@@ -237,7 +237,7 @@ class UserController extends Controller
 
     public function destroy(Request $request, $id)
     {
-        $user = User::find($id);
+        $user = User::with('roles')->find($id);
 
         if (!$user) {
             return response()->json([
@@ -253,10 +253,10 @@ class UserController extends Controller
             ], 422);
         }
 
-        if ($this->isSuperAdmin($user) && !$this->isSuperAdmin($request->user())) {
+        if ($this->isSuperAdmin($user)) {
             return response()->json([
                 'success' => false,
-                'message' => 'Access Denied: Only Super Administrators can delete a Super Admin account.',
+                'message' => 'Access Denied: Super Administrator accounts are system protected and cannot be permanently removed or deleted.',
             ], 403);
         }
 
@@ -310,15 +310,13 @@ class UserController extends Controller
             ], 404);
         }
 
-        if (!$isSuperAdmin) {
-            foreach ($users as $user) {
-                if ($this->isSuperAdmin($user)) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Access Denied: Lower hierarchy roles cannot delete Super Administrator accounts.',
-                        'errors' => ['ids' => ["Cannot delete protected Super Admin user '{$user->name}'."]],
-                    ], 403);
-                }
+        foreach ($users as $user) {
+            if ($this->isSuperAdmin($user)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Super Administrator accounts are system protected and cannot be deleted or permanently removed.',
+                    'errors' => ['ids' => ["Cannot delete protected Super Admin user '{$user->name}'."]],
+                ], 403);
             }
         }
 
@@ -331,8 +329,8 @@ class UserController extends Controller
                 continue;
             }
 
-            // Only Super Admin can delete a Super Admin account
-            if ($this->isSuperAdmin($user) && !$isSuperAdmin) {
+            // Super Admin accounts can never be deleted
+            if ($this->isSuperAdmin($user)) {
                 continue;
             }
 
@@ -389,10 +387,10 @@ class UserController extends Controller
             ], 422);
         }
 
-        if ($this->isSuperAdmin($user) && !$this->isSuperAdmin($request->user())) {
+        if ($this->isSuperAdmin($user)) {
             return response()->json([
                 'success' => false,
-                'message' => 'Access Denied: Super Administrator accounts cannot be archived by lower hierarchy roles.',
+                'message' => 'Super Administrator accounts are system protected and cannot be archived or removed.',
             ], 403);
         }
 
@@ -489,15 +487,13 @@ class UserController extends Controller
             ], 404);
         }
 
-        if (!$isSuperAdmin) {
-            foreach ($users as $user) {
-                if ($this->isSuperAdmin($user)) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Access Denied: Lower hierarchy roles cannot archive Super Administrator accounts.',
-                        'errors' => ['ids' => ["Cannot archive protected Super Admin user '{$user->name}'."]],
-                    ], 403);
-                }
+        foreach ($users as $user) {
+            if ($this->isSuperAdmin($user)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Super Administrator accounts are system protected and cannot be archived or removed.',
+                    'errors' => ['ids' => ["Cannot archive protected Super Admin user '{$user->name}'."]],
+                ], 403);
             }
         }
 
@@ -510,8 +506,8 @@ class UserController extends Controller
                 continue;
             }
 
-            // Only Super Admin can archive a Super Admin account
-            if ($this->isSuperAdmin($user) && !$isSuperAdmin) {
+            // Never archive Super Admin accounts
+            if ($this->isSuperAdmin($user)) {
                 continue;
             }
 

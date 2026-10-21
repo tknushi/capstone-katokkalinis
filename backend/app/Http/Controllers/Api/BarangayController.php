@@ -19,7 +19,8 @@ class BarangayController extends Controller
 
     public function index()
     {
-        $barangays = Barangay::orderBy('name')->get();
+        // Return unique barangays by name with canonical IDs (1–40 prioritized)
+        $barangays = Barangay::orderBy('id')->get()->unique('name')->values();
 
         return response()->json([
             'success' => true,

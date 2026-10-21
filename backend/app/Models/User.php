@@ -17,6 +17,8 @@ class User extends Authenticatable
         'email',
         'phone',
         'address',
+        'avatar',
+        'barangay_id',
         'joined_at',
         'password',
         'is_archived',
@@ -32,9 +34,32 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
         'joined_at' => 'date:Y-m-d',
+        'barangay_id' => 'integer',
         'is_archived' => 'boolean',
         'archived_at' => 'datetime',
     ];
+
+    protected $appends = [
+        'avatar_url',
+    ];
+
+    public function getAvatarUrlAttribute(): ?string
+    {
+        if (!$this->avatar) {
+            return null;
+        }
+
+        if (filter_var($this->avatar, FILTER_VALIDATE_URL) || str_starts_with($this->avatar, 'data:image')) {
+            return $this->avatar;
+        }
+
+        return url($this->avatar);
+    }
+
+    public function barangay()
+    {
+        return $this->belongsTo(Barangay::class);
+    }
 
     /*
     |--------------------------------------------------------------------------
@@ -102,6 +127,31 @@ class User extends Authenticatable
     | Roles
     |--------------------------------------------------------------------------
     */
+
+    public function collectionLogs(): HasMany
+    {
+        return $this->hasMany(CollectionLog::class, 'driver_id');
+    }
+
+    public function driver()
+    {
+        return $this->hasOne(Driver::class);
+    }
+
+    public function inspector()
+    {
+        return $this->hasOne(Inspector::class);
+    }
+
+    public function feedbacks(): HasMany
+    {
+        return $this->hasMany(Feedback::class, 'resident_id');
+    }
+
+    public function notifications(): HasMany
+    {
+        return $this->hasMany(Notification::class);
+    }
 
     public function roles()
     {

@@ -1,3 +1,4 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import React, { useEffect } from "react";
@@ -18,11 +19,55 @@ export default function SplashScreen() {
   const router = useRouter();
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      router.replace("/welcome");
-    }, 2400);
+    let isMounted = true;
 
-    return () => clearTimeout(timer);
+    const checkSessionAndNavigate = async () => {
+      const startTime = Date.now();
+      let targetRoute = "/welcome";
+
+      try {
+        const token =
+          (await AsyncStorage.getItem("katokkalinis_token")) ||
+          (await AsyncStorage.getItem("authToken"));
+        const role = await AsyncStorage.getItem("userRole");
+
+        if (token && role) {
+          switch (role) {
+            case "driver":
+              targetRoute = "/driver/dashboard";
+              break;
+            case "inspector":
+              targetRoute = "/inspector/dashboard";
+              break;
+            case "vendor":
+              targetRoute = "/vendor";
+              break;
+            case "resident":
+            default:
+              targetRoute = "/dashboard";
+              break;
+          }
+        }
+      } catch (err) {
+        console.warn("Session check error:", err);
+      }
+
+      // Preserve branded splash animation duration (minimum 1800ms)
+      const elapsed = Date.now() - startTime;
+      const remaining = Math.max(0, 1800 - elapsed);
+
+      setTimeout(() => {
+        if (isMounted) {
+          router.replace(targetRoute);
+        }
+      }, remaining);
+    };
+
+    checkSessionAndNavigate();
+
+    return () => {
+      isMounted = false;
+    };
   }, [router]);
 
   return (

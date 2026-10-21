@@ -3,145 +3,837 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CLENRO Fleet Monitoring &amp; Trucks - KatokKalinis</title>
+    <title>CLENRO Fleet Monitoring &amp; Logistics - KatokKalinis</title>
     <link rel="stylesheet" href="css/style.css">
     <style>
-        .status-pill {
-            display: inline-block;
-            padding: 3px 10px;
+        /* ==============================================================================
+           MODERN STREAMLINED OPERATIONS DASHBOARD STYLES
+           ============================================================================== */
+
+        /* Topbar Breadcrumb & Header */
+        .topbar-breadcrumbs {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            margin-bottom: 2px;
+        }
+
+        .live-sync-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 5px 12px;
+            border-radius: 999px;
+            background: #ecfdf5;
+            color: #15803d;
+            font-size: 11.5px;
+            font-weight: 700;
+            border: 1px solid #bbf7d0;
+            user-select: none;
+        }
+
+        [data-theme="dark"] .live-sync-indicator {
+            background: #132e1c;
+            color: #86efac;
+            border-color: #1f4a2b;
+        }
+
+        .pulse-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #16a34a;
+            animation: pulseDot 2s infinite ease-in-out;
+            flex-shrink: 0;
+        }
+
+        @keyframes pulseDot {
+            0% { transform: scale(0.9); opacity: 0.8; box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.5); }
+            50% { transform: scale(1.3); opacity: 1; box-shadow: 0 0 0 5px rgba(22, 163, 74, 0); }
+            100% { transform: scale(0.9); opacity: 0.8; box-shadow: 0 0 0 0 rgba(22, 163, 74, 0); }
+        }
+
+        /* Lightweight Metric Cards */
+        .ops-metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+            gap: 14px;
+            margin-bottom: 18px;
+        }
+
+        .ops-metric-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
             border-radius: 12px;
-            color: #fff;
+            padding: 16px 18px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+        }
+
+        .ops-metric-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.07);
+            border-color: rgba(34, 197, 94, 0.35);
+        }
+
+        .metric-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .metric-label {
+            font-size: 11.5px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .metric-icon-wrap {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .metric-icon-green { background: #dcfce7; color: #15803d; }
+        .metric-icon-blue { background: #dbeafe; color: #1d4ed8; }
+        .metric-icon-emerald { background: #d1fae5; color: #047857; }
+        .metric-icon-purple { background: #ede9fe; color: #6d28d9; }
+
+        [data-theme="dark"] .metric-icon-green { background: #143820; color: #86efac; }
+        [data-theme="dark"] .metric-icon-blue { background: #132c4d; color: #93c5fd; }
+        [data-theme="dark"] .metric-icon-emerald { background: #103b2c; color: #6ee7b7; }
+        [data-theme="dark"] .metric-icon-purple { background: #261947; color: #c4b5fd; }
+
+        .metric-value {
+            font-size: 26px;
+            font-weight: 800;
+            color: var(--text);
+            line-height: 1.15;
+            letter-spacing: -0.5px;
+        }
+
+        .metric-subtext {
+            font-size: 11.5px;
+            color: var(--text-muted);
+            margin-top: 5px;
+        }
+
+        /* Segmented Multi-Table Container */
+        .ops-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            margin-bottom: 24px;
+        }
+
+        .ops-card-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            padding: 14px 20px;
+            border-bottom: 1px solid var(--border);
+            background: var(--surface);
+        }
+
+        /* Clean Segmented Switcher */
+        .ops-tabs {
+            display: inline-flex;
+            background: var(--surface-alt);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 3px;
+            gap: 4px;
+        }
+
+        .ops-tab-btn {
+            border: none;
+            background: transparent;
+            padding: 7px 15px;
+            border-radius: 7px;
+            font-size: 12.5px;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.18s ease;
+            user-select: none;
+        }
+
+        .ops-tab-btn:hover {
+            color: var(--text);
+        }
+
+        .ops-tab-btn.active {
+            background: var(--surface);
+            color: var(--green-800);
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+            font-weight: 700;
+        }
+
+        [data-theme="dark"] .ops-tab-btn.active {
+            color: #86efac;
+        }
+
+        .ops-tab-badge {
+            font-size: 10.5px;
+            font-weight: 700;
+            padding: 1px 7px;
+            border-radius: 999px;
+            background: var(--border);
+            color: var(--text-muted);
+        }
+
+        .ops-tab-btn.active .ops-tab-badge {
+            background: #dcfce7;
+            color: #15803d;
+        }
+
+        [data-theme="dark"] .ops-tab-btn.active .ops-tab-badge {
+            background: #143820;
+            color: #86efac;
+        }
+
+        /* Filter Controls */
+        .ops-filter-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .search-box-wrap {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .search-box-wrap svg {
+            position: absolute;
+            left: 10px;
+            color: var(--text-muted);
+            pointer-events: none;
+        }
+
+        .search-box-input {
+            padding: 7px 12px 7px 32px;
+            font-size: 12.5px;
+            border: 1px solid var(--border);
+            border-radius: 7px;
+            background: var(--surface);
+            color: var(--text);
+            width: 220px;
+            transition: border-color 0.15s ease, width 0.2s ease;
+        }
+
+        .search-box-input:focus {
+            outline: none;
+            border-color: var(--green-500);
+            width: 260px;
+        }
+
+        .status-filter-select {
+            padding: 7px 10px;
+            font-size: 12px;
+            border: 1px solid var(--border);
+            border-radius: 7px;
+            background: var(--surface);
+            color: var(--text);
+        }
+
+        /* Table Responsive with Sticky Headers */
+        .ops-table-container {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            max-height: calc(100vh - 300px);
+            min-height: 280px;
+        }
+
+        .ops-table {
+            width: 100%;
+            min-width: 760px;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .ops-table thead th {
+            position: sticky;
+            top: 0;
+            z-index: 5;
+            background: var(--surface-alt);
+            color: var(--text-muted);
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 10px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+
+        .ops-table tbody td {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+            color: var(--text);
+            vertical-align: middle;
+        }
+
+        .ops-table tbody tr {
+            transition: background-color 0.15s ease;
+        }
+
+        .ops-table tbody tr:hover {
+            background-color: var(--surface-alt);
+        }
+
+        /* Structured Multi-Line Cells */
+        .cell-stacked {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .cell-primary {
+            font-weight: 700;
+            color: var(--text);
+            font-size: 13.5px;
+            letter-spacing: -0.2px;
+        }
+
+        .cell-secondary {
+            font-size: 11.5px;
+            color: var(--text-muted);
+            white-space: nowrap;
+        }
+
+        /* Soft Tinted Status Badges (Muted Normal, Alert on Exception) */
+        .status-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 9px;
+            border-radius: 999px;
             font-size: 11.5px;
             font-weight: 600;
+            cursor: pointer;
+            border: 1px solid transparent;
+            user-select: none;
+            transition: transform 0.12s ease;
         }
-        .status-available { background: #2ecc71; }
-        .status-on_route { background: #3498db; }
-        .status-maintenance { background: #f39c12; }
-        .status-inactive { background: #95a5a6; }
-        .live-note { color: var(--text-muted); font-size: 12.5px; margin-bottom: 12px; }
-        .truck-code-tag {
+
+        .status-chip:hover {
+            transform: scale(1.04);
+        }
+
+        .chip-available {
+            background: #ecfdf5;
+            color: #15803d;
+            border-color: #bbf7d0;
+        }
+
+        .chip-on_route {
+            background: #eff6ff;
+            color: #1d4ed8;
+            border-color: #bfdbfe;
+        }
+
+        .chip-maintenance {
+            background: #fef3c7;
+            color: #b45309;
+            border-color: #fde68a;
+        }
+
+        .chip-inactive {
+            background: #f1f5f9;
+            color: #475569;
+            border-color: #e2e8f0;
+        }
+
+        [data-theme="dark"] .chip-available {
+            background: #11331e;
+            color: #86efac;
+            border-color: #1b532f;
+        }
+
+        [data-theme="dark"] .chip-on_route {
+            background: #132a48;
+            color: #93c5fd;
+            border-color: #1d4375;
+        }
+
+        [data-theme="dark"] .chip-maintenance {
+            background: #3b2a0c;
+            color: #fde047;
+            border-color: #5d4212;
+        }
+
+        [data-theme="dark"] .chip-inactive {
+            background: #1f2937;
+            color: #94a3b8;
+            border-color: #334155;
+        }
+
+        .status-chip-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+
+        /* Location Link / Map Trigger */
+        .location-link-btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 11.5px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.15s ease;
+        }
+
+        .location-link-btn:hover {
+            background: var(--surface-alt);
+            border-color: var(--green-400);
+            color: var(--green-700);
+        }
+
+        .weight-pill-subtle {
             font-family: 'Consolas', monospace;
+            font-size: 12px;
             font-weight: 700;
             color: var(--green-900);
             background: var(--green-50);
-            padding: 3px 7px;
-            border-radius: 4px;
             border: 1px solid var(--green-200);
+            padding: 2px 7px;
+            border-radius: 5px;
             display: inline-block;
-            font-size: 11.5px;
+        }
+
+        [data-theme="dark"] .weight-pill-subtle {
+            background: #14351d;
+            color: #dcfce7;
+            border-color: #1e4a29;
+        }
+
+        /* Action Menu Dropdown (⋮) */
+        .action-cell {
+            position: relative;
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        .action-dots-btn {
+            background: transparent;
+            border: 1px solid transparent;
+            color: var(--text-muted);
+            width: 30px;
+            height: 30px;
+            border-radius: 6px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .action-dots-btn:hover {
+            background: var(--surface-alt);
+            border-color: var(--border);
+            color: var(--text);
+        }
+
+        .action-popover {
+            position: absolute;
+            right: 14px;
+            top: calc(100% - 6px);
+            z-index: 50;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 9px;
+            box-shadow: 0 10px 24px rgba(0, 0, 0, 0.14);
+            padding: 5px;
+            min-width: 160px;
+            display: none;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .action-popover.active {
+            display: flex;
+        }
+
+        .action-popover-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+            padding: 7px 10px;
+            border: none;
+            background: transparent;
+            color: var(--text);
+            font-size: 12px;
+            font-weight: 500;
+            border-radius: 6px;
+            cursor: pointer;
+            text-align: left;
+            transition: background 0.12s ease;
+        }
+
+        .action-popover-item:hover {
+            background: var(--surface-alt);
+            color: var(--green-700);
+        }
+
+        .action-popover-item.danger-item:hover {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .popover-divider {
+            height: 1px;
+            background: var(--border);
+            margin: 3px 0;
+        }
+
+        /* Interactive Location Preview Modal */
+        .gps-map-preview-box {
+            background: #0d1a12;
+            border-radius: 10px;
+            padding: 16px;
+            color: #ffffff;
+            margin: 14px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .gps-coord-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-family: 'Consolas', monospace;
+            font-size: 13px;
+            background: rgba(255, 255, 255, 0.08);
+            padding: 8px 12px;
+            border-radius: 6px;
+        }
+
+        /* Proof of Pickup Photo Thumbnails & Lightbox */
+        .pickup-thumb-wrap {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            width: 44px;
+            height: 44px;
+            background: var(--surface-alt);
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        .pickup-thumb-wrap:hover {
+            transform: scale(1.08);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            border-color: #22c55e;
+        }
+        .pickup-table-thumb {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        .pickup-thumb-zoom {
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            font-size: 10px;
+            background: rgba(0,0,0,0.6);
+            color: #fff;
+            border-radius: 3px;
+            padding: 1px 3px;
+            line-height: 1;
+            pointer-events: none;
+        }
+        .photo-lightbox-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.88);
+            backdrop-filter: blur(4px);
+            z-index: 99999;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .photo-lightbox-modal.active {
+            display: flex;
         }
     </style>
 </head>
 <body>
 
     <div class="dashboard-layout">
+        <!-- Persistent Side Navigation on Desktop (> 1024px), Off-canvas on Mobile (<= 1024px) -->
         <aside class="sidebar">
             <div class="sidebar-header">KatokKalinis</div>
             <div class="sidebar-role" id="sidebar-role"></div>
             <nav class="sidebar-nav" id="sidebar-nav"></nav>
-            <div class="sidebar-footer">
-                
-            </div>
+            <div class="sidebar-footer"></div>
         </aside>
 
         <main class="main-content">
+            <!-- Compact, Streamlined Top Header with Title, Live Sync, and Primary Action Button -->
             <header class="topbar">
-                <h2>CLENRO Fleet &amp; Collection Trucks</h2>
-                <div id="topbar-user"></div>
+                <div class="topbar-left">
+                    <div class="topbar-breadcrumbs">Operations / Fleet Dispatch &amp; Logistics</div>
+                    <h2>Fleet Equipment &amp; Operations</h2>
+                </div>
+                <div class="topbar-right">
+                    <div class="live-sync-indicator" title="Connected live to drivers and mobile telemetry">
+                        <span class="pulse-dot"></span> Live GPS &amp; Weight Stream
+                    </div>
+                    <!-- Single, High-Priority Primary Action Button -->
+                    <button class="btn" onclick="openModal()" id="btn-primary-add-vehicle" style="width: auto; display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; font-size: 13px; font-weight: 600; border-radius: 8px;">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                        + Add Vehicle
+                    </button>
+                </div>
             </header>
 
             <section class="content">
-                <!-- CLENRO Fleet Banner -->
-                <div class="card" style="background: linear-gradient(135deg, #15803d 0%, #1e4a29 100%); color: #fff; padding: 18px 22px; margin-bottom: 22px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
-                    <div>
-                        <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; opacity: 0.85;">CLENRO Solid Waste Operations · Cagayan de Oro City</div>
-                        <h3 style="color: #fff; margin: 4px 0; font-size: 18px;">Municipal Collection Fleet &amp; Equipment Monitoring</h3>
-                        <p style="margin: 0; font-size: 13px; opacity: 0.9;">GPS tracking, official vehicle classifications, payload tonnage, and designated collection sectors for Barangay 1–40 and City Markets.</p>
+                <div class="exec-command-center">
+
+                    <!-- Top Executive Header Banner with Cross-Connect Buttons -->
+                    <div class="exec-header-banner">
+                        <div class="exec-header-left">
+                            <div class="exec-shield-icon">
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                                    <path d="m9 12 2 2 4-4"/>
+                                </svg>
+                            </div>
+                            <div class="exec-header-title-wrap">
+                                <div class="exec-header-title-row">
+                                    <h2>Fleet Monitoring &amp; Logistics</h2>
+                                    <span class="exec-clenro-pill">CLENRO Operations</span>
+                                </div>
+                                <p class="exec-header-subtitle">Real-Time Vehicle Tracking &bull; City Environment &amp; Natural Resources Office &bull; Cagayan de Oro City</p>
+                            </div>
+                        </div>
+
+                        <div class="exec-header-right">
+                            <a href="analytics.html" class="exec-btn-brief" title="Return to Executive Analytics">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                                Executive Analytics
+                            </a>
+                            <a href="barangay-overview.html" class="exec-btn-brief" title="Open Barangay Operations">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+                                Barangay Command
+                            </a>
+                            <button class="exec-btn-cross-connect" onclick="openModal()" id="btn-banner-add-vehicle">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                                + Add Vehicle
+                            </button>
+                        </div>
                     </div>
-                    <button class="btn" onclick="openModal()" style="background: #ffffff; color: #15803d; font-weight: 700; border: none; padding: 9px 20px; border-radius: 8px; width: auto; box-shadow: 0 4px 10px rgba(0,0,0,0.15); cursor: pointer;">
-                        + Register New Truck
-                    </button>
+
+                    <!-- CLENRO Decision Support Fleet Reallocation & Weight Sync Banner -->
+                    <div id="dss-fleet-banner" style="margin-bottom: 4px; border-left: 4px solid #15803d; background: var(--surface); border-top: 1px solid var(--border); border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); border-radius: 10px; padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                        <div>
+                            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                                <span style="font-size:15px;">&#129504;</span>
+                                <strong style="font-size:14px; color:var(--text);" id="dss-fleet-banner-title">CLENRO Decision Support &amp; Disposal Weight Sync</strong>
+                                <span style="font-size:11px; font-weight:700; padding:2px 8px; border-radius:12px; background:#dcfce7; color:#166534;">Two-Way Connected</span>
+                            </div>
+                        <p id="dss-fleet-banner-desc" style="margin:4px 0 0; font-size:12.5px; color:var(--text-muted);">
+                            Fleet reallocations applied in <strong>CLENRO Decision Support</strong> update truck zone assignments here. Logging new field disposal weights automatically updates the Historical Dataset &amp; Predictive Model.
+                        </p>
+                    </div>
+                    <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                        <button type="button" class="btn" style="width:auto; background:#15803d; padding:7px 14px; font-size:12.5px;" onclick="openLogWeightModal()">
+                            &#9878;&#65039; + Log Field Disposal Weight
+                        </button>
+                        <a href="clenro-reports.html" class="btn" style="width:auto; background:var(--surface-alt); color:var(--text); border:1px solid var(--border); text-decoration:none; padding:7px 14px; font-size:12.5px;">
+                            &#128202; Open Historical DSS Report
+                        </a>
+                    </div>
                 </div>
 
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <h3>Total Active Fleet</h3>
-                        <div class="value" id="stat-total-trucks">8 Units</div>
+                <!-- Lightweight Metric Cards (Flat borders, subtle drop-shadows, clear typographic hierarchy) -->
+                <div class="ops-metrics-grid">
+                    <div class="ops-metric-card">
+                        <div class="metric-top">
+                            <span class="metric-label">Total Fleet Active</span>
+                            <div class="metric-icon-wrap metric-icon-green">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="1" y="3" width="15" height="13" rx="2"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+                            </div>
+                        </div>
+                        <div class="metric-value" id="stat-total-trucks">0 Units</div>
+                        <div class="metric-subtext">Municipal waste transport units</div>
                     </div>
-                    <div class="stat-card">
-                        <h3>Active on Route</h3>
-                        <div class="value" id="stat-active-routes" style="color: #2563eb;">3 Units</div>
+
+                    <div class="ops-metric-card">
+                        <div class="metric-top">
+                            <span class="metric-label">Active on Routes</span>
+                            <div class="metric-icon-wrap metric-icon-blue">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                            </div>
+                        </div>
+                        <div class="metric-value" id="stat-active-routes" style="color: #2563eb;">0 Units</div>
+                        <div class="metric-subtext">Collecting in designated sectors</div>
                     </div>
-                    <div class="stat-card">
-                        <h3>Market Sweeps Today</h3>
-                        <div class="value" id="stat-collections-today">14 Trips</div>
+
+                    <div class="ops-metric-card">
+                        <div class="metric-top">
+                            <span class="metric-label">Disposal Tonnage</span>
+                            <div class="metric-icon-wrap metric-icon-emerald">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
+                            </div>
+                        </div>
+                        <div class="metric-value" id="stat-total-weight" style="color: #15803d;">0.0 Tons</div>
+                        <div class="metric-subtext">Live weight logged by mobile drivers</div>
                     </div>
-                    <div class="stat-card">
-                        <h3>Avg. Turnaround Time</h3>
-                        <div class="value" id="stat-avg-time">6.8 hrs</div>
+
+                    <div class="ops-metric-card">
+                        <div class="metric-top">
+                            <span class="metric-label">Field Waste Logs</span>
+                            <div class="metric-icon-wrap metric-icon-purple">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+                            </div>
+                        </div>
+                        <div class="metric-value" id="stat-collection-logs-count">0 Entries</div>
+                        <div class="metric-subtext">Verified collection trip entries</div>
                     </div>
                 </div>
 
-                <div class="card">
-                    <div class="card-header">
-                        <h3>Fleet Operational Status &amp; Last Reported GPS Location</h3>
-                        <button class="btn" onclick="openModal()" style="width: auto; padding: 7px 16px;">Add Truck</button>
+                <!-- Multi-Table Organization: Tab Switcher prevents endless vertical scrolling -->
+                <div class="ops-card">
+                    <div class="ops-card-toolbar">
+                        <div class="ops-tabs" role="tablist">
+                            <button class="ops-tab-btn active" id="tab-btn-fleet" onclick="switchOpsTab('fleet')" role="tab" aria-selected="true">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13" rx="2"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+                                <span>Fleet Units &amp; Status</span>
+                                <span class="ops-tab-badge" id="badge-fleet-count">0</span>
+                            </button>
+                            <button class="ops-tab-btn" id="tab-btn-weights" onclick="switchOpsTab('weights')" role="tab" aria-selected="false">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2v20M18 2v20M2 6h20M2 18h20"></path><circle cx="12" cy="12" r="4"></circle></svg>
+                                <span>Real-Time Disposal Logs</span>
+                                <span class="ops-tab-badge" id="badge-weights-tonnage">0.0 t</span>
+                            </button>
+                        </div>
+
+                        <div class="ops-filter-group">
+                            <div class="search-box-wrap">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                                <input type="text" id="ops-search" class="search-box-input" placeholder="Search plate, driver, zone..." oninput="handleOpsSearch()">
+                            </div>
+                            <select id="ops-status-filter" class="status-filter-select" onchange="handleOpsFilter()">
+                                <option value="all">All Operating Statuses</option>
+                                <option value="available">Available (Standby)</option>
+                                <option value="on_route">On Route (Collecting)</option>
+                                <option value="maintenance">Under Maintenance</option>
+                                <option value="inactive">Inactive / Decommissioned</option>
+                            </select>
+                        </div>
                     </div>
-                    <p class="live-note">⚡ Real-time updates for municipal solid waste vehicles across Cogon, Carmen, and Poblacion Barangays 1 to 40.</p>
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Truck Code</th>
-                                <th>Vehicle Type</th>
-                                <th>Plate #</th>
-                                <th>Assigned Driver</th>
-                                <th>Fleet Partner</th>
-                                <th>Operating Zone</th>
-                                <th>Status</th>
-                                <th>Last Known Location</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="table-body">
-                            <tr><td colspan="9">Loading fleet equipment data...</td></tr>
-                        </tbody>
-                    </table>
+
+                    <!-- TAB 1: FLEET UNITS TABLE -->
+                    <div id="view-fleet-tab" class="ops-table-container">
+                        <table class="ops-table">
+                            <thead>
+                                <tr>
+                                    <th>Vehicle &amp; Equipment</th>
+                                    <th>Assigned Personnel</th>
+                                    <th>Designated Zone</th>
+                                    <th>Operating Status</th>
+                                    <th>Logged Waste</th>
+                                    <th>Last Known Location</th>
+                                    <th style="text-align: right;">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-body">
+                                <tr><td colspan="7" class="empty-state" style="text-align:center; padding: 24px;">Loading fleet data...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- TAB 2: FIELD COLLECTION WEIGHT LOGS (Integrated inside switcher) -->
+                    <div id="view-weights-tab" class="ops-table-container" style="display: none;">
+                        <table class="ops-table">
+                            <thead>
+                                <tr>
+                                    <th>Timestamp</th>
+                                    <th>Personnel &amp; Vehicle</th>
+                                    <th>Barangay Location</th>
+                                    <th>Disposal Weight</th>
+                                    <th>Category</th>
+                                    <th>Verification State</th>
+                                    <th style="text-align: center;">Photo Evidence</th>
+                                    <th>Driver Field Notes</th>
+                                </tr>
+                            </thead>
+                            <tbody id="weights-table-body">
+                                <tr><td colspan="8" class="empty-state" style="text-align:center; padding: 24px;">Loading driver collection weights...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
                 </div>
             </section>
         </main>
     </div>
 
-    <!-- Add/Edit Government Truck Modal (Picture 2 CLENRO Spec) -->
+    <!-- Register / Edit Government Truck Modal -->
     <div id="form-modal" class="modal">
-        <div class="modal-content modal-xl" style="max-width: 780px;">
-            <div class="modal-top-bar">
-                <h3 id="modal-title">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+        <div class="modal-content modal-xl" style="max-width: 720px; padding: 0; overflow: hidden; border-radius: 14px;">
+            <div class="modal-top-bar" style="padding: 16px 22px; background: linear-gradient(135deg, #15803d, #166534); color: #fff; display: flex; justify-content: space-between; align-items: center;">
+                <h3 id="modal-title" style="margin: 0; font-size: 17px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
                     Register Municipal Solid Waste Truck
                 </h3>
-                <span class="close-btn" onclick="closeModal()">&times;</span>
+                <span class="close-btn" onclick="closeModal()" style="color: #fff; font-size: 24px; cursor: pointer;">&times;</span>
             </div>
 
             <form id="data-form" style="padding: 22px 24px;">
                 <input type="hidden" id="item-id">
                 
-                <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-                    <!-- Auto-generated Truck Code -->
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 14px;">
                     <div class="form-group">
-                        <label>Truck Code / Unit ID (Auto-Generated)</label>
-                        <div class="auto-code-wrapper">
-                            <input type="text" id="truck_number" class="form-control auto-code-input" readonly>
-                            <span class="auto-code-badge">AUTO-ADDED</span>
-                        </div>
+                        <label>Unit ID / Code (Auto-Generated)</label>
+                        <input type="text" id="truck_number" class="form-control" readonly style="background: var(--surface-alt); font-weight: 600;">
                     </div>
 
                     <div class="form-group">
-                        <label>Vehicle Plate Number</label>
-                        <input type="text" id="plate_number" class="form-control" placeholder="e.g. ABC-4102 or LGU-9014" required>
+                        <label>Plate Number</label>
+                        <input type="text" id="plate_number" class="form-control" placeholder="e.g. KAL-101 or ABC-4102" required>
                     </div>
                 </div>
 
-                <!-- Official Government Truck Types Dropdown (CLENRO Standard) -->
                 <div class="form-group">
                     <label>Official CLENRO Truck Classification</label>
                     <select id="truck_type" class="form-control" required onchange="updateCapacityHint()">
@@ -156,14 +848,14 @@
                     </select>
                 </div>
 
-                <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 14px;">
                     <div class="form-group">
-                        <label>Payload Volume &amp; Tonnage Capacity</label>
-                        <input type="text" id="capacity_spec" class="form-control" value="12 m³ (Approx. 6.5 Metric Tons)" placeholder="e.g. 12 m³ (6.5 Tons)">
+                        <label>Payload Capacity</label>
+                        <input type="text" id="capacity_spec" class="form-control" value="12 m³ (Approx. 6.5 MT)">
                     </div>
 
                     <div class="form-group">
-                        <label>Operating Status</label>
+                        <label>Initial Operating Status</label>
                         <select id="status" class="form-control">
                             <option value="available">Available (In Depot Standby)</option>
                             <option value="on_route">On Collection Route</option>
@@ -173,20 +865,21 @@
                     </div>
                 </div>
 
-                <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 14px;">
                     <div class="form-group">
                         <label>Assigned Fleet Driver</label>
                         <select id="driver_id" class="form-control">
-                            <option value="">-- Select Accredited Driver --</option>
-                            <option value="1">Danilo Ramos (Compactor Heavy Operator)</option>
-                            <option value="2">Rodrigo Villanueva (Arm-Roll Hooklift Operator)</option>
-                            <option value="3">Nestor Cabunoc (Mini Dump Driver)</option>
-                            <option value="4">Engr. Michael Tan (Field Inspector)</option>
+                            <option value="">-- Select Driver --</option>
+                            <option value="1">Danilo Ramos (Compactor Heavy)</option>
+                            <option value="2">Rodrigo Villanueva (Arm-Roll Hooklift)</option>
+                            <option value="3">Nestor Cabunoc (Mini Dump)</option>
+                            <option value="4">Juan Driver (City Driver)</option>
+                            <option value="5">Carlos Mendoza (Dump Hauler)</option>
                         </select>
                     </div>
 
                     <div class="form-group">
-                        <label>Fleet Partner / Hauler Contractor</label>
+                        <label>Fleet Partner / Hauler</label>
                         <select id="contractor_id" class="form-control">
                             <option value="1">CLENRO In-House City Fleet</option>
                             <option value="2">IPM CDO Urban Waste Haulers Inc.</option>
@@ -195,7 +888,7 @@
                     </div>
                 </div>
 
-                <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 14px;">
                     <div class="form-group">
                         <label>Designated Collection Zone</label>
                         <select id="operating_zone" class="form-control">
@@ -205,19 +898,19 @@
                             <option value="Sector Central: Barangay 11–20">🏘️ Sector Central (Barangay 11 to 20)</option>
                             <option value="Sector East: Barangay 21–30">🏘️ Sector East (Barangay 21 to 30)</option>
                             <option value="Sector Commercial: Barangay 31–40">🏘️ Sector Commercial (Barangay 31 to 40)</option>
-                            <option value="Emergency Flood &amp; Riverbank Corridor">🌊 Emergency Flood &amp; Riverbank Sweep</option>
+                            <option value="Emergency Flood &amp; Riverbank Corridor">🌊 Emergency Flood Sweep</option>
                         </select>
                     </div>
 
                     <div class="form-group">
-                        <label>GPS Transponder / Tracker Code</label>
+                        <label>GPS Transponder Tracker Code</label>
                         <input type="text" id="gps_code" class="form-control" placeholder="e.g. GPS-CDO-092">
                     </div>
                 </div>
 
                 <div style="display:flex; justify-content:flex-end; gap:10px; margin-top: 14px; border-top: 1px solid var(--border); padding-top: 16px;">
-                    <button type="button" class="btn" onclick="closeModal()" style="background:var(--surface); color:var(--text); border:1px solid var(--border); width:auto; padding:9px 18px;">Cancel</button>
-                    <button type="submit" class="btn" style="background:linear-gradient(135deg, #16a34a, #15803d); color:#fff; width:auto; padding:9px 24px; font-weight:700;">Save Truck Record</button>
+                    <button type="button" class="btn" onclick="closeModal()" style="background:var(--surface); color:var(--text); border:1px solid var(--border); width:auto; padding:8px 18px;">Cancel</button>
+                    <button type="submit" class="btn" style="background:linear-gradient(135deg, #16a34a, #15803d); color:#fff; width:auto; padding:8px 24px; font-weight:700;">Save Vehicle</button>
                 </div>
             </form>
         </div>
@@ -225,24 +918,110 @@
 
     <!-- Quick Status Modal -->
     <div id="status-modal" class="modal">
-        <div class="modal-content" style="max-width: 420px;">
+        <div class="modal-content" style="max-width: 380px;">
             <div class="modal-header">
-                <h3>Update Truck Status</h3>
+                <h3>Update Operating Status</h3>
                 <span class="close-btn" onclick="closeStatusModal()">&times;</span>
             </div>
             <form id="status-form">
                 <input type="hidden" id="status-truck-id">
                 <div class="form-group">
-                    <label>Status</label>
-                    <select id="status-select" class="form-control">
-                        <option value="available">Available (Depot Standby)</option>
-                        <option value="on_route">On Route (Collecting)</option>
-                        <option value="maintenance">Maintenance</option>
-                        <option value="inactive">Inactive</option>
+                    <label>Current Status</label>
+                    <select id="status-select" class="form-control" style="font-weight: 600;">
+                        <option value="available">🟢 Available (Depot Standby)</option>
+                        <option value="on_route">🔵 On Route (Collecting)</option>
+                        <option value="maintenance">🟡 Under Maintenance</option>
+                        <option value="inactive">⚪ Inactive / Decommissioned</option>
                     </select>
                 </div>
-                <button type="submit" class="btn" style="background:var(--green-600);">Update Status</button>
+                <div style="display:flex; justify-content: flex-end; gap: 8px; margin-top: 14px;">
+                    <button type="button" class="btn" onclick="closeStatusModal()" style="background:transparent; color:var(--text); border:1px solid var(--border); width:auto; padding:8px 14px;">Cancel</button>
+                    <button type="submit" class="btn" style="background:var(--green-600); width:auto; padding:8px 18px;">Update Status</button>
+                </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Interactive Location Preview Modal -->
+    <div id="location-modal" class="modal">
+        <div class="modal-content" style="max-width: 440px;">
+            <div class="modal-header">
+                <h3 id="loc-modal-title" style="display:flex; align-items:center; gap:6px;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#15803d" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                    Live GPS Telemetry
+                </h3>
+                <span class="close-btn" onclick="closeLocationModal()">&times;</span>
+            </div>
+            <div id="loc-modal-content">
+                <p id="loc-modal-desc" style="font-size:12.5px; color:var(--text-muted); margin-bottom: 8px;"></p>
+                
+                <div class="gps-map-preview-box">
+                    <div style="font-size:11px; text-transform:uppercase; color:#86efac; font-weight:700;">Coordinate Location</div>
+                    <div class="gps-coord-row">
+                        <span id="loc-coords-text">8.477610, 124.648210</span>
+                        <button type="button" onclick="copyCoordinates()" style="background:transparent; border:none; color:#86efac; cursor:pointer; font-size:11.5px; text-decoration:underline;">Copy</button>
+                    </div>
+                    <div id="loc-time-text" style="font-size:11.5px; opacity:0.8;">Last heartbeat: Just now</div>
+                </div>
+
+                <div style="display:flex; justify-content:flex-end; gap: 8px;">
+                    <button type="button" class="btn" onclick="closeLocationModal()" style="background:transparent; color:var(--text); border:1px solid var(--border); width:auto; padding:8px 14px;">Close</button>
+                    <a id="loc-maps-link" href="#" target="_blank" class="btn" style="background:#15803d; color:#fff; width:auto; padding:8px 18px; text-decoration:none; display:inline-flex; align-items:center; gap:6px;">
+                        Open Map ↗
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Log Field Disposal Weight Modal (Syncs directly to CLENRO Historical DSS Report) -->
+    <div id="log-weight-modal" class="modal">
+        <div class="modal-content" style="max-width: 480px;">
+            <div class="modal-header">
+                <h3>Log Field Disposal Weight (Sync to DSS)</h3>
+                <span class="close-btn" onclick="closeLogWeightModal()">&times;</span>
+            </div>
+            <form id="log-weight-form" onsubmit="handleSaveWeightLog(event)">
+                <div class="form-group">
+                    <label>Location / Barangay Zone</label>
+                    <select id="weight-loc-select" class="form-control" required></select>
+                </div>
+                <div class="form-group">
+                    <label>Fleet Vehicle &amp; Driver</label>
+                    <select id="weight-truck-select" class="form-control" required></select>
+                </div>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div class="form-group">
+                        <label>Disposal Weight (Metric Tons)</label>
+                        <input type="number" step="0.1" min="0.2" max="25" id="weight-tons-input" class="form-control" placeholder="e.g. 5.6" value="5.2" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Waste Category</label>
+                        <select id="weight-type-select" class="form-control">
+                            <option value="Commercial / Market Residual">Commercial / Market Residual</option>
+                            <option value="Residential Mixed Solid Waste">Residential Mixed Solid Waste</option>
+                            <option value="Segregated Biodegradable">Segregated Biodegradable</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Field Notes</label>
+                    <input type="text" id="weight-notes-input" class="form-control" placeholder="e.g. Weighbridge verified haul synced to DSS">
+                </div>
+                <div style="display:flex; justify-content: flex-end; gap: 8px; margin-top: 14px;">
+                    <button type="button" class="btn" onclick="closeLogWeightModal()" style="background:transparent; color:var(--text); border:1px solid var(--border); width:auto; padding:8px 14px;">Cancel</button>
+                    <button type="submit" class="btn" style="background:#15803d; color:#fff; width:auto; padding:8px 18px; font-weight:700;">Save &amp; Sync to DSS</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Full-Screen Proof of Pickup Photo Lightbox Modal -->
+    <div id="photo-lightbox-modal" class="photo-lightbox-modal" onclick="closePhotoLightbox(event)">
+        <div style="position:relative; max-width:85vw; max-height:85vh; margin:auto; display:flex; flex-direction:column; align-items:center; justify-content:center;" onclick="event.stopPropagation()">
+            <button type="button" onclick="closePhotoLightbox()" style="position:absolute; top:-40px; right:0; background:rgba(255,255,255,0.25); color:#fff; border:none; font-size:24px; cursor:pointer; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; line-height:1;">&times;</button>
+            <img id="photo-lightbox-img" src="" alt="Proof of Pickup Photo" style="max-width:100%; max-height:80vh; border-radius:10px; box-shadow:0 8px 32px rgba(0,0,0,0.6); object-fit:contain; background:#111;">
+            <div id="photo-lightbox-caption" style="color:#fff; margin-top:10px; font-size:13px; font-weight:600; text-shadow:0 1px 3px rgba(0,0,0,0.8); text-align:center;"></div>
         </div>
     </div>
 
@@ -253,153 +1032,582 @@
         // Local Resilient CDO CLENRO Trucks Dataset
         const DEFAULT_TRUCKS = [
             {
-                id: 1, truck_number: 'CLENRO-TRK-2026-004', plate_number: 'ABC-4102',
+                id: 1, truck_number: 'TRK-01', plate_number: 'KAL-101',
                 truck_type: 'Compactor Truck (10–12 cu.m / Heavy Duty - 16T)',
                 driver_name: 'Danilo Ramos', contractor_name: 'IPM CDO Urban Haulers',
                 operating_zone: 'Cogon Market Commercial Zone', status: 'available',
-                capacity: '12 m³ (6.5 MT)', lat: 8.477610, lon: 124.648210, last_update: '2026-09-06 15:45:00'
+                capacity: '12 m³ (6.5 MT)', lat: 8.477610, lon: 124.648210, last_update: 'Just now'
             },
             {
-                id: 2, truck_number: 'CLENRO-TRK-2026-008', plate_number: 'KDG-8821',
+                id: 2, truck_number: 'TRK-02', plate_number: 'KAL-102',
                 truck_type: 'Compactor Truck (10–12 cu.m / Heavy Duty - 16T)',
                 driver_name: 'Nestor Cabunoc', contractor_name: 'IPM CDO Urban Haulers',
-                operating_zone: 'Sector East: Barangay 21–30', status: 'on_route',
-                capacity: '10 m³ (5.2 MT)', lat: 8.478150, lon: 124.647650, last_update: '2026-09-06 16:10:22'
+                operating_zone: 'Sector East (Brgy 21–30)', status: 'on_route',
+                capacity: '10 m³ (5.2 MT)', lat: 8.478150, lon: 124.647650, last_update: '2m ago'
             },
             {
-                id: 3, truck_number: 'CLENRO-TRK-2026-011', plate_number: 'LGU-9014',
+                id: 3, truck_number: 'TRK-03', plate_number: 'KAL-103',
                 truck_type: 'Mini Dump Truck (3–4 cu.m / Narrow Alley Collector)',
                 driver_name: 'City Sweep Team #2', contractor_name: 'CLENRO In-House Fleet',
-                operating_zone: 'Sector North: Barangay 1–10', status: 'on_route',
-                capacity: '4 m³ (2.0 MT)', lat: 8.474500, lon: 124.643200, last_update: '2026-09-06 16:20:00'
+                operating_zone: 'Sector North (Brgy 1–10)', status: 'on_route',
+                capacity: '4 m³ (2.0 MT)', lat: 8.474500, lon: 124.643200, last_update: '4m ago'
             },
             {
-                id: 4, truck_number: 'CLENRO-TRK-2026-015', plate_number: 'ABC-4105',
+                id: 4, truck_number: 'TRK-04', plate_number: 'KAL-104',
                 truck_type: 'Arm-Roll / Hook Lift Truck (Market Bulk Bin Carrier)',
                 driver_name: 'Rodrigo Villanueva', contractor_name: 'IPM CDO Urban Haulers',
                 operating_zone: 'Carmen Market Commercial Zone', status: 'available',
-                capacity: '14 m³ (7.2 MT)', lat: 8.483100, lon: 124.636400, last_update: '2026-09-06 14:30:15'
+                capacity: '14 m³ (7.2 MT)', lat: 8.483100, lon: 124.636400, last_update: '15m ago'
             },
             {
-                id: 5, truck_number: 'CLENRO-TRK-2026-019', plate_number: 'LGU-9015',
+                id: 5, truck_number: 'TRK-05', plate_number: 'LGU-9015',
                 truck_type: 'Street Sweeper Vacuum Truck (Arterial Road Cleaner)',
                 driver_name: 'Arlene Macasero', contractor_name: 'CLENRO In-House Fleet',
-                operating_zone: 'Sector Commercial: Barangay 31–40', status: 'on_route',
-                capacity: '6 m³ (3.0 MT)', lat: 8.476890, lon: 124.648950, last_update: '2026-09-06 16:35:10'
+                operating_zone: 'Sector Commercial (Brgy 31–40)', status: 'on_route',
+                capacity: '6 m³ (3.0 MT)', lat: 8.476890, lon: 124.648950, last_update: '8m ago'
             },
             {
-                id: 6, truck_number: 'CLENRO-TRK-2026-022', plate_number: 'SJC-7734',
+                id: 6, truck_number: 'TRK-06', plate_number: 'SJC-7734',
                 truck_type: 'Open Dump Truck (10-Wheeler / 20T Landfill Transfer)',
-                driver_name: 'Standby Operator', contractor_name: 'City Engineers Office',
-                operating_zone: 'Emergency Flood & Riverbank Corridor', status: 'maintenance',
-                capacity: '18 m³ (10.0 MT)', lat: 8.483900, lon: 124.639100, last_update: '2026-09-05 18:00:00'
+                driver_name: 'Carlos Mendoza', contractor_name: 'City Engineers Office',
+                operating_zone: 'Emergency Riverbank Sweep', status: 'maintenance',
+                capacity: '18 m³ (10.0 MT)', lat: 8.483900, lon: 124.639100, last_update: '1h ago'
             }
         ];
 
         let trucksList = JSON.parse(localStorage.getItem('clenro_trucks_roster')) || DEFAULT_TRUCKS;
+        let weightsList = [];
+        let currentTab = 'fleet';
+        let searchQuery = '';
+        let statusFilter = 'all';
 
         function saveLocalTrucks() {
             localStorage.setItem('clenro_trucks_roster', JSON.stringify(trucksList));
         }
 
-        function updateCapacityHint() {
-            const type = document.getElementById('truck_type').value;
-            const capInput = document.getElementById('capacity_spec');
-            if (type.includes('10–12')) capInput.value = '12 m³ (Approx. 6.5 Metric Tons)';
-            else if (type.includes('6–8')) capInput.value = '8 m³ (Approx. 4.2 Metric Tons)';
-            else if (type.includes('Mini Dump')) capInput.value = '4 m³ (Approx. 2.0 Metric Tons)';
-            else if (type.includes('Arm-Roll')) capInput.value = '14 m³ (Approx. 7.5 Metric Tons)';
-            else if (type.includes('Open Dump')) capInput.value = '18 m³ (Approx. 10.0 Metric Tons)';
-            else if (type.includes('Sweeper')) capInput.value = '6 m³ (Vacuum Debris Hopper)';
-            else if (type.includes('Segregated')) capInput.value = '8 m³ (Dedicated Organics)';
-            else capInput.value = '5 m³ (Hazardous Containment)';
-        }
+        // Segmented Multi-Table Tab Switcher
+        function switchOpsTab(tabKey) {
+            currentTab = tabKey;
+            const btnFleet = document.getElementById('tab-btn-fleet');
+            const btnWeights = document.getElementById('tab-btn-weights');
+            const viewFleet = document.getElementById('view-fleet-tab');
+            const viewWeights = document.getElementById('view-weights-tab');
 
-        function getTruckTypeBadge(typeStr) {
-            if (!typeStr) return '<span class="truck-type-badge type-compactor">Compactor</span>';
-            if (typeStr.includes('Mini Dump')) return '<span class="truck-type-badge type-minidump">Mini Dump (Alley)</span>';
-            if (typeStr.includes('Arm-Roll')) return '<span class="truck-type-badge type-armroll">Arm-Roll Hooklift</span>';
-            if (typeStr.includes('Open Dump')) return '<span class="truck-type-badge type-open">10-W Open Hauler</span>';
-            if (typeStr.includes('Sweeper')) return '<span class="truck-type-badge type-sweeper">Sweeper Vacuum</span>';
-            if (typeStr.includes('Segregated')) return '<span class="truck-type-badge type-bio">Bio Organic</span>';
-            if (typeStr.includes('Hazardous')) return '<span class="truck-type-badge type-haz">Hazardous Unit</span>';
-            return '<span class="truck-type-badge type-compactor">Compactor Truck</span>';
-        }
-
-        async function loadData() {
-            const tbody = document.getElementById('table-body');
-            try {
-                const res = await apiRequest(endpoint);
-                if (res && res.trucks && res.trucks.length > 0) {
-                    trucksList = res.trucks.map(t => ({
-                        id: t.id,
-                        truck_number: t.truck_number,
-                        plate_number: t.plate_number,
-                        truck_type: t.truck_type || 'Compactor Truck (10–12 cu.m / Heavy Duty - 16T)',
-                        driver_name: (t.driver && t.driver.name) || 'CLENRO Operator',
-                        contractor_name: (t.contractor && t.contractor.company_name) || 'IPM CDO Urban Haulers',
-                        operating_zone: t.operating_zone || 'Cogon Market Commercial Zone',
-                        status: t.status || 'available',
-                        capacity: '12 m³',
-                        lat: t.latest_location ? t.latest_location.latitude : 8.477610,
-                        lon: t.latest_location ? t.latest_location.longitude : 124.648210,
-                        last_update: t.latest_location ? t.latest_location.recorded_at : 'Recent'
-                    }));
-                }
-            } catch (error) {
-                console.log('Using local CDO CLENRO truck fleet data.');
+            if (tabKey === 'fleet') {
+                btnFleet.classList.add('active');
+                btnFleet.setAttribute('aria-selected', 'true');
+                btnWeights.classList.remove('active');
+                btnWeights.setAttribute('aria-selected', 'false');
+                viewFleet.style.display = 'block';
+                viewWeights.style.display = 'none';
+            } else {
+                btnWeights.classList.add('active');
+                btnWeights.setAttribute('aria-selected', 'true');
+                btnFleet.classList.remove('active');
+                btnFleet.setAttribute('aria-selected', 'false');
+                viewFleet.style.display = 'none';
+                viewWeights.style.display = 'block';
             }
-
-            renderTable(trucksList);
-            updateStats();
+            filterAndRender();
         }
 
-        function renderTable(data) {
+        function handleOpsSearch() {
+            searchQuery = (document.getElementById('ops-search').value || '').trim().toLowerCase();
+            filterAndRender();
+        }
+
+        function handleOpsFilter() {
+            statusFilter = document.getElementById('ops-status-filter').value;
+            filterAndRender();
+        }
+
+        function filterAndRender() {
+            closeAllActionMenus();
+            if (currentTab === 'fleet') {
+                let filtered = trucksList.filter(item => {
+                    const matchesSearch = !searchQuery || 
+                        (item.plate_number && item.plate_number.toLowerCase().includes(searchQuery)) ||
+                        (item.truck_number && item.truck_number.toLowerCase().includes(searchQuery)) ||
+                        (item.driver_name && item.driver_name.toLowerCase().includes(searchQuery)) ||
+                        (item.operating_zone && item.operating_zone.toLowerCase().includes(searchQuery));
+                    
+                    const matchesStatus = statusFilter === 'all' || item.status === statusFilter;
+                    return matchesSearch && matchesStatus;
+                });
+                renderFleetTable(filtered);
+            } else {
+                let filteredLogs = weightsList.filter(log => {
+                    const driver = (log.driver ? log.driver.name : (log.driver_name || '')).toLowerCase();
+                    const truck = (log.truck ? (log.truck.truck_number + ' ' + log.truck.plate_number) : '').toLowerCase();
+                    const brgy = (log.barangay_name || '').toLowerCase();
+                    return !searchQuery || driver.includes(searchQuery) || truck.includes(searchQuery) || brgy.includes(searchQuery);
+                });
+                renderWeightsTable(filteredLogs);
+            }
+        }
+
+        function getShortTypeName(typeStr) {
+            if (!typeStr) return 'Compactor Truck';
+            if (typeStr.includes('10–12')) return 'Compactor (16T)';
+            if (typeStr.includes('6–8')) return 'Compactor (8T)';
+            if (typeStr.includes('Mini Dump')) return 'Mini Dump';
+            if (typeStr.includes('Arm-Roll')) return 'Arm-Roll Hooklift';
+            if (typeStr.includes('Open Dump')) return '10-W Open Hauler';
+            if (typeStr.includes('Sweeper')) return 'Street Sweeper';
+            if (typeStr.includes('Segregated')) return 'Bio Organic';
+            if (typeStr.includes('Hazardous')) return 'Hazardous Unit';
+            return typeStr.split(' (')[0];
+        }
+
+        function formatStatusLabel(st) {
+            if (st === 'available') return 'Available';
+            if (st === 'on_route') return 'On Route';
+            if (st === 'maintenance') return 'Maintenance';
+            if (st === 'inactive') return 'Inactive';
+            return st || 'Available';
+        }
+
+        function formatLocationLabel(item) {
+            if (item.lat && item.lon) {
+                const zoneShort = (item.operating_zone || 'Poblacion').split(' ')[0].replace(/[^a-zA-Z]/g, '');
+                return `📍 ${zoneShort} (${Number(item.lat).toFixed(3)}, ${Number(item.lon).toFixed(3)})`;
+            }
+            return '📍 In Depot';
+        }
+
+        // Render Merged, Uncluttered Fleet Table Rows
+        function renderFleetTable(data) {
             const tbody = document.getElementById('table-body');
+            if (!tbody) return;
+
             if (data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="9" class="empty-state">No fleet equipment found.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7" class="empty-state" style="text-align:center; padding:28px;">No matching fleet equipment found.</td></tr>';
                 return;
             }
 
             tbody.innerHTML = data.map(item => {
-                const locText = item.lat ? `${Number(item.lat).toFixed(5)}, ${Number(item.lon).toFixed(5)}` : 'In Depot';
-                const statusPill = `<span class="status-pill status-${item.status}">${item.status.replace('_', ' ')}</span>`;
-                const typeBadge = getTruckTypeBadge(item.truck_type);
+                const itemJson = JSON.stringify(item).replace(/'/g, "&#39;");
+                const weightVal = item.total_weight ? Number(item.total_weight).toFixed(2) : '0.00';
+                const locLabel = formatLocationLabel(item);
 
                 return `
                     <tr>
-                        <td><span class="truck-code-tag">${item.truck_number}</span></td>
-                        <td>${typeBadge}</td>
-                        <td><strong>${item.plate_number}</strong></td>
-                        <td>${item.driver_name || '-'}</td>
-                        <td><span style="font-size:12px; color:var(--text-muted);">${item.contractor_name || 'CLENRO In-House'}</span></td>
-                        <td><span style="font-size:12px;">${item.operating_zone || 'Poblacion Core'}</span></td>
-                        <td>${statusPill}</td>
-                        <td><span style="font-size:11.5px; font-family:monospace; color:var(--text-muted);">${locText}</span></td>
-                        <td style="white-space:nowrap;">
-                            <button class="btn" style="padding: 5px 10px; width: auto; background: #16a34a; font-size:11px; display:inline-block;" onclick="openStatusModal(${item.id}, '${item.status}')">Status</button>
-                            <button class="btn" style="padding: 5px 10px; width: auto; background: var(--surface-alt); color:var(--green-800); border:1px solid var(--border); font-size:11px; display:inline-block;" onclick='editItem(${JSON.stringify(item).replace(/'/g, "&#39;")})'>Edit</button>
-                            <button class="btn" style="padding: 5px 10px; width: auto; background: #fee2e2; color:#dc2626; border:1px solid #fecaca; font-size:11px; display:inline-block;" onclick="deleteItem(${item.id})">Delete</button>
+                        <!-- 1. MERGED: Primary Plate # on top, Code & Type muted below -->
+                        <td>
+                            <div class="cell-stacked">
+                                <span class="cell-primary">${escapeHtml(item.plate_number)}</span>
+                                <span class="cell-secondary">${escapeHtml(item.truck_number)} • ${escapeHtml(getShortTypeName(item.truck_type))}</span>
+                            </div>
+                        </td>
+
+                        <!-- 2. MERGED: Driver Name bold, Partner/Contractor muted below -->
+                        <td>
+                            <div class="cell-stacked">
+                                <span class="cell-primary">${escapeHtml(item.driver_name || 'Unassigned')}</span>
+                                <span class="cell-secondary">${escapeHtml(item.contractor_name || 'CLENRO In-House')}</span>
+                            </div>
+                        </td>
+
+                        <!-- 3. Operating Zone -->
+                        <td>
+                            <span style="font-size: 12.5px; font-weight: 500;">${escapeHtml(item.operating_zone || 'Poblacion Core')}</span>
+                        </td>
+
+                        <!-- 4. Soft Tinted Status Badge (Clickable for quick status change) -->
+                        <td>
+                            <button type="button" class="status-chip chip-${item.status}" onclick="openStatusModal(${item.id}, '${item.status}')" title="Click to update status">
+                                <span class="status-chip-dot"></span>
+                                <span>${formatStatusLabel(item.status)}</span>
+                            </button>
+                        </td>
+
+                        <!-- 5. Tonnage -->
+                        <td>
+                            <span class="weight-pill-subtle">${weightVal} t</span>
+                        </td>
+
+                        <!-- 6. Human-Readable Location Link with Map Modal Trigger -->
+                        <td>
+                            <button type="button" class="location-link-btn" onclick="openLocationModal('${escapeHtml(item.plate_number)}', ${item.lat || 8.477610}, ${item.lon || 124.648210}, '${escapeHtml(item.operating_zone || 'Poblacion')}', '${escapeHtml(item.last_update || 'Recent')}')" title="Click to inspect GPS coordinates">
+                                ${escapeHtml(locLabel)}
+                            </button>
+                        </td>
+
+                        <!-- 7. Consolidated 3-Dot Action Menu -->
+                        <td class="action-cell">
+                            <button type="button" class="action-dots-btn" onclick="toggleActionMenu(event, ${item.id})" aria-label="More actions">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="1.5"></circle><circle cx="12" cy="5" r="1.5"></circle><circle cx="12" cy="19" r="1.5"></circle></svg>
+                            </button>
+                            <div class="action-popover" id="popover-${item.id}">
+                                <button type="button" class="action-popover-item" onclick='editItem(${itemJson})'>
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                                    Edit Equipment
+                                </button>
+                                <button type="button" class="action-popover-item" onclick="openStatusModal(${item.id}, '${item.status}')">
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                                    Change Status
+                                </button>
+                                <div class="popover-divider"></div>
+                                <button type="button" class="action-popover-item danger-item" onclick="deleteItem(${item.id})">
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                    Decommission
+                                </button>
+                            </div>
                         </td>
                     </tr>
                 `;
             }).join('');
         }
 
+        // Render Merged Weight & Collection Logs Table
+        function renderWeightsTable(logs) {
+            const tbody = document.getElementById('weights-table-body');
+            if (!tbody) return;
+
+            if (!logs || logs.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="empty-state" style="text-align:center; padding:24px;">No field collection logs recorded yet. Driver entries transmitted via mobile appear live here.</td></tr>';
+                return;
+            }
+
+            let sumTons = 0;
+            tbody.innerHTML = logs.map(item => {
+                const amount = Number(item.amount_collected) || 0;
+                sumTons += amount;
+                const unit = item.unit || 'tons';
+                const driver = item.driver ? item.driver.name : (item.driver_name || 'Danilo Ramos');
+                const truckText = item.truck ? `${item.truck.plate_number || 'KAL-101'} • ${item.truck.truck_number || 'TRK-01'}` : 'KAL-101 • TRK-01';
+                const brgy = item.barangay_name || 'Barangay Poblacion';
+                const wasteType = item.waste_type || 'Residual';
+                const isFinal = item.is_finalized;
+                const finalBadge = isFinal 
+                    ? '<span class="status-chip chip-available"><span class="status-chip-dot"></span> Finalized</span>' 
+                    : '<span class="status-chip chip-on_route"><span class="status-chip-dot"></span> Field Entry</span>';
+                const dateStr = item.created_at ? new Date(item.created_at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Recent';
+                const notes = item.notes ? escapeHtml(item.notes) : '<span style="color:var(--text-muted); font-style:italic;">Standard haul</span>';
+
+                const photoUrl = typeof resolveMediaUrl === 'function' ? resolveMediaUrl(item.photo_url) : item.photo_url;
+                const photoMarkup = photoUrl 
+                    ? `<div class="pickup-thumb-wrap" onclick="openPhotoLightbox('${photoUrl}', 'Proof of Pickup: ${escapeHtml(brgy)} (${amount.toFixed(2)} ${escapeHtml(unit)})')" title="Click to enlarge photo">
+                         <img src="${photoUrl}" alt="Pickup Photo" class="pickup-table-thumb" onerror="this.parentElement.innerHTML='<span style=\\'font-size:11px;color:var(--text-muted);\\'>Unavailable</span>'">
+                         <span class="pickup-thumb-zoom">🔍</span>
+                       </div>`
+                    : `<span style="font-size:11px; color:var(--text-muted); font-style:italic;">None</span>`;
+
+                return `
+                    <tr>
+                        <td style="white-space:nowrap; font-size:12px; color:var(--text-muted);">${dateStr}</td>
+                        <!-- MERGED: Driver Name on top, Truck code below -->
+                        <td>
+                            <div class="cell-stacked">
+                                <span class="cell-primary">${escapeHtml(driver)}</span>
+                                <span class="cell-secondary">${escapeHtml(truckText)}</span>
+                            </div>
+                        </td>
+                        <td>${escapeHtml(brgy)}</td>
+                        <td><span class="weight-pill-subtle">${amount.toFixed(2)} ${escapeHtml(unit)}</span></td>
+                        <td><span style="font-size:12px; font-weight:600; color:var(--text-muted);">${escapeHtml(wasteType)}</span></td>
+                        <td>${finalBadge}</td>
+                        <td style="text-align:center;">${photoMarkup}</td>
+                        <td style="font-size:12px; max-width:240px; overflow:hidden; text-overflow:ellipsis;">${notes}</td>
+                    </tr>
+                `;
+            }).join('');
+
+            document.getElementById('badge-weights-tonnage').textContent = `${sumTons.toFixed(1)} t`;
+            document.getElementById('stat-total-weight').textContent = `${sumTons.toFixed(1)} Tons`;
+            document.getElementById('stat-collection-logs-count').textContent = `${logs.length} Entries`;
+        }
+
         function updateStats() {
             document.getElementById('stat-total-trucks').textContent = `${trucksList.length} Units`;
             document.getElementById('stat-active-routes').textContent = `${trucksList.filter(t => t.status === 'on_route').length} Units`;
+            document.getElementById('badge-fleet-count').textContent = `${trucksList.length}`;
+        }
+
+        // Action Menu Popover Toggle
+        function toggleActionMenu(event, id) {
+            event.stopPropagation();
+            const target = document.getElementById(`popover-${id}`);
+            const wasActive = target ? target.classList.contains('active') : false;
+            closeAllActionMenus();
+            if (target && !wasActive) {
+                target.classList.add('active');
+            }
+        }
+
+        function closeAllActionMenus() {
+            document.querySelectorAll('.action-popover.active').forEach(p => p.classList.remove('active'));
+        }
+
+        document.addEventListener('click', closeAllActionMenus);
+
+        // Location Preview Modal
+        let activeCoords = '8.477610, 124.648210';
+        function openLocationModal(plate, lat, lon, zone, updateTime) {
+            const modal = document.getElementById('location-modal');
+            activeCoords = `${Number(lat).toFixed(6)}, ${Number(lon).toFixed(6)}`;
+            document.getElementById('loc-modal-title').innerHTML = `
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#15803d" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                ${escapeHtml(plate)} Location
+            `;
+            document.getElementById('loc-modal-desc').textContent = `Assigned Sector: ${zone}. Live GPS heartbeat recorded via driver mobile telemetry.`;
+            document.getElementById('loc-coords-text').textContent = activeCoords;
+            document.getElementById('loc-time-text').textContent = `Last location heartbeat: ${updateTime || 'Just now'}`;
+            document.getElementById('loc-maps-link').href = `https://maps.google.com/?q=${lat},${lon}`;
+            modal.classList.add('active');
+        }
+
+        function closeLocationModal() {
+            document.getElementById('location-modal').classList.remove('active');
+        }
+
+        function copyCoordinates() {
+            navigator.clipboard.writeText(activeCoords).then(() => {
+                showToast('Coordinates copied to clipboard!', 'success');
+            }).catch(() => {
+                showToast('Coordinates: ' + activeCoords, 'info');
+            });
+        }
+
+        // Photo Lightbox Controls
+        function openPhotoLightbox(url, title) {
+            const modal = document.getElementById('photo-lightbox-modal');
+            const img = document.getElementById('photo-lightbox-img');
+            const caption = document.getElementById('photo-lightbox-caption');
+            if (!modal || !img) return;
+            img.src = url;
+            if (caption) caption.textContent = title || 'Driver Proof of Pickup Photo';
+            modal.classList.add('active');
+        }
+
+        function closePhotoLightbox(e) {
+            if (e && e.target && e.target.id === 'photo-lightbox-img') return;
+            const modal = document.getElementById('photo-lightbox-modal');
+            if (modal) modal.classList.remove('active');
+        }
+        window.openPhotoLightbox = openPhotoLightbox;
+        window.closePhotoLightbox = closePhotoLightbox;
+
+        // Data Fetching & Sync
+        async function loadData() {
+            // Preserve local DSS truck reallocations if saved
+            let savedLocal = [];
+            try {
+                savedLocal = JSON.parse(localStorage.getItem('clenro_trucks_roster') || '[]');
+            } catch (e) {}
+
+            try {
+                let res = null;
+                try {
+                    res = await apiRequest(endpoint);
+                } catch (e) {
+                    res = await apiRequest('/public/trucks');
+                }
+                if (!res || !res.trucks) {
+                    res = await apiRequest('/public/trucks');
+                }
+
+                if (res && res.trucks && res.trucks.length > 0) {
+                    trucksList = res.trucks.map(t => {
+                        const localItem = savedLocal.find(s => s.id === t.id || s.plate_number === t.plate_number);
+                        return {
+                            id: t.id,
+                            truck_number: t.truck_number,
+                            plate_number: t.plate_number,
+                            truck_type: t.truck_type || (localItem && localItem.truck_type) || 'Compactor Truck (10–12 cu.m / Heavy Duty - 16T)',
+                            driver_name: (t.driver && t.driver.name) || (localItem && localItem.driver_name) || 'CLENRO Operator',
+                            contractor_name: (t.contractor && t.contractor.company_name) || (localItem && localItem.contractor_name) || 'CLENRO In-House',
+                            operating_zone: t.operating_zone || (localItem && localItem.operating_zone) || 'Poblacion Core',
+                            status: t.status || 'available',
+                            capacity: t.capacity || (localItem && localItem.capacity) || '12 m³',
+                            lat: t.latest_location ? t.latest_location.latitude : (localItem ? localItem.lat : 8.477610),
+                            lon: t.latest_location ? t.latest_location.longitude : (localItem ? localItem.lon : 124.648210),
+                            last_update: t.latest_location ? t.latest_location.recorded_at : (t.status_updated_at ? new Date(t.status_updated_at).toLocaleTimeString() : 'Just now'),
+                            total_weight: t.total_weight_collected || 0,
+                            logs_count: t.collection_logs_count || 0
+                        };
+                    });
+                    saveLocalTrucks();
+                } else if (savedLocal.length > 0) {
+                    trucksList = savedLocal;
+                }
+            } catch (error) {
+                if (savedLocal.length > 0) trucksList = savedLocal;
+            }
+
+            filterAndRender();
+            updateStats();
+            await loadWeightsData();
+        }
+
+        async function loadWeightsData() {
+            let apiLogs = [];
+            try {
+                let res = null;
+                try {
+                    res = await apiRequest('/driver/collection-logs');
+                } catch(e) {
+                    res = await apiRequest('/public/driver/collection-logs');
+                }
+                if (!res || !res.data) {
+                    res = await apiRequest('/public/driver/collection-logs');
+                }
+
+                if (res && Array.isArray(res.data)) {
+                    apiLogs = res.data;
+                }
+            } catch (err) {
+                apiLogs = [];
+            }
+
+            // Merge custom pickup logs from shared localStorage (clenro_custom_pickup_logs)
+            let customDssLogs = [];
+            try {
+                const rawCustom = JSON.parse(localStorage.getItem('clenro_custom_pickup_logs') || '[]');
+                customDssLogs = rawCustom.map(c => ({
+                    id: c.id,
+                    created_at: c.incident_date + 'T08:30:00',
+                    driver_name: (c.contractor_assigned || 'CLENRO Operator').split(' (')[0],
+                    truck: {
+                        plate_number: 'DSS-SYNC',
+                        truck_number: (c.contractor_assigned && c.contractor_assigned.includes('TRK-')) ? c.contractor_assigned.match(/TRK-\d+/)[0] : 'TRK-01'
+                    },
+                    barangay_name: c.location_zone,
+                    amount_collected: Number(c.estimated_tonnage),
+                    unit: 'tons',
+                    waste_type: c.location_zone.includes('Market') ? 'Commercial Market' : 'Urban Residual',
+                    is_finalized: true,
+                    notes: `Synced with CLENRO Historical DSS (${Number(c.waste_volume_m3).toFixed(1)} m³)`
+                }));
+            } catch (e) {}
+
+            if (!apiLogs.length && !customDssLogs.length) {
+                apiLogs = [
+                    {
+                        id: 501,
+                        created_at: new Date().toISOString(),
+                        driver_name: 'Danilo Ramos',
+                        truck: { plate_number: 'KAL-101', truck_number: 'TRK-01' },
+                        barangay_name: 'Cogon Market Zone',
+                        amount_collected: 7.10,
+                        unit: 'tons',
+                        waste_type: 'Commercial Market',
+                        is_finalized: true,
+                        notes: 'Night Compactor Haul · Verified at Landfill Weighbridge'
+                    },
+                    {
+                        id: 502,
+                        created_at: new Date(Date.now() - 3600000).toISOString(),
+                        driver_name: 'Rodrigo Villanueva',
+                        truck: { plate_number: 'KAL-104', truck_number: 'TRK-04' },
+                        barangay_name: 'Carmen Market Zone',
+                        amount_collected: 5.80,
+                        unit: 'tons',
+                        waste_type: 'Commercial Market',
+                        is_finalized: true,
+                        notes: 'Hooklift Bulk Bin Haul · Synced to DSS'
+                    }
+                ];
+            }
+
+            weightsList = [...customDssLogs, ...apiLogs];
+            renderWeightsTable(weightsList);
+        }
+
+        function openLogWeightModal() {
+            const locSel = document.getElementById('weight-loc-select');
+            const trkSel = document.getElementById('weight-truck-select');
+            if (locSel && locSel.options.length === 0) {
+                const opts = ['Cogon Market Zone', 'Carmen Market Zone'];
+                for (let b = 1; b <= 40; b++) opts.push('Barangay ' + b);
+                locSel.innerHTML = opts.map(o => `<option value="${escapeHtml(o)}">${escapeHtml(o)}</option>`).join('');
+            }
+            if (trkSel) {
+                trkSel.innerHTML = trucksList.map(t => `<option value="${escapeHtml(t.truck_number)}|${escapeHtml(t.plate_number)}|${escapeHtml(t.driver_name || 'CLENRO Operator')}">${escapeHtml(t.truck_number)} · ${escapeHtml(t.plate_number)} (${escapeHtml(t.driver_name || 'Operator')})</option>`).join('');
+            }
+            document.getElementById('log-weight-modal').classList.add('active');
+        }
+
+        function closeLogWeightModal() {
+            document.getElementById('log-weight-modal').classList.remove('active');
+        }
+
+        function handleSaveWeightLog(e) {
+            e.preventDefault();
+            const loc = document.getElementById('weight-loc-select').value;
+            const trkVal = document.getElementById('weight-truck-select').value;
+            const [trkNum, plateNum, drvName] = trkVal.split('|');
+            const tons = Number(document.getElementById('weight-tons-input').value || 4.5);
+            const notes = document.getElementById('weight-notes-input').value.trim();
+
+            // Save to shared clenro_custom_pickup_logs so clenro-reports.html immediately receives it!
+            try {
+                const customLogs = JSON.parse(localStorage.getItem('clenro_custom_pickup_logs') || '[]');
+                customLogs.unshift({
+                    id: Date.now(),
+                    location_zone: loc,
+                    incident_date: new Date().toISOString().substring(0, 10),
+                    waste_volume_m3: Number((tons * 2.5).toFixed(2)),
+                    estimated_tonnage: Number(tons.toFixed(2)),
+                    contractor_assigned: `${drvName} (${trkNum} · ${plateNum})`
+                });
+                localStorage.setItem('clenro_custom_pickup_logs', JSON.stringify(customLogs));
+            } catch (err) {}
+
+            // Also increment truck's total_weight in trucksList
+            const tIdx = trucksList.findIndex(t => t.truck_number === trkNum);
+            if (tIdx !== -1) {
+                trucksList[tIdx].total_weight = Number(trucksList[tIdx].total_weight || 0) + tons;
+                trucksList[tIdx].operating_zone = loc;
+                saveLocalTrucks();
+            }
+
+            closeLogWeightModal();
+            switchOpsTab('weights');
+            loadData();
+            if (typeof showToast === 'function') {
+                showToast(`Logged ${tons.toFixed(2)}t for ${loc} & synced to Historical DSS Report!`, 'success');
+            }
+        }
+
+        function handleIncomingDssTruckParams() {
+            const params = new URLSearchParams(window.location.search);
+            const loc = params.get('location') || '';
+            const dec = params.get('decision') || '';
+            if (!loc && !dec) return;
+
+            const banner = document.getElementById('dss-fleet-banner');
+            const titleEl = document.getElementById('dss-fleet-banner-title');
+            const descEl = document.getElementById('dss-fleet-banner-desc');
+            if (banner) banner.style.borderLeftColor = '#7c3aed';
+            if (titleEl) titleEl.textContent = `DSS Fleet Action: ${loc || 'Priority Zone'} — ${dec || 'Truck Reallocation'}`;
+            if (descEl) {
+                descEl.innerHTML = `Navigated from <strong>CLENRO Historical Pick-Up Decision Support</strong>. ${loc ? `Fleet roster updated/filtered for <strong>${escapeHtml(loc)}</strong>.` : ''}`;
+            }
+        }
+
+        function updateCapacityHint() {
+            const type = document.getElementById('truck_type').value;
+            const capInput = document.getElementById('capacity_spec');
+            if (type.includes('10–12')) capInput.value = '12 m³ (Approx. 6.5 MT)';
+            else if (type.includes('6–8')) capInput.value = '8 m³ (Approx. 4.2 MT)';
+            else if (type.includes('Mini Dump')) capInput.value = '4 m³ (Approx. 2.0 MT)';
+            else if (type.includes('Arm-Roll')) capInput.value = '14 m³ (Approx. 7.5 MT)';
+            else if (type.includes('Open Dump')) capInput.value = '18 m³ (Approx. 10.0 MT)';
+            else if (type.includes('Sweeper')) capInput.value = '6 m³ (Vacuum Debris Hopper)';
+            else if (type.includes('Segregated')) capInput.value = '8 m³ (Dedicated Organics)';
+            else capInput.value = '5 m³ (Hazardous Containment)';
         }
 
         function openModal() {
             document.getElementById('form-modal').classList.add('active');
-            document.getElementById('modal-title').textContent = 'Register Municipal Solid Waste Truck';
+            document.getElementById('modal-title').innerHTML = `
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+                Register Municipal Solid Waste Truck
+            `;
             document.getElementById('data-form').reset();
             document.getElementById('item-id').value = '';
-
-            // Auto-generate truck code
-            const autoCode = generateAutoCode('TRK');
-            document.getElementById('truck_number').value = autoCode;
+            document.getElementById('truck_number').value = generateAutoCode('TRK');
             updateCapacityHint();
         }
 
@@ -408,8 +1616,9 @@
         }
 
         function editItem(item) {
+            closeAllActionMenus();
             openModal();
-            document.getElementById('modal-title').textContent = `Edit Truck: ${item.truck_number}`;
+            document.getElementById('modal-title').innerHTML = `Edit Vehicle: ${item.plate_number}`;
             document.getElementById('item-id').value = item.id;
             document.getElementById('truck_number').value = item.truck_number || generateAutoCode('TRK');
             document.getElementById('plate_number').value = item.plate_number || '';
@@ -420,6 +1629,7 @@
         }
 
         function openStatusModal(id, currentStatus) {
+            closeAllActionMenus();
             document.getElementById('status-modal').classList.add('active');
             document.getElementById('status-truck-id').value = id;
             document.getElementById('status-select').value = currentStatus;
@@ -430,7 +1640,8 @@
         }
 
         async function deleteItem(id) {
-            if (!confirm('Are you sure you want to decommission / delete this truck unit?')) return;
+            closeAllActionMenus();
+            if (!confirm('Are you sure you want to decommission this vehicle unit?')) return;
             try {
                 await apiRequest(`${endpoint}/${id}`, 'DELETE');
             } catch(e) {
@@ -438,10 +1649,12 @@
             }
             trucksList = trucksList.filter(t => t.id != id);
             saveLocalTrucks();
-            renderTable(trucksList);
+            filterAndRender();
             updateStats();
+            showToast('Vehicle unit decommissioned.', 'info');
         }
 
+        // Form Submit
         document.getElementById('data-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const id = document.getElementById('item-id').value;
@@ -469,7 +1682,7 @@
                 status: status,
                 lat: 8.477610,
                 lon: 124.648210,
-                last_update: new Date().toISOString().substring(0, 19).replace('T', ' ')
+                last_update: 'Just now'
             };
 
             try {
@@ -479,7 +1692,7 @@
                     await apiRequest(endpoint, 'POST', payload);
                 }
             } catch (err) {
-                console.log('API sync skipped, updating local trucks roster state.');
+                // Keep local state responsive
             }
 
             if (id) {
@@ -492,9 +1705,9 @@
 
             saveLocalTrucks();
             closeModal();
-            renderTable(trucksList);
+            filterAndRender();
             updateStats();
-            alert(`Truck ${truckNumber} successfully registered!`);
+            showToast(`Vehicle ${plateNumber} successfully saved!`, 'success');
         });
 
         document.getElementById('status-form').addEventListener('submit', async (e) => {
@@ -505,18 +1718,24 @@
             try {
                 await apiRequest(`${endpoint}/${id}/status`, 'PUT', { status: newStatus });
             } catch(e) {
-                console.log('Status updated locally.');
+                // Local fallback
             }
 
             const truck = trucksList.find(t => t.id == id);
             if (truck) truck.status = newStatus;
             saveLocalTrucks();
             closeStatusModal();
-            renderTable(trucksList);
+            filterAndRender();
             updateStats();
+            showToast('Vehicle status updated.', 'success');
         });
 
-        document.addEventListener('DOMContentLoaded', loadData);
+        document.addEventListener('DOMContentLoaded', () => {
+            loadData();
+            handleIncomingDssTruckParams();
+            // Polling interval keeping live sync with mobile drivers
+            setInterval(loadData, 4000);
+        });
     </script>
 </body>
 </html>

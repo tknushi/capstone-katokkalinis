@@ -40,6 +40,35 @@
             </header>
 
             <section class="content">
+                <div class="exec-command-center">
+                    <!-- Standard Executive Header Banner -->
+                    <div class="exec-header-banner">
+                        <div class="exec-header-left">
+                            <div class="exec-shield-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 2l8 4.5v6c0 5-3.5 9.5-8 11.5-4.5-2-8-6.5-8-11.5v-6z"/>
+                                    <path d="M8 12h8M12 8v8"/>
+                                </svg>
+                            </div>
+                            <div class="exec-title-block">
+                                <h1>System Preferences &amp; Account Control</h1>
+                                <p>ADMINISTRATIVE SETTINGS &bull; THEME &bull; SECURITY CREDENTIALS</p>
+                            </div>
+                            <div class="exec-clenro-pill">
+                                <span class="live-dot"></span>
+                                CLENRO SECURE
+                            </div>
+                        </div>
+                        <div class="exec-header-right">
+                            <a href="analytics.html" class="exec-btn-cross-connect" title="Open Executive Dashboard">
+                                <span>&#128202;</span> Executive Analytics
+                            </a>
+                            <a href="barangay-overview.html" class="exec-btn-cross-connect" title="Open Barangay Command">
+                                <span>&#127963;</span> Barangay Command
+                            </a>
+                        </div>
+                    </div>
+
                 <div class="settings-grid">
                     <div class="card">
                         <div class="card-header"><h3>My Profile</h3></div>
@@ -58,7 +87,7 @@
                                 <label>Role</label>
                                 <input type="text" id="profile-role" class="form-control" disabled>
                             </div>
-                            <button type="submit" class="btn">Save Profile</button>
+                            <button type="submit" class="btn">Update Profile</button>
                         </form>
                     </div>
 
@@ -92,9 +121,9 @@
                     </div>
 
                     <div class="card" id="super-admin-tools-card" style="display:none;">
-                        <div class="card-header"><h3>Super Admin Tools</h3></div>
+                        <div class="card-header"><h3>Executive Administration Tools</h3></div>
                         <p style="margin-bottom: 15px; color: var(--text-muted); font-size: 14px;">
-                            System-wide utilities for the Super Admin role.
+                            System-wide governance and audit records for Super Admin and Barangay Admin leadership.
                         </p>
                         <div style="display: flex; flex-direction: column; gap: 10px;">
                             <a href="users.html" class="btn">All User Profiles</a>
@@ -103,6 +132,7 @@
                             <a href="archives.html" class="btn">Records &amp; Archives</a>
                         </div>
                     </div>
+                </div>
                 </div>
             </section>
         </main>
@@ -193,7 +223,8 @@
             loadProfile();
             syncThemeLabel();
 
-            if (getUserRole() === 'super_admin') {
+            const role = getUserRole();
+            if (role === 'super_admin' || role === 'admin') {
                 document.getElementById('super-admin-tools-card').style.display = 'block';
             }
         });

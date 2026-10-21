@@ -25,7 +25,7 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'email' => 'required|email',
+            'email' => 'required|string',
             'password' => 'required|string',
         ]);
 
@@ -37,8 +37,11 @@ class AuthController extends Controller
             ], 422);
         }
 
+        $loginInput = trim($request->email);
+
         $user = User::with('roles')
-            ->where('email', $request->email)
+            ->where('email', $loginInput)
+            ->orWhere('name', $loginInput)
             ->first();
 
         if (!$user || !Hash::check($request->password, $user->password)) {
@@ -92,9 +95,16 @@ class AuthController extends Controller
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
+                'phone' => $user->phone,
+                'address' => $user->address,
+                'avatar' => $user->avatar,
+                'avatar_url' => $user->avatar_url,
+                'barangay_id' => $user->barangay_id,
+                'role' => $user->roles->first() ? $user->roles->first()->name : 'resident',
 
                 'roles' => $user->roles->map(function ($role) {
                     return [
+                        'id' => $role->id,
                         'name' => $role->name,
                     ];
                 })->values(),
@@ -141,12 +151,22 @@ class AuthController extends Controller
         $phone = $request->phone ?? $request->contact_number;
         $address = $request->address ?? $request->barangay;
 
+        $barangayId = $request->barangay_id;
+        if (!$barangayId && $request->filled('barangay')) {
+            $b = \App\Models\Barangay::where('name', 'like', "%{$request->barangay}%")->first();
+            if ($b) $barangayId = $b->id;
+        } elseif (!$barangayId && $request->filled('address')) {
+            $b = \App\Models\Barangay::where('name', 'like', "%{$request->address}%")->first();
+            if ($b) $barangayId = $b->id;
+        }
+
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'phone' => $phone,
             'address' => $address,
+            'barangay_id' => $barangayId,
             'joined_at' => now(),
         ]);
 
@@ -223,6 +243,11 @@ class AuthController extends Controller
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
+                'phone' => $user->phone,
+                'address' => $user->address,
+                'avatar' => $user->avatar,
+                'avatar_url' => $user->avatar_url,
+                'barangay_id' => $user->barangay_id,
 
                 'roles' => [
                     [
@@ -297,6 +322,11 @@ class AuthController extends Controller
             'phone' => $user->phone,
             'contact_number' => $user->phone,
             'address' => $user->address,
+            'avatar' => $user->avatar,
+            'avatar_url' => $user->avatar_url,
+            'barangay_id' => $user->barangay_id,
+            'barangay' => $user->barangay,
+            'role' => $user->roles->first() ? $user->roles->first()->name : 'resident',
             'roles' => $user->roles->map(function ($role) {
                 return [
                     'id' => $role->id,
@@ -307,6 +337,23 @@ class AuthController extends Controller
 
         if ($user->vendor) {
             $userData['vendor'] = $user->vendor;
+        }
+
+        if ($user->roles()->where('name', 'inspector')->exists()) {
+            $stallsCertified = \App\Models\Inspection::where('inspector_id', $user->id)
+                ->where('status', 'completed')
+                ->distinct('vendor_id')
+                ->count('vendor_id');
+
+            $userData['inspector_stats'] = [
+                'stalls_certified' => $stallsCertified,
+                'total_inspections' => \App\Models\Inspection::where('inspector_id', $user->id)->count(),
+                'pending_reviews' => \App\Models\Inspection::where('inspector_id', $user->id)->where('status', 'pending')->count(),
+                'completed_today' => \App\Models\Inspection::where('inspector_id', $user->id)
+                    ->where('status', 'completed')
+                    ->whereDate('inspected_at', now()->toDateString())
+                    ->count(),
+            ];
         }
 
         return response()->json([
@@ -361,10 +408,48 @@ class AuthController extends Controller
         }
         if ($request->filled('address')) {
             $user->address = $request->address;
+            $b = \App\Models\Barangay::where('name', 'like', "%{$request->address}%")->first();
+            if ($b) {
+                $user->barangay_id = $b->id;
+            }
         }
+        if ($request->filled('barangay_id')) {
+            $user->barangay_id = $request->barangay_id;
+        }
+
+        // Handle profile photo upload (File or Base64)
+        if ($request->hasFile('avatar')) {
+            $file = $request->file('avatar');
+            $fileName = 'avatar_' . $user->id . '_' . time() . '.' . ($file->getClientOriginalExtension() ?: 'jpg');
+            $file->storeAs('avatars', $fileName, 'public');
+            $user->avatar = '/storage/avatars/' . $fileName;
+        } elseif ($request->hasFile('photo')) {
+            $file = $request->file('photo');
+            $fileName = 'avatar_' . $user->id . '_' . time() . '.' . ($file->getClientOriginalExtension() ?: 'jpg');
+            $file->storeAs('avatars', $fileName, 'public');
+            $user->avatar = '/storage/avatars/' . $fileName;
+        } elseif ($request->filled('avatar')) {
+            $rawAvatar = $request->avatar;
+            if (preg_match('/^data:image\/(\w+);base64,/', $rawAvatar, $type)) {
+                $base64Data = substr($rawAvatar, strpos($rawAvatar, ',') + 1);
+                $ext = strtolower($type[1]);
+                if (!in_array($ext, ['jpg', 'jpeg', 'png', 'webp'])) {
+                    $ext = 'jpg';
+                }
+                $decoded = base64_decode($base64Data);
+                if ($decoded !== false) {
+                    $fileName = 'avatar_' . $user->id . '_' . time() . '.' . $ext;
+                    \Illuminate\Support\Facades\Storage::disk('public')->put('avatars/' . $fileName, $decoded);
+                    $user->avatar = '/storage/avatars/' . $fileName;
+                }
+            } elseif (filter_var($rawAvatar, FILTER_VALIDATE_URL) || str_starts_with($rawAvatar, '/storage/')) {
+                $user->avatar = $rawAvatar;
+            }
+        }
+
         $user->save();
 
-        $user->load(['roles', 'vendor']);
+        $user->load(['roles', 'vendor', 'barangay']);
 
         $userData = [
             'id' => $user->id,
@@ -373,6 +458,10 @@ class AuthController extends Controller
             'phone' => $user->phone,
             'contact_number' => $user->phone,
             'address' => $user->address,
+            'avatar' => $user->avatar,
+            'avatar_url' => $user->avatar_url,
+            'barangay_id' => $user->barangay_id,
+            'barangay' => $user->barangay,
             'roles' => $user->roles->map(function ($role) {
                 return [
                     'id' => $role->id,

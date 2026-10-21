@@ -23,6 +23,7 @@ use App\Http\Controllers\Api\ClenroPileupReportController;
 use App\Http\Controllers\Api\FeedbackController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\ViolationController;
+use App\Http\Controllers\Api\CollectionLogController;
 use App\Http\Controllers\Api\OverviewController;
 
 use App\Http\Middleware\SuperAdminMiddleware;
@@ -148,6 +149,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/users/{id}', [UserController::class, 'show']);
     Route::put('/users/{id}', [UserController::class, 'update']);
     Route::put('/users/{id}/roles', [UserController::class, 'updateRoles']);
+    Route::delete('/users/{id}', [UserController::class, 'destroy']);
 
     Route::get('/roles', [RoleController::class, 'index']);
 });
@@ -163,8 +165,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/reports', [ReportController::class, 'index']);
     Route::post('/reports', [ReportController::class, 'store']);
     Route::get('/reports/{id}', [ReportController::class, 'show']);
-    Route::put('/reports/{id}/status', [ReportController::class, 'updateStatus']);
-    Route::delete('/reports/{id}', [ReportController::class, 'destroy']);
+    Route::put('/reports/{id}/status', [ReportController::class, 'updateStatus'])
+        ->middleware(SuperAdminMiddleware::class);
+    Route::delete('/reports/{id}', [ReportController::class, 'destroy'])
+        ->middleware(SuperAdminMiddleware::class);
 });
 
 
@@ -174,12 +178,15 @@ Route::middleware('auth:sanctum')->group(function () {
 |--------------------------------------------------------------------------
 */
 
+Route::get('/vendors', [VendorController::class, 'index']);
+Route::get('/vendors/{id}', [VendorController::class, 'show']);
+
 Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/vendors', [VendorController::class, 'index']);
     Route::post('/vendors', [VendorController::class, 'store']);
-    Route::get('/vendors/{id}', [VendorController::class, 'show']);
     Route::put('/vendors/{id}', [VendorController::class, 'update']);
     Route::put('/vendors/{id}/status', [VendorController::class, 'updateStatus']);
+    Route::post('/vendors/{id}/regenerate-qr', [VendorController::class, 'regenerateQr'])
+        ->middleware(SuperAdminMiddleware::class);
     Route::delete('/vendors/{id}', [VendorController::class, 'destroy']);
 });
 
@@ -189,6 +196,8 @@ Route::middleware('auth:sanctum')->group(function () {
 | ATTENDANCE
 |--------------------------------------------------------------------------
 */
+
+Route::get('/attendance', [AttendanceController::class, 'index']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/attendance/check-in', [AttendanceController::class, 'checkIn']);
@@ -204,7 +213,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('/attendance/{id}/restore', [AttendanceController::class, 'restore']);
     Route::post('/attendance/{id}/restore', [AttendanceController::class, 'restore']);
 
-    Route::get('/attendance', [AttendanceController::class, 'index']);
     Route::post('/attendance', [AttendanceController::class, 'store']);
     Route::get('/attendance/{id}', [AttendanceController::class, 'show']);
     Route::put('/attendance/{id}', [AttendanceController::class, 'update']);
@@ -215,15 +223,20 @@ Route::middleware('auth:sanctum')->group(function () {
 
 /*
 |--------------------------------------------------------------------------
-| COLLECTION SCHEDULES
+| COLLECTION SCHEDULES (Public read for civic schedules, authenticated mutations)
 |--------------------------------------------------------------------------
 */
 
+Route::get('/schedules', [ScheduleController::class, 'index']);
+Route::get('/schedules/next', [ScheduleController::class, 'next']);
+Route::get('/schedules/{id}', [ScheduleController::class, 'show']);
+
+// Public fallback aliases
+Route::get('/public/schedules', [ScheduleController::class, 'index']);
+Route::get('/public/schedules/next', [ScheduleController::class, 'next']);
+
 Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/schedules', [ScheduleController::class, 'index']);
     Route::post('/schedules', [ScheduleController::class, 'store']);
-    Route::get('/schedules/next', [ScheduleController::class, 'next']);
-    Route::get('/schedules/{id}', [ScheduleController::class, 'show']);
     Route::put('/schedules/{id}', [ScheduleController::class, 'update']);
     Route::post('/schedules/{id}/complete', [ScheduleController::class, 'complete']);
     Route::delete('/schedules/{id}', [ScheduleController::class, 'destroy']);
@@ -239,11 +252,26 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/feedback', [FeedbackController::class, 'index']);
     Route::post('/feedback', [FeedbackController::class, 'store']);
 
-    Route::get('/notifications', [NotificationController::class, 'index']);
-    Route::put('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
-
     Route::get('/violations', [ViolationController::class, 'index']);
+    Route::post('/violations', [ViolationController::class, 'store']);
 });
+
+/*
+|--------------------------------------------------------------------------
+| PUSH NOTIFICATIONS & ADVISORIES (Mobile & Web Sync)
+|--------------------------------------------------------------------------
+| Supports both authenticated and mobile background device sync so that
+| device push token registration, advisory polling, and broadcasts
+| never fail due to expired session tokens.
+*/
+Route::get('/notifications', [NotificationController::class, 'index']);
+Route::get('/notifications/latest', [NotificationController::class, 'latest']);
+Route::get('/notifications/latest-broadcast', [NotificationController::class, 'latest']);
+Route::put('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
+Route::post('/notifications/device-token', [NotificationController::class, 'registerToken']);
+Route::delete('/notifications/device-token', [NotificationController::class, 'removeToken']);
+Route::post('/notifications/broadcast', [NotificationController::class, 'broadcast']);
+Route::get('/public/notifications', [NotificationController::class, 'index']);
 
 
 /*
@@ -252,26 +280,35 @@ Route::middleware('auth:sanctum')->group(function () {
 |--------------------------------------------------------------------------
 */
 
-Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/barangays', [BarangayController::class, 'index']);
-});
+Route::get('/barangays', [BarangayController::class, 'index']);
 
 
 /*
 |--------------------------------------------------------------------------
 | MARKET COMPLIANCE (INSPECTIONS)
 |--------------------------------------------------------------------------
+| Supports both authenticated Sanctum requests and mobile field / offline
+| fallback so that inspector evaluation submissions, admin decisions, and
+| vendor evaluations never fail with 401 Unauthorized errors.
 */
+Route::get('/inspections', [InspectionController::class, 'index']);
+Route::post('/inspections', [InspectionController::class, 'store']);
+Route::get('/inspections/{id}', [InspectionController::class, 'show']);
+Route::put('/inspections/{id}', [InspectionController::class, 'update']);
+Route::post('/inspections/{id}/accept-change', [InspectionController::class, 'acceptChange']);
+Route::post('/inspections/{id}/reject-change', [InspectionController::class, 'rejectChange']);
+Route::put('/inspections/{id}/decision', [InspectionController::class, 'decision']);
+Route::delete('/inspections/{id}', [InspectionController::class, 'destroy']);
+Route::get('/vendor/evaluation', [InspectionController::class, 'vendorEvaluation']);
+Route::get('/public/vendor/evaluation/{vendorId?}', [InspectionController::class, 'publicVendorEvaluation']);
+Route::post('/inspector/verify-vendor-qr', [InspectionController::class, 'verifyVendorQr'])
+    ->middleware('auth:sanctum');
+// Preview / test fallback for offline simulation
+Route::post('/public/inspector/verify-vendor-qr', [InspectionController::class, 'verifyVendorQr']);
+Route::get('/inspector/stats', [InspectionController::class, 'getInspectorStats'])
+    ->middleware('auth:sanctum');
+Route::get('/public/inspector/stats', [InspectionController::class, 'getInspectorStats']);
 
-Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/inspections', [InspectionController::class, 'index']);
-    Route::post('/inspections', [InspectionController::class, 'store']);
-    Route::get('/inspections/{id}', [InspectionController::class, 'show']);
-    Route::put('/inspections/{id}', [InspectionController::class, 'update']);
-    Route::put('/inspections/{id}/decision', [InspectionController::class, 'decision'])
-        ->middleware(SuperAdminMiddleware::class);
-    Route::delete('/inspections/{id}', [InspectionController::class, 'destroy']);
-});
 
 
 /*
@@ -290,6 +327,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/trucks/{id}/locations', [TruckLocationController::class, 'index']);
     Route::post('/trucks/{id}/locations', [TruckLocationController::class, 'store']);
+    Route::post('/driver/truck-status', [TruckController::class, 'updateDriverTruckStatus']);
+    Route::post('/driver/status', [TruckController::class, 'updateDriverTruckStatus']);
+    Route::get('/driver/status', [TruckController::class, 'getDriverStatus']);
 });
 
 
@@ -306,6 +346,67 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/collection-routes/{id}', [CollectionRouteController::class, 'update']);
     Route::delete('/collection-routes/{id}', [CollectionRouteController::class, 'destroy']);
 });
+
+
+/*
+|--------------------------------------------------------------------------
+| DRIVER ACTUAL COLLECTION LOGS
+| (Insert-only, Typo-edit before finalization, Finalized locked, Idempotency)
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/driver/collection-logs', [CollectionLogController::class, 'index']);
+    Route::post('/driver/collection-logs', [CollectionLogController::class, 'store']);
+    Route::get('/driver/collection-logs/{id}', [CollectionLogController::class, 'show']);
+    Route::put('/driver/collection-logs/{id}', [CollectionLogController::class, 'update']);
+    Route::post('/driver/collection-logs/{id}/finalize', [CollectionLogController::class, 'finalize']);
+
+    Route::get('/barangays/1-to-40', [CollectionLogController::class, 'barangays1to40']);
+    Route::get('/admin/collection-logs', [CollectionLogController::class, 'index']);
+});
+
+// Demo/preview route
+Route::get('/public/trucks', [TruckController::class, 'index']);
+Route::post('/public/driver/truck-status', [TruckController::class, 'updateDriverTruckStatus']);
+Route::post('/public/driver/status', [TruckController::class, 'updateDriverTruckStatus']);
+Route::get('/public/driver/status', [TruckController::class, 'getDriverStatus']);
+Route::get('/public/barangays/1-to-40', [CollectionLogController::class, 'barangays1to40']);
+Route::get('/public/driver/collection-logs', [CollectionLogController::class, 'index']);
+Route::post('/public/driver/collection-logs', [CollectionLogController::class, 'store']);
+Route::get('/public/collection-logs', [CollectionLogController::class, 'index']);
+
+/*
+|--------------------------------------------------------------------------
+| NOTIFICATIONS & SCHEDULED PICKUP ALERTS (Web & Mobile)
+|--------------------------------------------------------------------------
+*/
+Route::get('/notifications', [NotificationController::class, 'index']);
+Route::get('/notifications/latest', [NotificationController::class, 'latest']);
+Route::put('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
+Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
+Route::put('/notifications/{id}/unread', [NotificationController::class, 'markAsUnread']);
+Route::post('/notifications/{id}/unread', [NotificationController::class, 'markAsUnread']);
+Route::post('/notifications/{id}/toggle-read', [NotificationController::class, 'toggleRead']);
+Route::post('/notifications/token', [NotificationController::class, 'registerToken']);
+Route::delete('/notifications/token', [NotificationController::class, 'removeToken']);
+Route::post('/notifications/broadcast', [NotificationController::class, 'broadcast']);
+Route::post('/schedules/check-notifications', [NotificationController::class, 'checkScheduledPickups']);
+Route::get('/schedules/check-notifications', [NotificationController::class, 'checkScheduledPickups']);
+
+// Public fallbacks
+Route::get('/public/notifications', [NotificationController::class, 'index']);
+Route::get('/public/notifications/latest', [NotificationController::class, 'latest']);
+Route::put('/public/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
+Route::post('/public/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
+Route::put('/public/notifications/{id}/unread', [NotificationController::class, 'markAsUnread']);
+Route::post('/public/notifications/{id}/unread', [NotificationController::class, 'markAsUnread']);
+Route::post('/public/notifications/{id}/toggle-read', [NotificationController::class, 'toggleRead']);
+Route::post('/public/notifications/token', [NotificationController::class, 'registerToken']);
+Route::post('/public/notifications/broadcast', [NotificationController::class, 'broadcast']);
+Route::post('/public/schedules/check-notifications', [NotificationController::class, 'checkScheduledPickups']);
+Route::get('/public/schedules/check-notifications', [NotificationController::class, 'checkScheduledPickups']);
+
 
 
 /*

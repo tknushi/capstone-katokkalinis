@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import KatokLogo from "../../components/KatokLogo";
 import { logoutUser } from "../../services/auth";
+import { getDriverCollectionLogs } from "../../services/driver";
 
 interface CollectionRecord {
   id: string;
@@ -22,33 +23,6 @@ interface CollectionRecord {
   timestamp: string;
 }
 
-const DEFAULT_HISTORY: CollectionRecord[] = [
-  {
-    id: "rec-1",
-    barangay: "Barangay 1 Poblacion",
-    binsCount: "24 bins",
-    weightKg: "1,120 kg",
-    wasteType: "Residual & Market Waste",
-    timestamp: "10:30 AM • Yesterday",
-  },
-  {
-    id: "rec-2",
-    barangay: "Barangay 4 Public Market",
-    binsCount: "32 bins",
-    weightKg: "1,450 kg",
-    wasteType: "Biodegradable Wet Waste",
-    timestamp: "09:15 AM • 2 days ago",
-  },
-  {
-    id: "rec-3",
-    barangay: "Barangay 2 Main Ave",
-    binsCount: "18 bins",
-    weightKg: "880 kg",
-    wasteType: "Commercial Waste",
-    timestamp: "08:45 AM • 3 days ago",
-  },
-];
-
 export default function DriverProfile() {
   const router = useRouter();
 
@@ -56,11 +30,11 @@ export default function DriverProfile() {
   const [email, setEmail] = useState("driver@katokkalinis.com");
   const [driverId, setDriverId] = useState("DRV-2026");
   const assignedTruck = "Compactor Truck #04 (KAL-104)";
-  const performanceScore = "98%";
-  const [completedStops, setCompletedStops] = useState("142");
+  const [completedStops, setCompletedStops] = useState("0");
+  const [totalWeightCollected, setTotalWeightCollected] = useState("0.0 tons");
 
-  // Collection records directly populated from "Record Collection"
-  const [collectionHistory, setCollectionHistory] = useState<CollectionRecord[]>(DEFAULT_HISTORY);
+  // Collection records directly populated from real driver logs
+  const [collectionHistory, setCollectionHistory] = useState<CollectionRecord[]>([]);
 
   useEffect(() => {
     loadProfileData();
@@ -83,16 +57,51 @@ export default function DriverProfile() {
 
   const loadCollectionHistory = async () => {
     try {
+      // 1. Fetch real collection records from the database
+      const logs = await getDriverCollectionLogs({ myLogsOnly: true });
+      if (Array.isArray(logs) && logs.length > 0) {
+        setCompletedStops(logs.length.toString());
+        const totalTons = logs.reduce((sum, item) => sum + (Number(item.amount_collected) || 0), 0);
+        setTotalWeightCollected(`${totalTons.toFixed(1)} tons`);
+
+        const formatted: CollectionRecord[] = logs.map((log) => {
+          let timeStr = "Recent";
+          if (log.created_at) {
+            const d = new Date(log.created_at);
+            timeStr =
+              d.toLocaleDateString("en-US", { month: "short", day: "numeric" }) +
+              " • " +
+              d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+          }
+          return {
+            id: String(log.id),
+            barangay: log.barangay_name,
+            weightKg: `${log.amount_collected} ${log.unit || "tons"}`,
+            binsCount: log.is_finalized ? "Finalized" : "Field Log",
+            wasteType: log.waste_type || "Residual Waste",
+            timestamp: timeStr,
+          };
+        });
+        setCollectionHistory(formatted);
+        return;
+      }
+
+      // 2. Offline fallback
       const raw = await AsyncStorage.getItem("driver_collection_records");
       if (raw) {
         const parsed = JSON.parse(raw);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          setCollectionHistory([...parsed, ...DEFAULT_HISTORY]);
-          setCompletedStops((142 + parsed.length).toString());
+          setCollectionHistory(parsed);
+          setCompletedStops(parsed.length.toString());
+          return;
         }
       }
+
+      setCompletedStops("0");
+      setTotalWeightCollected("0.0 tons");
+      setCollectionHistory([]);
     } catch (e) {
-      console.error(e);
+      console.error("Failed to load collection logs in profile:", e);
     }
   };
 
@@ -171,8 +180,8 @@ export default function DriverProfile() {
             </View>
             <View style={styles.statDivider} />
             <View style={styles.statBox}>
-              <Text style={[styles.statValue, { color: "#2E7D32" }]}>{performanceScore}</Text>
-              <Text style={styles.statLabel}>On-Time Rating</Text>
+              <Text style={[styles.statValue, { color: "#2E7D32" }]}>{totalWeightCollected}</Text>
+              <Text style={styles.statLabel}>Waste Logged</Text>
             </View>
             <View style={styles.statDivider} />
             <View style={styles.statBox}>
@@ -207,48 +216,55 @@ export default function DriverProfile() {
           </View>
         </View>
 
-        {/* 4. COLLECTION HISTORY (Requirement 12: Populated from Record Collection) */}
+        {/* 4. COLLECTION HISTORY (Populated from live driver collection records) */}
         <View style={styles.sectionHeaderRow}>
           <Text style={styles.sectionTitle}>Collection History</Text>
           <Text style={styles.sectionSub}>{collectionHistory.length} Recorded Runs</Text>
         </View>
 
         <View style={styles.historyList}>
-          {collectionHistory.map((item, index) => (
-            <View
-              key={item.id || index}
-              style={[
-                styles.historyCard,
-                index === collectionHistory.length - 1 && { marginBottom: 0 },
-              ]}
-            >
-              <View style={styles.historyTopRow}>
-                <View style={styles.historyBarangayTag}>
-                  <MaterialCommunityIcons name="map-marker" size={13} color="#2E7D32" />
-                  <Text style={styles.historyBarangayText}>{item.barangay}</Text>
-                </View>
-
-                <Text style={styles.historyTimestamp}>{item.timestamp}</Text>
-              </View>
-
-              <View style={styles.historyMetricsRow}>
-                <View style={styles.metricItem}>
-                  <Text style={styles.metricLabel}>BINS EMPTIED</Text>
-                  <Text style={styles.metricValue}>{item.binsCount}</Text>
-                </View>
-
-                <View style={styles.metricItem}>
-                  <Text style={styles.metricLabel}>DISPOSAL WEIGHT</Text>
-                  <Text style={styles.metricValue}>{item.weightKg}</Text>
-                </View>
-
-                <View style={styles.metricItem}>
-                  <Text style={styles.metricLabel}>CATEGORY</Text>
-                  <Text style={[styles.metricValue, { color: "#2E7D32" }]}>{item.wasteType}</Text>
-                </View>
-              </View>
+          {collectionHistory.length === 0 ? (
+            <View style={styles.emptyHistoryCard}>
+              <MaterialCommunityIcons name="clipboard-text-outline" size={32} color="#8DA78B" />
+              <Text style={styles.emptyHistoryText}>No collection logs recorded yet.</Text>
             </View>
-          ))}
+          ) : (
+            collectionHistory.map((item, index) => (
+              <View
+                key={item.id || index}
+                style={[
+                  styles.historyCard,
+                  index === collectionHistory.length - 1 && { marginBottom: 0 },
+                ]}
+              >
+                <View style={styles.historyTopRow}>
+                  <View style={styles.historyBarangayTag}>
+                    <MaterialCommunityIcons name="map-marker" size={13} color="#2E7D32" />
+                    <Text style={styles.historyBarangayText}>{item.barangay}</Text>
+                  </View>
+
+                  <Text style={styles.historyTimestamp}>{item.timestamp}</Text>
+                </View>
+
+                <View style={styles.historyMetricsRow}>
+                  <View style={styles.metricItem}>
+                    <Text style={styles.metricLabel}>STATUS</Text>
+                    <Text style={styles.metricValue}>{item.binsCount}</Text>
+                  </View>
+
+                  <View style={styles.metricItem}>
+                    <Text style={styles.metricLabel}>DISPOSAL WEIGHT</Text>
+                    <Text style={[styles.metricValue, { color: "#2E7D32" }]}>{item.weightKg}</Text>
+                  </View>
+
+                  <View style={styles.metricItem}>
+                    <Text style={styles.metricLabel}>CATEGORY</Text>
+                    <Text style={styles.metricValue}>{item.wasteType}</Text>
+                  </View>
+                </View>
+              </View>
+            ))
+          )}
         </View>
 
         {/* 5. LOGOUT BUTTON (Navigation Guarded) */}
@@ -569,6 +585,22 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     color: "#1E331B",
     marginTop: 2,
+  },
+  emptyHistoryCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 14,
+    padding: 24,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "#E2EFE1",
+    marginBottom: 16,
+    gap: 8,
+  },
+  emptyHistoryText: {
+    fontSize: 13,
+    color: "#7A8D78",
+    fontWeight: "600",
   },
   logoutButton: {
     flexDirection: "row",

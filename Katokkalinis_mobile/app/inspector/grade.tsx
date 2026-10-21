@@ -2,6 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
+import * as Haptics from "expo-haptics";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -16,6 +17,7 @@ import {
 } from "react-native";
 import KatokLogo from "../../components/KatokLogo";
 import { submitInspection } from "../../services/inspector";
+import { fetchVendorEvaluation } from "../../services/vendor";
 
 const ratingOptions = [5, 4, 3, 2, 1];
 
@@ -32,12 +34,54 @@ export default function Grade() {
   const [condition, setCondition] = useState(4);
   const [total, setTotal] = useState(8);
   const [compliance, setCompliance] = useState(8.0);
-  const [notes, setNotes] = useState("Good sanitation, clean food display and proper waste bin segregation.");
+  const [notes, setNotes] = useState("");
   const [photoUri, setPhotoUri] = useState<string | null>(null);
+
+  // Existing evaluation and pending change state
+  const [existingInspectionId, setExistingInspectionId] = useState<number | null>(null);
+  const [hasPendingChange, setHasPendingChange] = useState<boolean>(false);
+  const [fetchingInitial, setFetchingInitial] = useState<boolean>(true);
 
   // Lock state (Requirement 18)
   const [isLocked, setIsLocked] = useState(initialStatus === "completed");
   const [loading, setLoading] = useState(false);
+
+  // Pre-populate with live evaluation from backend
+  useEffect(() => {
+    let isMounted = true;
+    async function loadCurrentEvaluation() {
+      try {
+        setFetchingInitial(true);
+        const evalRes = await fetchVendorEvaluation(vendorId);
+        if (isMounted && evalRes?.success && evalRes.evaluation) {
+          const ev = evalRes.evaluation;
+          if (ev.id) setExistingInspectionId(ev.id);
+          if (ev.has_pending_change) setHasPendingChange(true);
+          if (ev.hygiene_score !== undefined && ev.hygiene_score !== null) {
+            setHygiene(Math.max(1, Math.min(5, Math.round(Number(ev.hygiene_score) / 20))));
+          }
+          if (ev.premises_score !== undefined && ev.premises_score !== null) {
+            setCondition(Math.max(1, Math.min(5, Math.round(Number(ev.premises_score) / 20))));
+          }
+          if (ev.notes && typeof ev.notes === "string" && ev.notes.trim() !== "") {
+            setNotes(ev.notes);
+          } else {
+            setNotes("");
+          }
+        } else {
+          setNotes("");
+        }
+      } catch (err) {
+        console.warn("Failed to load current evaluation for vendor:", err);
+      } finally {
+        if (isMounted) setFetchingInitial(false);
+      }
+    }
+    loadCurrentEvaluation();
+    return () => {
+      isMounted = false;
+    };
+  }, [vendorId]);
 
   useEffect(() => {
     const sum = hygiene + condition;
@@ -101,27 +145,45 @@ export default function Grade() {
     try {
       setLoading(true);
       const inspectorIdStr = await AsyncStorage.getItem("userId");
-      const inspectorId = inspectorIdStr ? parseInt(inspectorIdStr, 10) : 1;
+      const inspectorId = inspectorIdStr ? parseInt(inspectorIdStr, 10) : 4;
 
       const hygieneNum = Math.min(100, Math.max(0, hygiene * 20));
       const conditionNum = Math.min(100, Math.max(0, condition * 20));
 
+      const trimmedNotes = notes.trim();
+      const sanitizedNotes = (!trimmedNotes || trimmedNotes.toLowerCase() === "write something") ? "" : trimmedNotes;
+
       const res = await submitInspection({
         vendor_id: vendorId,
+        inspection_id: existingInspectionId || undefined,
         inspector_id: inspectorId,
         hygiene_system: hygieneNum,
         condition_of_premises: conditionNum,
-        notes: notes.trim() || undefined,
+        notes: sanitizedNotes,
         status: "completed",
       });
 
       if (res.success) {
+        try {
+          await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        } catch {
+          // Haptics fallback
+        }
         setIsLocked(true); // Lock report upon successful submission (Requirement 18)
-        Alert.alert(
-          "Grading Report Submitted & Locked",
-          "The sanitation score has been officially certified and locked to prevent accidental modifications.",
-          [{ text: "OK" }]
-        );
+        if (res.is_pending_approval) {
+          setHasPendingChange(true);
+          Alert.alert(
+            "Change Request Submitted",
+            "This vendor already has an evaluation. Your proposed scores (Total: " + Math.round((hygieneNum + conditionNum) / 2) + "%) have been submitted to the Admin website as a Pending Change Request. Once Admin accepts it, the vendor's app will update in real time.",
+            [{ text: "OK" }]
+          );
+        } else {
+          Alert.alert(
+            "Grading Report Submitted & Locked",
+            "The sanitation score has been officially certified and locked to prevent accidental modifications.",
+            [{ text: "OK" }]
+          );
+        }
       } else {
         Alert.alert("Submission Failed", res.message || "Failed to save inspection report.");
       }
@@ -177,6 +239,19 @@ export default function Grade() {
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        {/* PENDING CHANGE WARNING BANNER */}
+        {hasPendingChange && (
+          <View style={styles.pendingAlertBanner}>
+            <MaterialCommunityIcons name="clock-alert-outline" size={20} color="#D97706" />
+            <View style={{ flex: 1, marginLeft: 8 }}>
+              <Text style={styles.pendingAlertTitle}>Change Request Pending Admin Review</Text>
+              <Text style={styles.pendingAlertSub}>
+                A score revision was previously submitted and is awaiting Admin review on the web panel. Submitting new scores will update this request.
+              </Text>
+            </View>
+          </View>
+        )}
+
         {/* LOCK STATUS BANNER (Requirement 18) */}
         {isLocked ? (
           <View style={styles.lockedBanner}>
@@ -261,14 +336,21 @@ export default function Grade() {
           {/* TOTAL SCORE BOX */}
           <View style={styles.scoreSummaryBox}>
             <View style={styles.scoreMetric}>
-              <Text style={styles.scoreLabel}>COMBINED SCORE</Text>
+              <Text style={styles.scoreLabel}>RAW SCORE</Text>
               <Text style={styles.scoreVal}>{total} / 10</Text>
             </View>
             <View style={styles.scoreDivider} />
             <View style={styles.scoreMetric}>
               <Text style={styles.scoreLabel}>COMPLIANCE RATING</Text>
-              <Text style={[styles.scoreVal, { color: compliance >= 7.5 ? "#2E7D32" : "#D97706" }]}>
-                {compliance * 10}%
+              <Text style={[styles.scoreVal, { color: compliance * 10 >= 85 ? "#2E7D32" : (compliance * 10 >= 70 ? "#1976D2" : "#DC2626") }]}>
+                {Math.round(compliance * 10)}%
+              </Text>
+            </View>
+            <View style={styles.scoreDivider} />
+            <View style={styles.scoreMetric}>
+              <Text style={styles.scoreLabel}>GRADE</Text>
+              <Text style={[styles.scoreVal, { color: compliance * 10 >= 85 ? "#2E7D32" : (compliance * 10 >= 70 ? "#1976D2" : "#DC2626") }]}>
+                {compliance * 10 >= 85 ? "Grade A" : (compliance * 10 >= 70 ? "Grade B" : "Grade C")}
               </Text>
             </View>
           </View>
@@ -319,7 +401,7 @@ export default function Grade() {
               style={styles.notesInput}
               multiline
               editable={!isLocked}
-              placeholder="Enter inspector observations, recommendations, or violations..."
+              placeholder="Write something"
               placeholderTextColor="#9AA998"
               value={notes}
               onChangeText={setNotes}
@@ -405,6 +487,27 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     paddingTop: 16,
     paddingBottom: 40,
+  },
+  pendingAlertBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FFFBEB",
+    borderRadius: 14,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: "#FDE68A",
+    marginBottom: 14,
+  },
+  pendingAlertTitle: {
+    fontSize: 13,
+    fontWeight: "800",
+    color: "#B45309",
+  },
+  pendingAlertSub: {
+    fontSize: 11,
+    color: "#78350F",
+    marginTop: 2,
+    lineHeight: 15,
   },
   lockedBanner: {
     flexDirection: "row",

@@ -27,12 +27,84 @@
             </header>
             
             <section class="content">
-                <div class="stats-grid">
-                    <div class="stat-card"><h3>Active Contractors</h3><div class="value" id="stat-active">...</div></div>
-                    <div class="stat-card"><h3>Total Value</h3><div class="value" id="stat-value">N/A</div></div>
-                    <div class="stat-card"><h3>Contractors</h3><div class="value" id="stat-total">...</div></div>
-                    <div class="stat-card"><h3>Average Performance</h3><div class="value" id="stat-performance">N/A</div></div>
-                </div>
+                <div class="exec-command-center">
+                    <!-- Standard Executive Header Banner -->
+                    <div class="exec-header-banner">
+                        <div class="exec-header-left">
+                            <div class="exec-shield-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 2l8 4.5v6c0 5-3.5 9.5-8 11.5-4.5-2-8-6.5-8-11.5v-6z"/>
+                                    <path d="M8 12h8M12 8v8"/>
+                                </svg>
+                            </div>
+                            <div class="exec-title-block">
+                                <h1>Accredited Waste Hauling Contractors</h1>
+                                <p>CITY ENVIRONMENT &bull; CONTRACT MONITORING &bull; CAGAYAN DE ORO CITY</p>
+                            </div>
+                            <div class="exec-clenro-pill">
+                                <span class="live-dot"></span>
+                                CONTRACT AUDIT ACTIVE
+                            </div>
+                        </div>
+                        <div class="exec-header-right">
+                            <button class="btn" onclick="openModal()" style="background: var(--green-500); color: #fff; font-weight: 700; border: none; padding: 8px 16px; border-radius: 8px; width: auto; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+                                <span>+</span> Add Contractor
+                            </button>
+                            <a href="trucks.html" class="exec-btn-cross-connect" title="Open Fleet Operations">
+                                <span>&#128667;</span> Fleet Operations
+                            </a>
+                            <a href="analytics.html" class="exec-btn-cross-connect" title="Open Executive Dashboard">
+                                <span>&#128202;</span> Executive Analytics
+                            </a>
+                            <a href="barangay-overview.html" class="exec-btn-cross-connect" title="Open Barangay Command">
+                                <span>&#127963;</span> Barangay Command
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Operational Stat Cards Grid -->
+                    <div class="exec-stats-grid">
+                        <div class="exec-kpi-card">
+                            <div class="kpi-header">
+                                <span class="kpi-label">Active Contractors</span>
+                                <span class="kpi-icon-wrap" style="background: rgba(34, 197, 94, 0.1); color: var(--green-600);">&#128666;</span>
+                            </div>
+                            <div class="kpi-value-row">
+                                <span class="kpi-value" id="stat-active">...</span>
+                            </div>
+                            <div class="kpi-footer">Currently operational haulers</div>
+                        </div>
+                        <div class="exec-kpi-card">
+                            <div class="kpi-header">
+                                <span class="kpi-label">Total Value</span>
+                                <span class="kpi-icon-wrap" style="background: rgba(59, 130, 246, 0.1); color: #2563eb;">&#128181;</span>
+                            </div>
+                            <div class="kpi-value-row">
+                                <span class="kpi-value" id="stat-value">N/A</span>
+                            </div>
+                            <div class="kpi-footer">Procurement contract budget</div>
+                        </div>
+                        <div class="exec-kpi-card">
+                            <div class="kpi-header">
+                                <span class="kpi-label">Registered Contractors</span>
+                                <span class="kpi-icon-wrap" style="background: rgba(16, 185, 129, 0.1); color: #059669;">&#128196;</span>
+                            </div>
+                            <div class="kpi-value-row">
+                                <span class="kpi-value" id="stat-total">...</span>
+                            </div>
+                            <div class="kpi-footer">All contracted service partners</div>
+                        </div>
+                        <div class="exec-kpi-card">
+                            <div class="kpi-header">
+                                <span class="kpi-label">Average Performance</span>
+                                <span class="kpi-icon-wrap" style="background: rgba(245, 158, 11, 0.1); color: #d97706;">&#11088;</span>
+                            </div>
+                            <div class="kpi-value-row">
+                                <span class="kpi-value" id="stat-performance">N/A</span>
+                            </div>
+                            <div class="kpi-footer">SLA completion score</div>
+                        </div>
+                    </div>
                 <div class="card">
                     <div class="card-header">
                         <h3>Contractor Oversight</h3>
@@ -41,6 +113,7 @@
                     <div id="table-body" class="record-grid">
                         <p>Loading contractors...</p>
                     </div>
+                </div>
                 </div>
             </section>
         </main>

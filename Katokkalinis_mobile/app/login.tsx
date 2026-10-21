@@ -6,17 +6,23 @@ import {
   ActivityIndicator,
   Alert,
   Dimensions,
+  Image,
   ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 
+import * as Haptics from "expo-haptics";
+import { getBaseApiUrl, resolveMediaUrl } from "../services/api";
 import { forgotPassword, loginUser } from "../services/auth";
+import { registerDevicePushToken } from "../services/pushNotification";
 
-const { width: SCREEN_WIDTH } = Dimensions.get("window");
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 const isSmall = SCREEN_WIDTH < 360;
 
 export default function Login() {
@@ -72,7 +78,7 @@ export default function Login() {
         return;
       }
 
-      if (result.user.role !== selectedRole && result.user.role !== "super_admin") {
+      if (result.user.role !== selectedRole) {
         Alert.alert(
           "Account Type",
           `Logged in with role: ${result.user.role}. Redirecting to your dashboard.`
@@ -84,9 +90,21 @@ export default function Login() {
       await AsyncStorage.setItem("userName", result.user.name);
       await AsyncStorage.setItem("userEmail", result.user.email);
 
+      if (result.user.avatar_url || result.user.avatar) {
+        const resolvedAvatar = resolveMediaUrl(result.user.avatar_url || result.user.avatar);
+        if (resolvedAvatar) {
+          await AsyncStorage.setItem("userAvatar", resolvedAvatar);
+        }
+      }
+
       if (result.token) {
         await AsyncStorage.setItem("authToken", result.token);
         await AsyncStorage.setItem("katokkalinis_token", result.token);
+      }
+
+      const userBrgy = result.user.barangay?.name || result.user.address;
+      if (userBrgy) {
+        await AsyncStorage.setItem("userBarangay", userBrgy);
       }
 
       if (rememberMe) {
@@ -95,16 +113,30 @@ export default function Login() {
         await AsyncStorage.removeItem("rememberMe");
       }
 
+      // Register device push token with backend
+      registerDevicePushToken(result.user.role, result.user.barangay_id || null).catch(() => {});
+
+      try {
+        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      } catch {
+        // Haptics fallback on unsupported platforms
+      }
+
       if (result.user.role === "vendor" || selectedRole === "vendor") {
         router.replace("/vendor" as any);
+      } else if (result.user.role === "driver") {
+        router.replace("/driver/dashboard" as any);
+      } else if (result.user.role === "inspector") {
+        router.replace("/inspector/dashboard" as any);
       } else {
         router.replace("/dashboard" as any);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("LOGIN ERROR:", error);
+      const targetUrl = getBaseApiUrl();
       Alert.alert(
         "Connection Error",
-        "Cannot connect to the Laravel server. Please check your network or server."
+        `Cannot reach the Laravel server at:\n${targetUrl}\n\nPlease verify that your mobile device and computer are on the same Wi-Fi network and that the backend server is active.`
       );
     } finally {
       setLoading(false);
@@ -131,15 +163,33 @@ export default function Login() {
 
   return (
     <View style={styles.container}>
-      {/* Top Back Navigation */}
+      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
+
+      {/* Lush Background Eco-Gradient matching Title Screen */}
+      <LinearGradient
+        colors={["#FFFFFF", "#F8FDF7", "#EEF8EB", "#DFEED9"]}
+        locations={[0, 0.35, 0.7, 1.0]}
+        style={StyleSheet.absoluteFillObject}
+      />
+
+      {/* Top Back Navigation with Logo */}
       <View style={styles.topNav}>
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => router.replace("/welcome" as any)}
           hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          activeOpacity={0.8}
         >
-          <MaterialCommunityIcons name="arrow-left" size={24} color="#1E331B" />
+          <MaterialCommunityIcons name="arrow-left" size={22} color="#1E331B" />
         </TouchableOpacity>
+
+        <Image
+          source={require("../assets/images/katok_logo_full.png")}
+          style={styles.navLogo}
+          resizeMode="contain"
+        />
+
+        <View style={{ width: 38 }} />
       </View>
 
       <ScrollView
@@ -232,57 +282,114 @@ export default function Login() {
             </TouchableOpacity>
           </View>
 
-          {/* LOGIN BUTTON */}
-          <TouchableOpacity
-            style={[styles.loginButton, loading && styles.disabledButton]}
-            onPress={handleLogin}
-            disabled={loading}
-            activeOpacity={0.88}
-          >
-            {loading ? (
-              <ActivityIndicator color="#FFFFFF" />
-            ) : (
-              <Text style={styles.loginText}>Login</Text>
-            )}
-          </TouchableOpacity>
 
-          {/* REGISTER LINK (FOR RESIDENT) */}
-          {selectedRole === "resident" && (
-            <View style={styles.signupRow}>
-              <Text style={styles.signupText}>Don&apos;t have an account?</Text>
+
+              {/* LOGIN BUTTON */}
               <TouchableOpacity
-                onPress={() => router.push("/signup" as any)}
-                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                style={[styles.loginButton, loading && styles.disabledButton]}
+                onPress={handleLogin}
+                disabled={loading}
+                activeOpacity={0.88}
               >
-                <Text style={styles.signupLink}>Register</Text>
+                {loading ? (
+                  <ActivityIndicator color="#FFFFFF" />
+                ) : (
+                  <Text style={styles.loginText}>Login</Text>
+                )}
               </TouchableOpacity>
+
+              {/* REGISTER LINK (FOR RESIDENT) */}
+              {selectedRole === "resident" && (
+                <View style={styles.signupRow}>
+                  <Text style={styles.signupText}>Don&apos;t have an account?</Text>
+                  <TouchableOpacity
+                    onPress={() => router.push("/signup" as any)}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                  >
+                    <Text style={styles.signupLink}>Register</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
             </View>
-          )}
+
+            {/* Title Screen Scenic Landscape & Compactor Truck */}
+            <View style={styles.bottomLandscape} pointerEvents="none">
+              <Image
+                source={require("../assets/images/forest_hills.png")}
+                style={styles.forestGraphic}
+                resizeMode="cover"
+              />
+              <View style={styles.truckWrapper}>
+                <Image
+                  source={require("../assets/images/compactor_truck.png")}
+                  style={styles.truckGraphic}
+                  resizeMode="contain"
+                />
+              </View>
+            </View>
+          </ScrollView>
         </View>
-      </ScrollView>
-    </View>
-  );
-}
+      );
+    }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#FFFFFF",
-    paddingTop: 50,
   },
   topNav: {
-    paddingHorizontal: 20,
-    marginBottom: 10,
+    paddingHorizontal: 18,
+    paddingTop: Math.max(44, SCREEN_HEIGHT * 0.055),
+    paddingBottom: 6,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    zIndex: 20,
   },
   backButton: {
-    width: 40,
-    height: 40,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: "#FFFFFF",
     justifyContent: "center",
-    alignItems: "flex-start",
+    alignItems: "center",
+    borderWidth: 1.5,
+    borderColor: "#D2EBD5",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  navLogo: {
+    width: 130,
+    height: 32,
   },
   scrollContent: {
-    paddingHorizontal: 26,
-    paddingBottom: 40,
+    paddingHorizontal: 22,
+    paddingBottom: 20,
+  },
+  bottomLandscape: {
+    width: "100%",
+    position: "relative",
+    justifyContent: "flex-end",
+    alignItems: "center",
+    marginTop: 20,
+  },
+  forestGraphic: {
+    width: SCREEN_WIDTH,
+    height: Math.min(SCREEN_HEIGHT * 0.20, 170),
+    opacity: 0.95,
+  },
+  truckWrapper: {
+    position: "absolute",
+    left: SCREEN_WIDTH * 0.08,
+    bottom: 20,
+    zIndex: 5,
+  },
+  truckGraphic: {
+    width: 110,
+    height: 55,
   },
   header: {
     alignItems: "center",

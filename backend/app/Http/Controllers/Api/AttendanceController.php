@@ -100,8 +100,8 @@ class AttendanceController extends Controller
 
             'date' => 'required|date',
 
-            'time_in' => 'nullable|date_format:H:i',
-            'time_out' => 'nullable|date_format:H:i',
+            'time_in' => ['nullable', 'regex:/^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/'],
+            'time_out' => ['nullable', 'regex:/^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/'],
 
             'status' => 'required|in:present,late,absent,on_leave',
 
@@ -199,8 +199,8 @@ class AttendanceController extends Controller
 
             'date' => 'sometimes|required|date',
 
-            'time_in' => 'nullable|date_format:H:i',
-            'time_out' => 'nullable|date_format:H:i',
+            'time_in' => ['nullable', 'regex:/^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/'],
+            'time_out' => ['nullable', 'regex:/^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/'],
 
             'status' => 'sometimes|required|in:present,late,absent,on_leave',
 

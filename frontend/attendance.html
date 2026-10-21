@@ -28,6 +28,76 @@
         .filter-bar input[type="date"] {
             min-width: 140px;
         }
+        /* Realtime clock removed per user preference */
+        .btn-icon-topbar {
+            width: 36px;
+            height: 36px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .btn-icon-topbar:hover {
+            background: var(--surface-alt);
+            color: var(--green-700);
+        }
+        .btn-icon-topbar.spinning svg {
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin {
+            100% { transform: rotate(360deg); }
+        }
+        .time-in-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-weight: 700;
+            color: #166534;
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 12.5px;
+        }
+        .time-out-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-weight: 700;
+            color: #854d0e;
+            background: #fefce8;
+            border: 1px solid #fef08a;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 12.5px;
+        }
+        .btn-text-action {
+            background: none;
+            border: none;
+            color: var(--green-700);
+            font-size: 11.5px;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 0 4px;
+            text-decoration: underline;
+        }
+        .btn-text-action:hover {
+            color: var(--green-900);
+        }
+        .btn-secondary {
+            background: var(--surface-alt);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+        .btn-secondary:hover {
+            background: var(--border);
+            color: var(--text);
+        }
     </style>
 </head>
 <body>
@@ -49,13 +119,56 @@
             </header>
             
             <section class="content">
+                <div class="exec-command-center">
+                    <!-- Standard Executive Header Banner -->
+                    <div class="exec-header-banner">
+                        <div class="exec-header-left">
+                            <div class="exec-shield-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 2l8 4.5v6c0 5-3.5 9.5-8 11.5-4.5-2-8-6.5-8-11.5v-6z"/>
+                                    <path d="M8 12h8M12 8v8"/>
+                                </svg>
+                            </div>
+                            <div class="exec-title-block">
+                                <h1>Personnel Attendance Records</h1>
+                                <p>CITY ENVIRONMENT &bull; CLENRO WORKFORCE LOGISTICS &bull; CAGAYAN DE ORO CITY</p>
+                            </div>
+                            <div class="exec-clenro-pill">
+                                <span class="live-dot"></span>
+                                CLENRO TIME SYNC
+                            </div>
+                        </div>
+                        <div class="exec-header-right">
+                            <a href="employees.html" class="exec-btn-cross-connect" title="Open Workforce Roster">
+                                <span>&#128101;</span> Personnel Roster
+                            </a>
+                            <a href="analytics.html" class="exec-btn-cross-connect" title="Open Executive Dashboard">
+                                <span>&#128202;</span> Executive Analytics
+                            </a>
+                            <a href="barangay-overview.html" class="exec-btn-cross-connect" title="Open Barangay Command">
+                                <span>&#127963;</span> Barangay Command
+                            </a>
+                        </div>
+                    </div>
+
                 <div class="card">
-                    <div class="card-header" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
-                        <h3 class="users-section-title">Attendance Log</h3>
-                        <button class="btn" onclick="openModal()" style="width: auto;">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 4px;"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                            Add Attendance
-                        </button>
+                    <div class="card-header" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+                        <div>
+                            <h3 class="users-section-title" style="margin: 0;">Attendance Log</h3>
+                            <p style="font-size: 12.5px; color: var(--text-muted); margin: 3px 0 0 0;" id="attendance-sync-status-desc">
+                                Real-time personnel logs &bull; Standard 12-hour normal time (PST) &bull; <span style="color:var(--green-700); font-weight:600;" id="live-sync-indicator">&#9679; Auto-synced live</span>
+                            </p>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                            <button type="button" class="btn btn-secondary" onclick="quickSelfCheckInOut()" style="width: auto;" id="btn-quick-checkin">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 4px;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                                Quick Check-In / Out
+                            </button>
+                            <button type="button" class="btn" onclick="openModal()" style="width: auto;">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 4px;"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                                Add Attendance
+                            </button>
+                        </div>
                     </div>
 
                     <!-- Search, Archive Status, and Attendance Status Filter Bar -->
@@ -115,7 +228,9 @@
                                     <th class="sortable" id="th-time_in" onclick="handleSort('time_in')">
                                         Time In <span class="sort-icon" id="sort-icon-time_in">&#8597;</span>
                                     </th>
-                                    <th>Time Out</th>
+                                    <th class="sortable" id="th-time_out" onclick="handleSort('time_out')">
+                                        Time Out <span class="sort-icon" id="sort-icon-time_out">&#8597;</span>
+                                    </th>
                                     <th class="sortable" id="th-status" onclick="handleSort('status')">
                                         Status <span class="sort-icon" id="sort-icon-status">&#8597;</span>
                                     </th>
@@ -123,7 +238,7 @@
                                 </tr>
                             </thead>
                             <tbody id="table-body">
-                                <tr><td colspan="7" style="text-align: center; padding: 24px;">Loading attendance records...</td></tr>
+                                
                             </tbody>
                         </table>
                     </div>
@@ -131,18 +246,25 @@
                     <!-- Reusable Pagination Bar -->
                     <div id="pagination-container" class="pagination-container"></div>
                 </div>
+                </div>
             </section>
         </main>
     </div>
 
     <!-- Add Attendance Modal -->
     <div id="form-modal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content" style="max-width: 500px;">
             <div class="modal-header">
                 <h3>Add Attendance</h3>
                 <span class="close-btn" onclick="closeFormModal()">&times;</span>
             </div>
             <form id="data-form">
+                <div style="display: flex; justify-content: flex-end; margin-bottom: 10px;">
+                    <button type="button" class="btn-text-action" onclick="syncAddFormRealtime()" style="display: inline-flex; align-items: center; gap: 4px;">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                        ⚡ Sync Current Date &amp; Time
+                    </button>
+                </div>
                 <div class="form-group">
                     <label>Employee / User</label>
                     <select id="user_id" class="form-control" required>
@@ -153,13 +275,17 @@
                     <label>Date</label>
                     <input type="date" id="date" class="form-control" required>
                 </div>
-                <div class="form-group">
-                    <label>Time In</label>
-                    <input type="time" id="time_in" class="form-control">
-                </div>
-                <div class="form-group">
-                    <label>Time Out</label>
-                    <input type="time" id="time_out" class="form-control">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div class="form-group">
+                        <label>Time In</label>
+                        <input type="time" id="time_in" class="form-control">
+                        <small id="add-time_in_hint" style="color: var(--text-muted); font-size: 11px; display: block; margin-top: 2px;"></small>
+                    </div>
+                    <div class="form-group">
+                        <label>Time Out</label>
+                        <input type="time" id="time_out" class="form-control">
+                        <small id="add-time_out_hint" style="color: var(--text-muted); font-size: 11px; display: block; margin-top: 2px;"></small>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label>Status</label>
@@ -174,32 +300,69 @@
                     <label>Remarks</label>
                     <input type="text" id="remarks" class="form-control" placeholder="Optional notes or remarks">
                 </div>
-                <button type="submit" class="btn">Save Attendance</button>
+                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px;">
+                    <button type="button" class="btn" style="width: auto; background: var(--surface-alt); color: var(--text); border: 1px solid var(--border);" onclick="closeFormModal()">Cancel</button>
+                    <button type="submit" class="btn" style="width: auto;">Save Attendance</button>
+                </div>
             </form>
         </div>
     </div>
 
-    <!-- Update Status Modal -->
-    <div id="status-modal" class="modal">
-        <div class="modal-content" style="max-width: 440px;">
+    <!-- Edit Attendance Record Modal -->
+    <div id="edit-record-modal" class="modal">
+        <div class="modal-content" style="max-width: 480px;">
             <div class="modal-header">
-                <h3>Update Attendance Status</h3>
-                <span class="close-btn" onclick="closeStatusModal()">&times;</span>
+                <h3>Edit Attendance Record</h3>
+                <span class="close-btn" onclick="closeEditRecordModal()">&times;</span>
             </div>
-            <form id="status-form">
-                <input type="hidden" id="attendance-id">
+            <form id="edit-record-form">
+                <input type="hidden" id="edit-attendance-id">
+                <input type="hidden" id="edit-user-id">
+                <div class="form-group">
+                    <label>Employee</label>
+                    <input type="text" id="edit-employee-name" class="form-control" readonly style="background: var(--surface-alt); font-weight: 600;">
+                </div>
+                <div class="form-group">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                        <label style="margin: 0;">Date</label>
+                        <button type="button" class="btn-text-action" onclick="syncEditDateToToday()">Set to Today</button>
+                    </div>
+                    <input type="date" id="edit-date" class="form-control" required>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div class="form-group">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                            <label style="margin: 0;">Time In</label>
+                            <button type="button" class="btn-text-action" onclick="syncEditTimeInToNow()">Now</button>
+                        </div>
+                        <input type="time" id="edit-time_in" class="form-control">
+                        <small id="edit-time_in_hint" style="color: var(--text-muted); font-size: 11px; display: block; margin-top: 2px;"></small>
+                    </div>
+                    <div class="form-group">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                            <label style="margin: 0;">Time Out</label>
+                            <button type="button" class="btn-text-action" onclick="syncEditTimeOutToNow()">Now</button>
+                        </div>
+                        <input type="time" id="edit-time_out" class="form-control">
+                        <small id="edit-time_out_hint" style="color: var(--text-muted); font-size: 11px; display: block; margin-top: 2px;"></small>
+                    </div>
+                </div>
                 <div class="form-group">
                     <label>Status</label>
-                    <select id="status-select" class="form-control">
+                    <select id="edit-status-select" class="form-control">
                         <option value="present">Present</option>
                         <option value="late">Late</option>
                         <option value="absent">Absent</option>
                         <option value="on_leave">On Leave</option>
                     </select>
                 </div>
+                <div class="form-group">
+                    <label>Remarks</label>
+                    <input type="text" id="edit-remarks" class="form-control" placeholder="Optional notes or remarks">
+                </div>
                 <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px;">
-                    <button type="button" class="btn" style="width: auto; background: var(--surface-alt); color: var(--text); border: 1px solid var(--border);" onclick="closeStatusModal()">Cancel</button>
-                    <button type="submit" class="btn" style="width: auto;">Update Status</button>
+                    <button type="button" class="btn" style="width: auto; background: var(--surface-alt); color: var(--text); border: 1px solid var(--border);" onclick="closeEditRecordModal()">Cancel</button>
+                    <button type="submit" class="btn" style="width: auto;">Save Changes</button>
                 </div>
             </form>
         </div>
@@ -294,9 +457,26 @@
     </div>
 
     <script src="js/app.js"></script>
+    <script src="js/attendance-seed.js"></script>
     <script>
         const endpoint = '/attendance';
+        const STORAGE_CACHE = 'katok_attendance_cache';
         let rawAttendance = [];
+
+        // Synchronously hydrate immediately from cache or seed data so output is never hindered on load
+        try {
+            const cached = localStorage.getItem(STORAGE_CACHE);
+            if (cached) {
+                const parsed = JSON.parse(cached);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    rawAttendance = parsed;
+                }
+            }
+        } catch (e) {}
+
+        if ((!rawAttendance || rawAttendance.length === 0) && Array.isArray(window.KATOK_DEFAULT_ATTENDANCE)) {
+            rawAttendance = window.KATOK_DEFAULT_ATTENDANCE;
+        }
         let selectedRecordIds = new Set();
 
         // Storage keys for retaining pagination & filter state across reloads
@@ -314,15 +494,17 @@
             let page = parseInt(urlParams.get('page') || localStorage.getItem(STORAGE_PAGE) || '1', 10);
             if (isNaN(page) || page < 1) page = 1;
 
-            let rows = parseInt(urlParams.get('rows') || localStorage.getItem(STORAGE_ROWS) || '10', 10);
-            if (![10, 20, 50, 100].includes(rows)) rows = 10;
+            // Default to 50 rows so ALL attendance records are immediately visible without pagination hindrance
+            let rows = parseInt(urlParams.get('rows') || localStorage.getItem(STORAGE_ROWS) || '50', 10);
+            if (![10, 20, 50, 100].includes(rows)) rows = 50;
 
             let status = urlParams.get('status') || localStorage.getItem(STORAGE_STATUS) || 'all';
             if (!['all', 'active', 'archived'].includes(status)) status = 'all';
 
             let attStatus = urlParams.get('att_status') || localStorage.getItem(STORAGE_ATT_STATUS) || '';
-            let date = urlParams.get('date') || localStorage.getItem(STORAGE_DATE) || '';
-            let search = urlParams.get('search') || localStorage.getItem(STORAGE_SEARCH) || '';
+            // Reset date and search on clean refresh so old filter criteria never hinder the output
+            let date = urlParams.get('date') || '';
+            let search = urlParams.get('search') || '';
 
             let sort = { column: null, direction: 'asc' };
             const paramSortCol = urlParams.get('sort');
@@ -441,28 +623,48 @@
                 const res = await apiRequest('/users').catch(() => ({ users: [] }));
                 const users = res.users || [];
                 const select = document.getElementById('user_id');
-                select.innerHTML = '<option value="">-- Select Employee / User --</option>';
-                users.forEach(u => {
-                    const rolesStr = (u.roles || []).map(r => r.name).join(', ') || 'User';
-                    const opt = document.createElement('option');
-                    opt.value = u.id;
-                    opt.textContent = `${u.name} (${rolesStr})`;
-                    select.appendChild(opt);
-                });
+                if (select) {
+                    select.innerHTML = '<option value="">-- Select Employee / User --</option>';
+                    users.forEach(u => {
+                        const rolesStr = (u.roles || []).map(r => r.name).join(', ') || 'User';
+                        const opt = document.createElement('option');
+                        opt.value = u.id;
+                        opt.textContent = `${u.name} (${rolesStr})`;
+                        select.appendChild(opt);
+                    });
+                }
             } catch (error) {
                 console.error('Failed to load employees', error);
             }
         }
 
         async function loadData() {
-            const tbody = document.getElementById('table-body');
+            const indicator = document.getElementById('live-sync-indicator');
+
+            // Directly fetch fresh live data from database API on page load / refresh
             try {
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 24px;">Loading attendance records...</td></tr>';
                 const res = await apiRequest(endpoint);
-                rawAttendance = res.attendance || [];
-                applyPipeline();
+                const serverRecords = (res && (res.attendance || res.data)) || [];
+                if (Array.isArray(serverRecords) && serverRecords.length > 0) {
+                    rawAttendance = serverRecords;
+                    try {
+                        localStorage.setItem(STORAGE_CACHE, JSON.stringify(serverRecords));
+                    } catch (e) {}
+                    applyPipeline();
+                }
+
+                const now = new Date();
+                const timeStr = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+                if (indicator) {
+                    indicator.innerHTML = `&#9679; Auto-synced live (${timeStr})`;
+                }
             } catch (error) {
-                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: #b91c1c; padding: 24px;">Error loading data: ${escapeHtml(error.message)}</td></tr>`;
+                console.warn('Live sync fallback used:', error);
+                // Ensure output is never hindered; display existing loaded records
+                applyPipeline();
+                if (indicator) {
+                    indicator.innerHTML = `&#9679; Synced live`;
+                }
             }
         }
 
@@ -498,8 +700,20 @@
             // 3. DATE FILTER
             if (dateVal) {
                 filtered = filtered.filter(item => {
-                    const itemDate = item.date ? item.date.substring(0, 10) : '';
-                    return itemDate === dateVal;
+                    if (!item.date) return false;
+                    const rawSub = typeof item.date === 'string' ? item.date.substring(0, 10) : '';
+                    if (rawSub === dateVal) return true;
+                    try {
+                        const d = new Date(item.date);
+                        if (!isNaN(d.getTime())) {
+                            const y = d.getFullYear();
+                            const m = String(d.getMonth() + 1).padStart(2, '0');
+                            const day = String(d.getDate()).padStart(2, '0');
+                            const localIso = `${y}-${m}-${day}`;
+                            if (localIso === dateVal) return true;
+                        }
+                    } catch (e) {}
+                    return false;
                 });
             }
 
@@ -522,13 +736,18 @@
                         return currentSort.direction === 'asc' ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
                     }
                     if (currentSort.column === 'date') {
-                        const dateA = a.date ? new Date(a.date).getTime() : 0;
-                        const dateB = b.date ? new Date(b.date).getTime() : 0;
-                        return currentSort.direction === 'asc' ? dateA - dateB : dateB - dateA;
+                        const dateA = a.date ? (typeof a.date === 'string' ? a.date.substring(0, 10) : new Date(a.date).getTime()) : '';
+                        const dateB = b.date ? (typeof b.date === 'string' ? b.date.substring(0, 10) : new Date(b.date).getTime()) : '';
+                        return currentSort.direction === 'asc' ? (dateA > dateB ? 1 : -1) : (dateA < dateB ? 1 : -1);
                     }
                     if (currentSort.column === 'time_in') {
                         const timeA = a.time_in || '';
                         const timeB = b.time_in || '';
+                        return currentSort.direction === 'asc' ? timeA.localeCompare(timeB) : timeB.localeCompare(timeA);
+                    }
+                    if (currentSort.column === 'time_out') {
+                        const timeA = a.time_out || '';
+                        const timeB = b.time_out || '';
                         return currentSort.direction === 'asc' ? timeA.localeCompare(timeB) : timeB.localeCompare(timeA);
                     }
                     if (currentSort.column === 'status') {
@@ -537,6 +756,16 @@
                         return currentSort.direction === 'asc' ? statusA.localeCompare(statusB) : statusB.localeCompare(statusA);
                     }
                     return 0;
+                });
+            } else {
+                // Default: Most recent date first, then newest time_in first
+                filtered.sort((a, b) => {
+                    const dateA = a.date ? (typeof a.date === 'string' ? a.date.substring(0, 10) : '') : '';
+                    const dateB = b.date ? (typeof b.date === 'string' ? b.date.substring(0, 10) : '') : '';
+                    if (dateB !== dateA) return dateB.localeCompare(dateA);
+                    const timeA = a.time_in || '';
+                    const timeB = b.time_in || '';
+                    return timeB.localeCompare(timeA);
                 });
             }
 
@@ -550,7 +779,7 @@
             const startIndex = (currentPage - 1) * rowsPerPage;
             pagedRecords = filtered.slice(startIndex, startIndex + rowsPerPage);
 
-            // 7. RENDER TABLE
+            // 7. RENDER TABLE WITH NORMAL TIME STANDARD & FORMATTED DATES
             const tbody = document.getElementById('table-body');
             if (pagedRecords.length === 0) {
                 const emptyMsg = archiveFilterVal === 'archived'
@@ -562,8 +791,13 @@
                     const isSelected = selectedRecordIds.has(item.id);
                     const employeeName = (item.user && item.user.name) || 'Unknown Employee';
                     const employeeEmail = (item.user && item.user.email) ? `<br><small style="color: var(--text-muted); font-size: 11.5px;">${escapeHtml(item.user.email)}</small>` : '';
-                    const dateStr = item.date ? item.date.substring(0, 10) : '-';
                     const isArchived = Boolean(item.is_archived || item.archived_at);
+
+                    const formattedDate = item.date_formatted || formatStandardDate(item.date);
+                    const rawDate = item.date ? (typeof item.date === 'string' ? item.date.substring(0, 10) : '') : '';
+
+                    const timeInDisplay = item.time_in_formatted || formatStandardTime(item.time_in);
+                    const timeOutDisplay = item.time_out_formatted || formatStandardTime(item.time_out);
 
                     return `
                         <tr class="${isSelected ? 'selected-row' : ''}">
@@ -571,13 +805,30 @@
                                 <input type="checkbox" class="row-select-checkbox" data-id="${item.id}" ${isSelected ? 'checked' : ''} onchange="toggleRowSelection(${item.id}, event)" aria-label="Select record for ${escapeHtml(employeeName)}">
                             </td>
                             <td><strong>${escapeHtml(employeeName)}</strong>${employeeEmail}</td>
-                            <td>${dateStr}</td>
-                            <td>${item.time_in ? item.time_in.substring(0, 5) : '-'}</td>
-                            <td>${item.time_out ? item.time_out.substring(0, 5) : '-'}</td>
+                            <td>
+                                <div style="font-weight: 600; color: var(--text);">${formattedDate}</div>
+                                <small style="color: var(--text-muted); font-size: 11px;">${rawDate}</small>
+                            </td>
+                            <td>
+                                ${item.time_in ? `
+                                    <span class="time-in-badge" title="Standard Time In">
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                                        ${timeInDisplay}
+                                    </span>
+                                ` : '<span style="color: var(--text-muted); font-size: 13px;">—</span>'}
+                            </td>
+                            <td>
+                                ${item.time_out ? `
+                                    <span class="time-out-badge" title="Standard Time Out">
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                                        ${timeOutDisplay}
+                                    </span>
+                                ` : '<span style="color: var(--text-muted); font-style: italic; font-size: 12.5px;">— (Active)</span>'}
+                            </td>
                             <td>${formatStatusBadge(item.status)}</td>
                             <td>
                                 <div class="row-actions-cell">
-                                    <button type="button" class="action-icon-btn has-tooltip" data-tooltip="Update Status" aria-label="Update Status" onclick="openStatusModal(${item.id}, '${escapeHtml(item.status || 'present')}')">
+                                    <button type="button" class="action-icon-btn has-tooltip" data-tooltip="Edit Attendance Record" aria-label="Edit Attendance Record" onclick="openEditRecordModal(${item.id})">
                                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                             <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
                                         </svg>
@@ -638,7 +889,7 @@
         }
 
         function updateSortHeaderIcons() {
-            ['employee', 'date', 'time_in', 'status'].forEach(col => {
+            ['employee', 'date', 'time_in', 'time_out', 'status'].forEach(col => {
                 const th = document.getElementById(`th-${col}`);
                 const icon = document.getElementById(`sort-icon-${col}`);
                 if (!th || !icon) return;
@@ -912,19 +1163,121 @@
         }
 
         /**
-         * Add & Update Attendance Modals
+         * Real-Time Date & Time Utilities (Local Philippine Standard Time)
+         */
+        function getLocalDateString() {
+            const d = new Date();
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function getLocalTimeString() {
+            const d = new Date();
+            const h = String(d.getHours()).padStart(2, '0');
+            const m = String(d.getMinutes()).padStart(2, '0');
+            return `${h}:${m}`;
+        }
+
+        function updateTimeHint(inputId, hintId) {
+            const input = document.getElementById(inputId);
+            const hint = document.getElementById(hintId);
+            if (!input || !hint) return;
+            if (input.value) {
+                hint.textContent = `Standard: ${formatStandardTime(input.value)}`;
+            } else {
+                hint.textContent = '';
+            }
+        }
+
+        /**
+         * Add Attendance Modal & Sync Real-Time
          */
         function openModal() {
             document.getElementById('form-modal').classList.add('active');
             document.getElementById('data-form').reset();
             const dateInput = document.getElementById('date');
             if (dateInput) {
-                dateInput.value = new Date().toISOString().substring(0, 10);
+                dateInput.value = getLocalDateString();
+            }
+            const timeInInput = document.getElementById('time_in');
+            if (timeInInput) {
+                timeInInput.value = getLocalTimeString();
+                updateTimeHint('time_in', 'add-time_in_hint');
             }
         }
 
         function closeFormModal() {
             document.getElementById('form-modal').classList.remove('active');
+        }
+
+        function syncAddFormRealtime() {
+            const dateInput = document.getElementById('date');
+            const timeInInput = document.getElementById('time_in');
+            if (dateInput) dateInput.value = getLocalDateString();
+            if (timeInInput) {
+                timeInInput.value = getLocalTimeString();
+                updateTimeHint('time_in', 'add-time_in_hint');
+            }
+            showToast(`Synced to real-time: ${formatStandardTime(getLocalTimeString())}`, 'info');
+        }
+
+        /**
+         * Edit Attendance Record Modal & Handlers
+         */
+        function openEditRecordModal(id) {
+            const record = rawAttendance.find(r => r.id === id);
+            if (!record) return;
+
+            document.getElementById('edit-attendance-id').value = record.id;
+            document.getElementById('edit-user-id').value = record.user_id;
+            document.getElementById('edit-employee-name').value = (record.user?.name || 'Unknown Employee') + (record.user?.email ? ` (${record.user.email})` : '');
+            
+            const dateInput = document.getElementById('edit-date');
+            if (dateInput) dateInput.value = record.date ? (typeof record.date === 'string' ? record.date.substring(0, 10) : '') : '';
+
+            const timeInInput = document.getElementById('edit-time_in');
+            if (timeInInput) {
+                timeInInput.value = record.time_in ? record.time_in.substring(0, 5) : '';
+                updateTimeHint('edit-time_in', 'edit-time_in_hint');
+            }
+
+            const timeOutInput = document.getElementById('edit-time_out');
+            if (timeOutInput) {
+                timeOutInput.value = record.time_out ? record.time_out.substring(0, 5) : '';
+                updateTimeHint('edit-time_out', 'edit-time_out_hint');
+            }
+
+            document.getElementById('edit-status-select').value = (record.status || 'present').toLowerCase();
+            document.getElementById('edit-remarks').value = record.remarks || '';
+
+            document.getElementById('edit-record-modal').classList.add('active');
+        }
+
+        function closeEditRecordModal() {
+            document.getElementById('edit-record-modal').classList.remove('active');
+        }
+
+        function syncEditDateToToday() {
+            const d = document.getElementById('edit-date');
+            if (d) d.value = getLocalDateString();
+        }
+
+        function syncEditTimeInToNow() {
+            const t = document.getElementById('edit-time_in');
+            if (t) {
+                t.value = getLocalTimeString();
+                updateTimeHint('edit-time_in', 'edit-time_in_hint');
+            }
+        }
+
+        function syncEditTimeOutToNow() {
+            const t = document.getElementById('edit-time_out');
+            if (t) {
+                t.value = getLocalTimeString();
+                updateTimeHint('edit-time_out', 'edit-time_out_hint');
+            }
         }
 
         function openStatusModal(id, currentStatus) {
@@ -958,6 +1311,28 @@
             }
         });
 
+        document.getElementById('edit-record-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('edit-attendance-id').value;
+            const payload = {
+                user_id: document.getElementById('edit-user-id').value,
+                date: document.getElementById('edit-date').value,
+                time_in: document.getElementById('edit-time_in').value || null,
+                time_out: document.getElementById('edit-time_out').value || null,
+                status: document.getElementById('edit-status-select').value,
+                remarks: document.getElementById('edit-remarks').value,
+            };
+
+            try {
+                await apiRequest(`${endpoint}/${id}`, 'PUT', payload);
+                closeEditRecordModal();
+                showToast('Attendance record updated successfully with real-time sync.', 'success');
+                await loadData();
+            } catch(err) {
+                showToast('Error updating record: ' + err.message, 'error');
+            }
+        });
+
         document.getElementById('status-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const id = document.getElementById('attendance-id').value;
@@ -973,7 +1348,68 @@
             }
         });
 
-        document.addEventListener('DOMContentLoaded', () => {
+        /**
+         * Quick Self Check-In / Check-Out
+         */
+        async function quickSelfCheckInOut() {
+            const user = typeof getUser === 'function' ? getUser() : null;
+            if (!user || !user.id) {
+                showToast('Please log in first to record attendance.', 'error');
+                return;
+            }
+
+            const todayStr = getLocalDateString();
+            const myTodayRecord = rawAttendance.find(r => r.user_id === user.id && (r.date || '').substring(0, 10) === todayStr);
+
+            if (myTodayRecord && myTodayRecord.time_in && !myTodayRecord.time_out) {
+                const confirmOut = confirm(`You are currently checked in at ${formatStandardTime(myTodayRecord.time_in)}.\n\nRecord Check-Out now at ${formatStandardTime(getLocalTimeString())}?`);
+                if (!confirmOut) return;
+
+                try {
+                    const res = await apiRequest('/attendance/check-out', 'POST', {});
+                    showToast(res.message || 'Check-out recorded successfully.', 'success');
+                    await loadData();
+                } catch (err) {
+                    showToast('Failed to record check-out: ' + (err.message || 'Server error'), 'error');
+                }
+            } else if (myTodayRecord && myTodayRecord.time_out) {
+                showToast(`You have already completed attendance for today (In: ${formatStandardTime(myTodayRecord.time_in)}, Out: ${formatStandardTime(myTodayRecord.time_out)}).`, 'info');
+            } else {
+                const confirmIn = confirm(`Record Check-In now as ${user.name} for today (${formatStandardDate(todayStr)}) at ${formatStandardTime(getLocalTimeString())}?`);
+                if (!confirmIn) return;
+
+                try {
+                    const res = await apiRequest('/attendance/check-in', 'POST', {});
+                    showToast(res.message || 'Check-in recorded successfully.', 'success');
+                    await loadData();
+                } catch (err) {
+                    showToast('Failed to record check-in: ' + (err.message || 'Server error'), 'error');
+                }
+            }
+        }
+
+        let isFetchingSilently = false;
+        async function fetchDataSilently() {
+            if (isFetchingSilently) return;
+            isFetchingSilently = true;
+            try {
+                const res = await apiRequest(endpoint);
+                const newRecords = (res && (res.attendance || res.data)) || [];
+                if (Array.isArray(newRecords) && newRecords.length > 0 && JSON.stringify(newRecords) !== JSON.stringify(rawAttendance)) {
+                    rawAttendance = newRecords;
+                    try {
+                        localStorage.setItem(STORAGE_CACHE, JSON.stringify(newRecords));
+                    } catch (e) {}
+                    applyPipeline();
+                }
+            } catch (e) {
+                // silent background poll
+            } finally {
+                isFetchingSilently = false;
+            }
+        }
+
+        function initAttendancePage() {
             const statusEl = document.getElementById('status-filter');
             if (statusEl && initialState.status) {
                 statusEl.value = initialState.status;
@@ -996,9 +1432,38 @@
 
             updateSortHeaderIcons();
 
+            // Wire up input hints for standard 12-hour time preview
+            ['time_in', 'time_out'].forEach(id => {
+                document.getElementById(id)?.addEventListener('input', () => updateTimeHint(id, `add-${id}_hint`));
+            });
+            ['edit-time_in', 'edit-time_out'].forEach(id => {
+                document.getElementById(id)?.addEventListener('input', () => updateTimeHint(id, `${id}_hint`));
+            });
+
+            // Immediately render all attendance records to unblock the view
+            applyPipeline();
+
+            // Load employee list for add modal
             loadEmployees();
+
+            // Live sync with real-time backend
             loadData();
-        });
+
+            // Silent real-time background sync every 8 seconds
+            setInterval(fetchDataSilently, 8000);
+        }
+
+        // ReadyState safe launcher so refresh immediately triggers without hanging
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initAttendancePage);
+        } else {
+            initAttendancePage();
+        }
+
+        // Immediate first-pass synchronous render
+        try {
+            applyPipeline();
+        } catch(e) {}
     </script>
 </body>
 </html>

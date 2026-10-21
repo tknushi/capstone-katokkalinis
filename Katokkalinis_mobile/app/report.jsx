@@ -12,7 +12,10 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import InitialsAvatar from "../components/InitialsAvatar";
 import KatokLogo from "../components/KatokLogo";
+import ReportEvidenceImage from "../components/ReportEvidenceImage";
+import { resolveMediaUrl } from "../services/api";
 import { fetchReports } from "../services/resident";
 
 const fallbackReports = [
@@ -24,7 +27,7 @@ const fallbackReports = [
     status: "In Progress",
     text: "Uncollected commercial waste pile accumulating near vendor fruit stalls. Needs immediate compactor pickup.",
     imageUrl: "https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?auto=format&fit=crop&w=600&q=80",
-    avatar: "https://i.pravatar.cc/100?img=32",
+    avatar: null,
     category: "Uncollected Waste",
   },
   {
@@ -34,7 +37,7 @@ const fallbackReports = [
     time: "2 days ago",
     status: "Resolved",
     text: "Missed scheduled garbage collection on Wednesday morning. Driver arrived and completed clearing yesterday.",
-    avatar: "https://i.pravatar.cc/100?img=12",
+    avatar: null,
     category: "Missed Pickup",
   },
   {
@@ -44,7 +47,7 @@ const fallbackReports = [
     time: "4 days ago",
     status: "Resolved",
     text: "Damaged municipal waste bin replaced with a new segregated container.",
-    avatar: "https://i.pravatar.cc/100?img=47",
+    avatar: null,
     category: "Damaged Bin",
   },
 ];
@@ -56,23 +59,28 @@ export default function Report() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedReport, setSelectedReport] = useState(null);
+  const [fullScreenPhoto, setFullScreenPhoto] = useState(null);
 
   const loadReports = useCallback(async () => {
     try {
       const res = await fetchReports({ status: filter === "all" ? undefined : filter });
-      if (res && res.success && Array.isArray(res.reports) && res.reports.length > 0) {
-        const formatted = res.reports.map((r) => ({
-          id: String(r.id),
-          name: r.user?.name || "Resident",
-          location: r.barangay?.name || r.location || "Cagayan de Oro",
-          time: r.created_at ? new Date(r.created_at).toLocaleDateString() : "Recent",
-          status: r.status === "completed" || r.status === "resolved" ? "Resolved" : "In Progress",
-          text: r.description || r.title || "Waste issue reported",
-          imageUrl: r.image || null,
-          avatar: `https://i.pravatar.cc/100?u=${r.user_id || r.id}`,
-          category: r.category || "Waste Report",
-        }));
-        setReports(formatted);
+      if (res && res.success && Array.isArray(res.reports)) {
+        if (res.reports.length > 0) {
+          const formatted = res.reports.map((r) => ({
+            id: String(r.id),
+            name: r.user?.name || "Resident",
+            location: r.barangay?.name || r.location || "Cagayan de Oro",
+            time: r.created_at ? new Date(r.created_at).toLocaleDateString() : "Recent",
+            status: r.status === "completed" || r.status === "resolved" ? "Resolved" : "In Progress",
+            text: r.description || r.title || "Waste issue reported",
+            imageUrl: resolveMediaUrl(r.image_url || r.image),
+            avatar: resolveMediaUrl(r.user?.avatar_url || r.user?.avatar || null),
+            category: r.category || "Waste Report",
+          }));
+          setReports(formatted);
+        } else {
+          setReports([]);
+        }
       } else {
         setReports(fallbackReports);
       }
@@ -195,9 +203,21 @@ export default function Report() {
           </View>
         ) : filteredReports.length === 0 ? (
           <View style={styles.emptyCard}>
-            <MaterialCommunityIcons name="clipboard-check-outline" size={40} color="#8DA78B" />
-            <Text style={styles.emptyTitle}>No reports found</Text>
-            <Text style={styles.emptySub}>No waste issues reported in this category.</Text>
+            <View style={styles.emptyIconCircle}>
+              <MaterialCommunityIcons name="clipboard-check-outline" size={36} color="#2E7D32" />
+            </View>
+            <Text style={styles.emptyTitle}>No Reports in this Category</Text>
+            <Text style={styles.emptySub}>
+              There are currently no active sanitation issues or missed collection reports logged for this view.
+            </Text>
+            <TouchableOpacity
+              style={styles.emptyActionButton}
+              onPress={() => router.push("/add-report")}
+              activeOpacity={0.85}
+            >
+              <MaterialCommunityIcons name="plus-circle-outline" size={16} color="#FFFFFF" style={{ marginRight: 6 }} />
+              <Text style={styles.emptyActionText}>Submit New Report</Text>
+            </TouchableOpacity>
           </View>
         ) : (
           filteredReports.map((report) => (
@@ -208,7 +228,12 @@ export default function Report() {
               onPress={() => setSelectedReport(report)}
             >
               <View style={styles.cardHeader}>
-                <Image source={{ uri: report.avatar }} style={styles.authorAvatar} />
+                <InitialsAvatar
+                  name={report.name}
+                  avatarUri={report.avatar}
+                  size={42}
+                  style={styles.authorAvatar}
+                />
                 <View style={{ flex: 1, marginLeft: 10 }}>
                   <Text style={styles.authorName}>{report.name}</Text>
                   <View style={styles.locationRow}>
@@ -238,15 +263,15 @@ export default function Report() {
                 {report.text}
               </Text>
 
-              {report.imageUrl && (
+              {report.imageUrl ? (
                 <View style={styles.cardImageContainer}>
-                  <Image source={{ uri: report.imageUrl }} style={styles.cardImage} resizeMode="cover" />
-                  <View style={styles.photoOverlayBadge}>
-                    <MaterialCommunityIcons name="image-outline" size={14} color="#FFFFFF" />
-                    <Text style={styles.photoOverlayText}>Evidence</Text>
-                  </View>
+                  <ReportEvidenceImage
+                    uri={report.imageUrl}
+                    imageHeight={180}
+                    onPressFullScreen={(url) => setFullScreenPhoto(url)}
+                  />
                 </View>
-              )}
+              ) : null}
 
               <View style={styles.cardFooter}>
                 <View style={styles.timeRow}>
@@ -286,7 +311,12 @@ export default function Report() {
               {/* Status Badge & Reporter */}
               <View style={styles.modalMetaRow}>
                 <View style={styles.reporterInfo}>
-                  <Image source={{ uri: selectedReport?.avatar }} style={styles.modalAvatar} />
+                  <InitialsAvatar
+                    name={selectedReport?.name}
+                    avatarUri={selectedReport?.avatar}
+                    size={44}
+                    style={styles.modalAvatar}
+                  />
                   <View style={{ marginLeft: 8 }}>
                     <Text style={styles.modalReporterName}>{selectedReport?.name}</Text>
                     <Text style={styles.modalTime}>{selectedReport?.time}</Text>
@@ -326,10 +356,10 @@ export default function Report() {
               {selectedReport?.imageUrl ? (
                 <View style={{ marginTop: 14 }}>
                   <Text style={styles.modalSectionLabel}>Photo Evidence</Text>
-                  <Image
-                    source={{ uri: selectedReport.imageUrl }}
-                    style={styles.modalFullImage}
-                    resizeMode="cover"
+                  <ReportEvidenceImage
+                    uri={selectedReport.imageUrl}
+                    imageHeight={220}
+                    onPressFullScreen={(url) => setFullScreenPhoto(url)}
                   />
                 </View>
               ) : null}
@@ -346,7 +376,28 @@ export default function Report() {
         </View>
       </Modal>
 
-      {/* 7. BOTTOM NAVIGATION BAR */}
+      {/* 7. FULL-SCREEN IMAGE VIEWER MODAL */}
+      <Modal visible={!!fullScreenPhoto} transparent animationType="fade">
+        <View style={styles.fullScreenBackdrop}>
+          <TouchableOpacity
+            style={styles.fullScreenCloseBtn}
+            onPress={() => setFullScreenPhoto(null)}
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          >
+            <MaterialCommunityIcons name="close" size={26} color="#FFFFFF" />
+          </TouchableOpacity>
+
+          {fullScreenPhoto && (
+            <Image
+              source={{ uri: fullScreenPhoto }}
+              style={styles.fullScreenImage}
+              resizeMode="contain"
+            />
+          )}
+        </View>
+      </Modal>
+
+      {/* 8. BOTTOM NAVIGATION BAR */}
       <View style={styles.bottomNav}>
         <TouchableOpacity
           style={styles.navItem}
@@ -516,23 +567,58 @@ const styles = StyleSheet.create({
   },
   emptyCard: {
     backgroundColor: "#FFFFFF",
-    borderRadius: 16,
-    padding: 24,
+    borderRadius: 18,
+    padding: 26,
     alignItems: "center",
     borderWidth: 1,
     borderColor: "#EDF4EC",
     marginTop: 10,
+    elevation: 1,
+    shadowColor: "#000",
+    shadowOpacity: 0.03,
+  },
+  emptyIconCircle: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: "#E8F8EE",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 8,
   },
   emptyTitle: {
     fontSize: 15,
     fontWeight: "800",
     color: "#1E331B",
-    marginTop: 8,
+    marginTop: 4,
   },
   emptySub: {
     fontSize: 12,
-    color: "#7A8D78",
+    color: "#6B8468",
     marginTop: 4,
+    textAlign: "center",
+    lineHeight: 17,
+    maxWidth: 270,
+  },
+  emptyActionButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#2E7D32",
+    borderRadius: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    marginTop: 16,
+    elevation: 2,
+    shadowColor: "#2E7D32",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+  },
+  emptyActionText: {
+    color: "#FFFFFF",
+    fontSize: 13,
+    fontWeight: "800",
   },
   reportCard: {
     backgroundColor: "#FFFFFF",
@@ -803,8 +889,27 @@ const styles = StyleSheet.create({
     marginTop: 2,
     fontWeight: "600",
   },
-  navItemTextActive: {
-    color: "#2E7D32",
-    fontWeight: "800",
+  fullScreenBackdrop: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.94)",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 10,
+  },
+  fullScreenCloseBtn: {
+    position: "absolute",
+    top: 50,
+    right: 20,
+    zIndex: 99,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  fullScreenImage: {
+    width: "100%",
+    height: "85%",
   },
 });

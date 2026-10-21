@@ -122,31 +122,70 @@
             </header>
             
             <section class="content">
-                <!-- CLENRO Personnel Banner -->
-                <div class="card" style="background: linear-gradient(135deg, #15803d 0%, #166534 100%); color: #fff; padding: 18px 22px; margin-bottom: 22px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
-                    <div>
-                        <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; opacity: 0.85;">CLENRO Solid Waste Division · City of Cagayan de Oro</div>
-                        <h3 style="color: #fff; margin: 4px 0; font-size: 18px;">Municipal Waste Collection Fleet &amp; Field Personnel</h3>
-                        <p style="margin: 0; font-size: 13px; opacity: 0.9;">Accredited drivers, compactor operators, field inspectors, and eco-wardens covering Barangay 1 to 40, Cogon Market, and Carmen Market.</p>
+                <div class="exec-command-center">
+                    <!-- Standard Executive Header Banner -->
+                    <div class="exec-header-banner">
+                        <div class="exec-header-left">
+                            <div class="exec-shield-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 2l8 4.5v6c0 5-3.5 9.5-8 11.5-4.5-2-8-6.5-8-11.5v-6z"/>
+                                    <path d="M8 12h8M12 8v8"/>
+                                </svg>
+                            </div>
+                            <div class="exec-title-block">
+                                <h1>Personnel &amp; Drivers Management</h1>
+                                <p>CITY ENVIRONMENT &amp; NATURAL RESOURCES OFFICE (CLENRO) &bull; CAGAYAN DE ORO CITY</p>
+                            </div>
+                            <div class="exec-clenro-pill">
+                                <span class="live-dot"></span>
+                                CLENRO WORKFORCE ACTIVE
+                            </div>
+                        </div>
+                        <div class="exec-header-right">
+                            <button class="btn" onclick="openModal()" style="background: var(--green-500); color: #fff; font-weight: 700; border: none; padding: 8px 16px; border-radius: 8px; width: auto; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+                                <span>+</span> Add Personnel
+                            </button>
+                            <a href="attendance.html" class="exec-btn-cross-connect" title="Open Attendance Roster">
+                                <span>&#128197;</span> Attendance Records
+                            </a>
+                            <a href="trucks.html" class="exec-btn-cross-connect" title="Open Fleet Dispatch">
+                                <span>&#128667;</span> Fleet Operations
+                            </a>
+                            <a href="analytics.html" class="exec-btn-cross-connect" title="Open Executive Dashboard">
+                                <span>&#128202;</span> Executive Analytics
+                            </a>
+                            <a href="barangay-overview.html" class="exec-btn-cross-connect" title="Open Barangay Command">
+                                <span>&#127963;</span> Barangay Command
+                            </a>
+                        </div>
                     </div>
-                    <button class="btn" onclick="openModal()" style="background: #ffffff; color: #15803d; font-weight: 700; border: none; padding: 9px 20px; border-radius: 8px; width: auto; box-shadow: 0 4px 10px rgba(0,0,0,0.15); cursor: pointer;">
-                        + Add Personnel / Driver
-                    </button>
-                </div>
 
                 <div class="card">
-                    <div class="card-header">
-                        <h3>Accredited Fleet &amp; Operations Roster</h3>
-                        <div class="filter-bar" style="margin-bottom: 0;">
+                    <div class="card-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+                        <h3 style="margin:0;">Accredited Fleet &amp; Operations Roster</h3>
+                        <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
                             <div class="search-input-wrap">
                                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                                 <input type="text" id="search-personnel" placeholder="Search by name, code, vehicle, role..." oninput="filterPersonnel()">
                             </div>
+                            <div class="view-mode-toggle" id="view-mode-toggle" role="tablist" aria-label="Roster display mode">
+                                <button type="button" class="view-mode-btn active" id="btn-view-grid" onclick="setViewMode('grid')" title="Card Grid View">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                                    Grid
+                                </button>
+                                <button type="button" class="view-mode-btn" id="btn-view-table" onclick="setViewMode('table')" title="Dense Data Table View">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+                                    Table
+                                </button>
+                            </div>
                         </div>
                     </div>
-                    <div id="table-body" class="record-grid">
-                        <p>Loading CLENRO personnel roster...</p>
+                    <div id="roster-view-container">
+                        <div id="table-body" class="record-grid">
+                            <p>Loading CLENRO personnel roster...</p>
+                        </div>
                     </div>
+                </div>
                 </div>
             </section>
         </main>
@@ -339,7 +378,7 @@
                                             <span style="font-size:10px; font-weight:600; color:var(--text-muted); display:block;">Expiry Date</span>
                                             <input type="date" id="license_expiry" class="form-control" style="padding:4px 8px; font-size:11.5px; margin-top:2px;">
                                         </div>
-                                        <button type="button" class="clearance-upload-btn" onclick="alert('Document upload staged for save.')">
+                                        <button type="button" class="clearance-upload-btn" onclick="showToast('Driver license document staged for save.', 'success')">
                                             <span>📎</span> Upload
                                         </button>
                                     </div>
@@ -353,7 +392,7 @@
                                             <span style="font-size:10px; font-weight:600; color:var(--text-muted); display:block;">Expiry Date</span>
                                             <input type="date" id="accreditation_expiry" class="form-control" style="padding:4px 8px; font-size:11.5px; margin-top:2px;">
                                         </div>
-                                        <button type="button" class="clearance-upload-btn" onclick="alert('Document upload staged for save.')">
+                                        <button type="button" class="clearance-upload-btn" onclick="showToast('CLENRO accreditation document staged.', 'success')">
                                             <span>📎</span> Upload
                                         </button>
                                     </div>
@@ -367,7 +406,7 @@
                                             <span style="font-size:10px; font-weight:600; color:var(--text-muted); display:block;">Expiry Date</span>
                                             <input type="date" id="clearance_expiry" class="form-control" style="padding:4px 8px; font-size:11.5px; margin-top:2px;">
                                         </div>
-                                        <button type="button" class="clearance-upload-btn" onclick="alert('Document upload staged for save.')">
+                                        <button type="button" class="clearance-upload-btn" onclick="showToast('Police/NBI clearance staged for save.', 'success')">
                                             <span>📎</span> Upload
                                         </button>
                                     </div>
@@ -567,52 +606,181 @@
             renderRoster(personnelList);
         }
 
+        let currentViewMode = localStorage.getItem('katok_personnel_view_mode') || 'grid';
+
+        function setViewMode(mode) {
+            currentViewMode = mode;
+            localStorage.setItem('katok_personnel_view_mode', mode);
+            document.getElementById('btn-view-grid')?.classList.toggle('active', mode === 'grid');
+            document.getElementById('btn-view-table')?.classList.toggle('active', mode === 'table');
+            filterPersonnel();
+        }
+
+        function getStatusBadge(status) {
+            const s = (status || 'active').toLowerCase();
+            if (s === 'active') return `<span class="soft-badge soft-badge-active"><span class="soft-badge-dot"></span>Active</span>`;
+            if (s === 'on_route') return `<span class="soft-badge soft-badge-route"><span class="soft-badge-dot"></span>On Route</span>`;
+            if (s === 'on_leave') return `<span class="soft-badge soft-badge-leave"><span class="soft-badge-dot"></span>On Leave</span>`;
+            if (s === 'maintenance') return `<span class="soft-badge soft-badge-leave"><span class="soft-badge-dot"></span>Standby</span>`;
+            return `<span class="soft-badge soft-badge-inactive"><span class="soft-badge-dot"></span>${escapeHtml(status || 'Inactive')}</span>`;
+        }
+
+        function toggleContextMenu(e, id) {
+            e.stopPropagation();
+            document.querySelectorAll('.context-menu-dropdown').forEach(m => {
+                if (m.id !== `context-menu-${id}`) m.classList.remove('active');
+            });
+            const menu = document.getElementById(`context-menu-${id}`);
+            if (menu) menu.classList.toggle('active');
+        }
+
+        document.addEventListener('click', () => {
+            document.querySelectorAll('.context-menu-dropdown').forEach(m => m.classList.remove('active'));
+        });
+
+        function archiveEmployee(id) {
+            const emp = personnelList.find(p => p.id == id);
+            if (!emp) return;
+            personnelList = personnelList.filter(p => p.id != id);
+            saveLocalPersonnel();
+            filterPersonnel();
+            showToast(`Personnel file ${emp.employee_code} has been archived.`, 'info');
+        }
+
         function renderRoster(data) {
-            const tbody = document.getElementById('table-body');
+            const container = document.getElementById('roster-view-container');
+            if (!container) return;
+
             if (data.length === 0) {
-                tbody.innerHTML = '<p class="empty-state">No matching personnel records found.</p>';
+                container.innerHTML = '<div class="card" style="padding:24px; text-align:center;"><p class="empty-state" style="margin:0; color:var(--text-muted);">No matching personnel records found.</p></div>';
                 return;
             }
 
-            tbody.innerHTML = data.map(item => {
-                const initials = item.name.split(' ').filter(Boolean).slice(0, 2).map(n => n[0].toUpperCase()).join('') || 'DR';
-                const statusPill = item.status === 'on_route' ? '<span class="pill pill-blue">On Route</span>' :
-                                   item.status === 'active' ? '<span class="pill pill-green">Active</span>' :
-                                   '<span class="pill pill-gray">' + (item.status || 'Active') + '</span>';
-
-                return `
-                    <article class="emp-card">
-                        <div class="emp-card-header">
-                            <div class="emp-avatar">${initials}</div>
-                            <div style="flex:1; min-width:0;">
-                                <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
-                                    <strong style="font-size:14.5px; color:var(--text);">${item.name}</strong>
-                                    ${statusPill}
-                                </div>
-                                <div style="margin-top:2px;">
-                                    <span class="emp-code-tag">${item.employee_code}</span>
-                                    <span style="font-size:11.5px; color:var(--text-muted); margin-left:4px;">${item.category || 'Compactor Operator'}</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div style="font-size:12px; color:var(--text); line-height:1.4;">
-                            <div><strong>Assigned:</strong> ${item.truck || 'Depot Reserve'}</div>
-                            <div><strong>Zone:</strong> ${item.zone || 'Poblacion Urban Core'}</div>
-                        </div>
-
-                        <div class="emp-meta-row">
-                            <span>📞 ${item.phone || 'N/A'}</span>
-                            <span>Lic: ${item.license_no || 'Standard'}</span>
-                        </div>
-
-                        <div class="emp-card-actions">
-                            <button class="btn" style="background:var(--green-600); color:#fff;" onclick='editItem(${JSON.stringify(item).replace(/'/g, "&#39;")})'>Edit File</button>
-                            <button class="btn record-outline" onclick='showEmployeeRecords(${JSON.stringify(item).replace(/'/g, "&#39;")})'>Full Records</button>
-                        </div>
-                    </article>
+            if (currentViewMode === 'table') {
+                // Dense Data Table Mode matching /trucks
+                container.innerHTML = `
+                    <div class="ops-table-container" style="border:1px solid var(--border); border-radius:10px; overflow-x:auto; background:var(--surface);">
+                        <table class="ops-table" style="width:100%; border-collapse:collapse; min-width:760px; font-size:13px;">
+                            <thead>
+                                <tr style="background:var(--surface-alt); border-bottom:1px solid var(--border);">
+                                    <th style="padding:10px 16px; text-align:left; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted);">Driver / Personnel</th>
+                                    <th style="padding:10px 16px; text-align:left; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted);">Contact &amp; License</th>
+                                    <th style="padding:10px 16px; text-align:left; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted);">Vehicle &amp; Sector</th>
+                                    <th style="padding:10px 16px; text-align:left; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted);">Status</th>
+                                    <th style="padding:10px 16px; text-align:right; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted);">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${data.map(item => {
+                                    const initials = item.name.split(' ').filter(Boolean).slice(0, 2).map(n => n[0].toUpperCase()).join('') || 'DR';
+                                    const statusBadge = getStatusBadge(item.status);
+                                    return `
+                                        <tr style="border-bottom:1px solid var(--border); transition:background-color 0.15s ease;">
+                                            <td style="padding:12px 16px; vertical-align:middle;">
+                                                <div style="display:flex; align-items:center; gap:10px;">
+                                                    <div class="emp-avatar" style="width:36px; height:36px; font-size:13px;">${initials}</div>
+                                                    <div class="cell-stacked" style="display:flex; flex-direction:column; gap:2px;">
+                                                        <strong class="cell-primary" style="font-weight:700; font-size:13.5px; color:var(--text);">${escapeHtml(item.name)}</strong>
+                                                        <div style="display:flex; align-items:center; gap:6px; margin-top:2px;">
+                                                            <span class="emp-code-tag">${escapeHtml(item.employee_code)}</span>
+                                                            <span style="font-size:11.5px; color:var(--text-muted);">${escapeHtml(item.category || 'Operator')}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td style="padding:12px 16px; vertical-align:middle;">
+                                                <div class="cell-stacked" style="display:flex; flex-direction:column; gap:2px;">
+                                                    <span style="font-weight:600; font-size:12.5px; color:var(--text);">${escapeHtml(item.phone || 'N/A')}</span>
+                                                    <span style="font-size:11.5px; color:var(--text-muted);">Lic: ${escapeHtml(item.license_no || 'Standard')} (Exp: ${escapeHtml(item.license_expiry || 'Active')})</span>
+                                                </div>
+                                            </td>
+                                            <td style="padding:12px 16px; vertical-align:middle;">
+                                                <div class="cell-stacked" style="display:flex; flex-direction:column; gap:2px;">
+                                                    <span style="font-weight:600; font-size:12.5px; color:var(--text);">${escapeHtml(item.truck || 'Depot Reserve')}</span>
+                                                    <span style="font-size:11.5px; color:var(--text-muted);">${escapeHtml(item.zone || 'Poblacion Core')}</span>
+                                                </div>
+                                            </td>
+                                            <td style="padding:12px 16px; vertical-align:middle;">
+                                                ${statusBadge}
+                                            </td>
+                                            <td style="padding:12px 16px; vertical-align:middle; text-align:right;">
+                                                <div style="display:inline-flex; align-items:center; gap:6px;">
+                                                    <button type="button" class="btn" style="width:auto; padding:5px 10px; font-size:11.5px; background:var(--surface-alt); color:var(--green-800); border:1px solid var(--border); font-weight:600; cursor:pointer;" onclick='showEmployeeRecords(${JSON.stringify(item).replace(/'/g, "&#39;")})'>Profile</button>
+                                                    <button type="button" class="btn" style="width:auto; padding:5px 10px; font-size:11.5px; background:var(--green-600); color:#fff; font-weight:600; cursor:pointer;" onclick='editItem(${JSON.stringify(item).replace(/'/g, "&#39;")})'>Edit</button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    `;
+                                }).join('')}
+                            </tbody>
+                        </table>
+                    </div>
                 `;
-            }).join('');
+            } else {
+                // Card Grid Mode
+                container.innerHTML = `
+                    <div id="table-body" class="record-grid">
+                        ${data.map(item => {
+                            const initials = item.name.split(' ').filter(Boolean).slice(0, 2).map(n => n[0].toUpperCase()).join('') || 'DR';
+                            const statusBadge = getStatusBadge(item.status);
+
+                            return `
+                                <article class="emp-card">
+                                    <div class="emp-card-header">
+                                        <div class="emp-avatar">${initials}</div>
+                                        <div style="flex:1; min-width:0;">
+                                            <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+                                                <strong style="font-size:14.5px; color:var(--text);">${escapeHtml(item.name)}</strong>
+                                                ${statusBadge}
+                                            </div>
+                                            <div style="margin-top:2px;">
+                                                <span class="emp-code-tag">${escapeHtml(item.employee_code)}</span>
+                                                <span style="font-size:11.5px; color:var(--text-muted); margin-left:4px;">${escapeHtml(item.category || 'Compactor Operator')}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div style="font-size:12px; color:var(--text); line-height:1.4;">
+                                        <div><strong>Assigned:</strong> ${escapeHtml(item.truck || 'Depot Reserve')}</div>
+                                        <div><strong>Zone:</strong> ${escapeHtml(item.zone || 'Poblacion Urban Core')}</div>
+                                    </div>
+
+                                    <div class="emp-meta-row">
+                                        <span>📞 ${escapeHtml(item.phone || 'N/A')}</span>
+                                        <span>Lic: ${escapeHtml(item.license_no || 'Standard')}</span>
+                                    </div>
+
+                                    <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:4px; padding-top:8px; border-top:1px solid var(--border);">
+                                        <button type="button" class="btn" style="width:auto; padding:6px 14px; font-size:12px; background:var(--surface-alt); color:var(--green-800); border:1px solid var(--border); font-weight:600; display:inline-flex; align-items:center; gap:5px; cursor:pointer;" onclick='showEmployeeRecords(${JSON.stringify(item).replace(/'/g, "&#39;")})'>
+                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                                            View Profile
+                                        </button>
+                                        <div class="context-menu-wrap">
+                                            <button type="button" class="context-menu-btn" onclick="toggleContextMenu(event, ${item.id})" aria-label="More actions" title="More options">
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"></circle><circle cx="12" cy="12" r="2"></circle><circle cx="12" cy="19" r="2"></circle></svg>
+                                            </button>
+                                            <div class="context-menu-dropdown" id="context-menu-${item.id}">
+                                                <button type="button" class="context-menu-item" onclick='editItem(${JSON.stringify(item).replace(/'/g, "&#39;")})'>
+                                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                                                    Edit File
+                                                </button>
+                                                <button type="button" class="context-menu-item" onclick='showEmployeeRecords(${JSON.stringify(item).replace(/'/g, "&#39;")})'>
+                                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                                                    Full Records
+                                                </button>
+                                                <button type="button" class="context-menu-item" style="color:#ef4444;" onclick='archiveEmployee(${item.id})'>
+                                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                                    Archive
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </article>
+                            `;
+                        }).join('')}
+                    </div>
+                `;
+            }
         }
 
         function filterPersonnel() {
@@ -705,27 +873,36 @@
         }
 
         function showEmployeeRecords(item) {
+            const initials = item.name.split(' ').filter(Boolean).slice(0, 2).map(n => n[0].toUpperCase()).join('') || 'DR';
+            const statusBadge = getStatusBadge(item.status);
+
             document.getElementById('employee-record-details').innerHTML = `
-                <div class="employee-record-heading">
-                    <div class="emp-avatar" style="width:54px; height:54px; font-size:18px;">
-                        ${item.name.split(' ').filter(Boolean).slice(0, 2).map(n => n[0].toUpperCase()).join('')}
+                <div style="display:flex; align-items:center; gap:16px; margin-bottom:18px;">
+                    <div class="emp-avatar" style="width:58px; height:58px; font-size:20px;">
+                        ${initials}
                     </div>
                     <div>
-                        <strong style="font-size:16px;">${item.name}</strong>
-                        <div><span class="emp-code-tag">${item.employee_code}</span> · <span style="font-weight:600; color:var(--green-700);">${item.category || 'Fleet Operator'}</span></div>
-                        <span style="font-size:11.5px; color:var(--text-muted);">${item.partner || 'CLENRO In-House Fleet'} (${item.contract_type || 'LGU Plantilla'})</span>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <strong style="font-size:17px; color:var(--text);">${escapeHtml(item.name)}</strong>
+                            ${statusBadge}
+                        </div>
+                        <div style="display:flex; align-items:center; gap:6px; margin-top:3px;">
+                            <span class="emp-code-tag">${escapeHtml(item.employee_code)}</span>
+                            <span style="font-weight:600; color:var(--green-700); font-size:12.5px;">${escapeHtml(item.category || 'Fleet Operator')}</span>
+                        </div>
+                        <span style="font-size:12px; color:var(--text-muted);">${escapeHtml(item.partner || 'CLENRO In-House Fleet')} (${escapeHtml(item.contract_type || 'LGU Plantilla')})</span>
                     </div>
                 </div>
-                <dl style="margin-top:20px; font-size:13px; line-height:1.6;">
-                    <dt>Official Email</dt><dd>${item.email || 'N/A'}</dd>
-                    <dt>Contact Number</dt><dd>${item.phone || 'N/A'}</dd>
-                    <dt>Home Address</dt><dd>${item.address || 'Cagayan de Oro City'}</dd>
-                    <dt>Assigned Vehicle</dt><dd><strong>${item.truck || 'Depot Standby Unit'}</strong></dd>
-                    <dt>Collection Sector</dt><dd>${item.zone || 'Poblacion Urban Core'}</dd>
-                    <dt>Shift Schedule</dt><dd>${item.shift || 'Night Market Sweep'}</dd>
-                    <dt>Professional License</dt><dd>${item.license_no || 'K02-88-129402'} (Expires: ${item.license_expiry || 'Active'})</dd>
-                    <dt>Date Joined</dt><dd>${item.joined_at || '2023-01-01'}</dd>
-                    <dt>Status</dt><dd><span class="pill pill-green" style="text-transform:capitalize;">${item.status || 'Active'}</span></dd>
+                <dl class="emp-record-grid">
+                    <dt>Official Email</dt><dd>${escapeHtml(item.email || 'N/A')}</dd>
+                    <dt>Contact Number</dt><dd>${escapeHtml(item.phone || 'N/A')}</dd>
+                    <dt>Home Address</dt><dd>${escapeHtml(item.address || 'Cagayan de Oro City')}</dd>
+                    <dt>Assigned Vehicle</dt><dd><strong>${escapeHtml(item.truck || 'Depot Standby Unit')}</strong></dd>
+                    <dt>Collection Sector</dt><dd>${escapeHtml(item.zone || 'Poblacion Urban Core')}</dd>
+                    <dt>Shift Schedule</dt><dd>${escapeHtml(item.shift || 'Night Market Sweep')}</dd>
+                    <dt>Driver License</dt><dd>${escapeHtml(item.license_no || 'K02-88-129402')} (Expires: ${escapeHtml(item.license_expiry || 'Active')})</dd>
+                    <dt>Date Joined</dt><dd>${escapeHtml(item.joined_at || '2023-01-01')}</dd>
+                    <dt>Account Status</dt><dd>${statusBadge}</dd>
                 </dl>
             `;
             document.getElementById('records-modal').classList.add('active');
@@ -753,6 +930,7 @@
             if (!phoneRegex.test(phone)) {
                 phoneError.style.display = 'block';
                 document.getElementById('phone').focus();
+                showToast('Phone number must be exactly 11 digits starting with 09', 'error');
                 return;
             } else {
                 phoneError.style.display = 'none';
@@ -819,8 +997,8 @@
 
             saveLocalPersonnel();
             closeModal();
-            renderRoster(personnelList);
-            alert(`Personnel file ${empCode} successfully saved!`);
+            filterPersonnel();
+            showToast(`Personnel file ${empCode} successfully saved!`, 'success');
         });
 
         document.addEventListener('DOMContentLoaded', loadData);

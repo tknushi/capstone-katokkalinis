@@ -2,11 +2,11 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
+import * as Haptics from "expo-haptics";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
-  Dimensions,
   Image,
   Platform,
   ScrollView,
@@ -20,9 +20,6 @@ import BarangayPickerModal, {
   BARANGAYS_1_TO_40,
 } from "../components/BarangayPickerModal";
 import { submitReport } from "../services/resident";
-
-const { width: SCREEN_WIDTH } = Dimensions.get("window");
-const isSmall = SCREEN_WIDTH < 360;
 
 const issueCategories = [
   { id: "uncollected", label: "Uncollected Waste", icon: "trash-can-outline" },
@@ -41,13 +38,10 @@ export default function Post() {
   const [photoUri, setPhotoUri] = useState(null);
   const [photoBase64, setPhotoBase64] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [userRole, setUserRole] = useState("resident");
 
   useEffect(() => {
     const loadStoredData = async () => {
       try {
-        const storedRole = await AsyncStorage.getItem("userRole");
-        if (storedRole) setUserRole(storedRole);
 
         const stored = await AsyncStorage.getItem("userBarangay");
         if (stored) {
@@ -91,6 +85,20 @@ export default function Post() {
       const response = await submitReport(data);
 
       if (response.success) {
+        try {
+          await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        } catch {
+          // Haptics fallback
+        }
+
+        try {
+          const currentCountStr = await AsyncStorage.getItem("userReportsCount");
+          const nextCount = parseInt(currentCountStr || "0", 10) + 1;
+          await AsyncStorage.setItem("userReportsCount", String(nextCount));
+        } catch (e) {
+          console.warn("Could not update local report count:", e);
+        }
+
         Alert.alert(
           "Report Submitted",
           "Your report has been logged and sent to municipal sanitation dispatchers.",
@@ -359,73 +367,6 @@ export default function Post() {
           )}
         </TouchableOpacity>
       </ScrollView>
-
-      {/* 5. BOTTOM NAVIGATION BAR (Matching Dashboard / Profile Green Bar) */}
-      <View style={styles.bottomNav}>
-        {userRole === "inspector" ? (
-          <>
-            <TouchableOpacity
-              style={styles.navItem}
-              onPress={() => router.push("/inspector/dashboard")}
-            >
-              <MaterialCommunityIcons name="home-outline" size={24} color="rgba(255, 255, 255, 0.85)" />
-              <Text style={styles.navText}>Home</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.navItem} onPress={() => {}}>
-              <MaterialCommunityIcons name="clipboard-check" size={24} color="#FFFFFF" />
-              <Text style={[styles.navText, { fontWeight: "800" }]}>Report</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.navItem}
-              onPress={() => router.push("/inspector/scan")}
-            >
-              <MaterialCommunityIcons name="qrcode-scan" size={22} color="rgba(255, 255, 255, 0.85)" />
-              <Text style={styles.navText}>Scan</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.navItem}
-              onPress={() => router.push("/inspector/profile")}
-            >
-              <MaterialCommunityIcons name="account-outline" size={22} color="rgba(255, 255, 255, 0.85)" />
-              <Text style={styles.navText}>Profile</Text>
-            </TouchableOpacity>
-          </>
-        ) : (
-          <>
-            <TouchableOpacity
-              style={styles.navItem}
-              onPress={() => router.push("/dashboard")}
-            >
-              <MaterialCommunityIcons name="home-outline" size={24} color="rgba(255, 255, 255, 0.85)" />
-              <Text style={styles.navText}>Home</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.navItem} onPress={() => router.push("/report")}>
-              <MaterialCommunityIcons name="clipboard-check" size={24} color="#FFFFFF" />
-              <Text style={[styles.navText, { fontWeight: "800" }]}>Report</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.navItem}
-              onPress={() => router.push("/schedule")}
-            >
-              <MaterialCommunityIcons name="calendar-month-outline" size={22} color="rgba(255, 255, 255, 0.85)" />
-              <Text style={styles.navText}>Schedule</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.navItem}
-              onPress={() => router.push("/profile")}
-            >
-              <MaterialCommunityIcons name="account-outline" size={22} color="rgba(255, 255, 255, 0.85)" />
-              <Text style={styles.navText}>Profile</Text>
-            </TouchableOpacity>
-          </>
-        )}
-      </View>
     </View>
   );
 }
@@ -470,7 +411,7 @@ const styles = StyleSheet.create({
   },
 
   scrollContent: {
-    paddingBottom: 95,
+    paddingBottom: 40,
   },
 
   // Greeting Section matching Dashboard
@@ -713,29 +654,5 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     fontSize: 16,
     letterSpacing: 0.2,
-  },
-
-  // Bottom Navigation Bar
-  bottomNav: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 65,
-    backgroundColor: "#68B93C",
-    flexDirection: "row",
-    justifyContent: "space-around",
-    alignItems: "center",
-  },
-
-  navItem: {
-    alignItems: "center",
-    paddingVertical: 4,
-  },
-
-  navText: {
-    color: "#FFFFFF",
-    fontSize: 10,
-    marginTop: 2,
   },
 });

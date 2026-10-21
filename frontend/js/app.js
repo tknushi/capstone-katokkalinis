@@ -1,8 +1,10 @@
-// Absolute URL so this works no matter how the frontend static files are
-// served (double-clicked, Live Server, XAMPP, etc). Run the backend with
-// `php artisan serve` (default port 8000) or update this if you use a
-// different host/port.
-const API_BASE_URL = window.API_BASE_URL || 'http://localhost:8000/api';
+// Dynamic backend URL so this works across localhost, 127.0.0.1, LAN IP (e.g. mobile testing),
+// Live Server, or when served via npm run dev.
+const API_BASE_URL = window.API_BASE_URL || (
+    typeof window !== 'undefined' && window.location && window.location.hostname && window.location.protocol.startsWith('http')
+        ? `${window.location.protocol}//${window.location.hostname}:8000/api`
+        : 'http://localhost:8000/api'
+);
 
 /**
  * Resolves a media / storage URL to an absolute web-accessible URL.
@@ -138,58 +140,96 @@ function getUserRole() {
     return user.role || null;
 }
 
-// There are only 2 roles on the web dashboard: Super Admin and
-// Admin (a.k.a. Barangay Admin — same account/role, just a friendlier label).
+// There are 2 roles on the web dashboard: Super Admin (CLENRO Central)
+// and Admin (Barangay Admin — Field Operations).
 function getRoleDisplayName(role) {
     if (role === 'super_admin') return 'Super Admin';
     if (role === 'admin') return 'Barangay Admin';
     return role || 'User';
 }
 
+function getActivePerspective() {
+    const stored = localStorage.getItem('active_perspective');
+    if (stored === 'super_admin' || stored === 'admin') return stored;
+    const actualRole = getUserRole() || 'super_admin';
+    return actualRole === 'admin' ? 'admin' : 'super_admin';
+}
+
+function setActivePerspective(perspective) {
+    localStorage.setItem('active_perspective', perspective);
+    loadSidebar();
+}
+
+function toggleActivePerspective() {
+    const current = getActivePerspective();
+    const next = current === 'super_admin' ? 'admin' : 'super_admin';
+    setActivePerspective(next);
+    
+    // Cross-connect navigation when toggling on primary hub pages
+    const currentPage = (window.location.pathname.split('/').pop() || '').toLowerCase();
+    if ((currentPage === 'analytics.html' || currentPage === 'analytics') && next === 'admin') {
+        window.location.href = 'barangay-overview.html';
+    } else if ((currentPage === 'barangay-overview.html' || currentPage === 'barangay-overview') && next === 'super_admin') {
+        window.location.href = 'analytics.html';
+    }
+}
+window.getActivePerspective = getActivePerspective;
+window.setActivePerspective = setActivePerspective;
+window.toggleActivePerspective = toggleActivePerspective;
+
 // Where each role should land after logging in / when visiting "home".
 function getHomePage(role) {
-    return role === 'super_admin' ? 'analytics.html' : 'barangay-overview.html';
+    const activePerspective = getActivePerspective();
+    if (activePerspective === 'admin') return 'barangay-overview.html';
+    if (activePerspective === 'super_admin') return 'analytics.html';
+    return role === 'admin' ? 'barangay-overview.html' : 'analytics.html';
 }
 
 function loadSidebar() {
     const userStr = localStorage.getItem('user');
-    if (!userStr) return;
-    const user = JSON.parse(userStr);
-    const role = getUserRole();
-    const isSuperAdmin = role === 'super_admin';
-    const roleLabel = getRoleDisplayName(role);
-
-    let links = '';
+    let user = null;
+    if (userStr) {
+        try { user = JSON.parse(userStr); } catch (e) { user = null; }
+    }
+    if (!user) {
+        user = { name: 'CLENRO Official', role: 'super_admin' };
+    }
+    const baseRole = getUserRole() || user.role || 'super_admin';
+    const activePerspective = getActivePerspective();
+    const isSuperAdminMode = activePerspective === 'super_admin';
+    const perspectiveLabel = isSuperAdminMode ? 'Super Admin' : 'Barangay Admin';
 
     // SVG icon helper
     const icon = (path, extra = '') => `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;" ${extra}>${path}</svg>`;
 
-    if (isSuperAdmin) {
-        // Super Admin module — matches Figure 3.0 Flowchart Super Admin
-        links += `<a href="analytics.html" class="nav-link" id="nav-analytics">${icon('<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>')}Dashboard Analytics</a>`;
-        links += `<a href="trucks.html" class="nav-link" id="nav-trucks">${icon('<rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>')}Monitor Truck</a>`;
-        links += `<a href="employees.html" class="nav-link" id="nav-employees">${icon('<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>')}Employee</a>`;
-        links += `<a href="contractors.html" class="nav-link" id="nav-contractors">${icon('<path d="M20 7H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/><path d="M16 3H8a2 2 0 0 0-2 2v2h12V5a2 2 0 0 0-2-2z"/>')}Contractor</a>`;
-        links += `<a href="reports.html" class="nav-link" id="nav-reports">${icon('<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>')}Reports</a>`;
-        links += `<a href="clenro-reports.html" class="nav-link" id="nav-clenro">${icon('<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>')}CLENRO Historical Data</a>`;
-        links += `<a href="schedule.html" class="nav-link" id="nav-schedule">${icon('<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>')}Schedule</a>`;
-        links += `<a href="vendors.html" class="nav-link" id="nav-vendors">${icon('<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>')}Vendor</a>`;
-        links += `<a href="attendance.html" class="nav-link" id="nav-attendance">${icon('<polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>')}Attendance</a>`;
-        links += `<a href="users.html" class="nav-link" id="nav-users">${icon('<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>')}User Management</a>`;
-    } else {
-        // Admin / Barangay Admin module — matches Figure 3.1 Flowchart Admin
-        links += `<a href="barangay-overview.html" class="nav-link" id="nav-overview">${icon('<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>')}Barangay Overview</a>`;
-        links += `<a href="trucks.html" class="nav-link" id="nav-trucks">${icon('<rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>')}Monitor Truck</a>`;
-        links += `<a href="residents.html" class="nav-link" id="nav-residents">${icon('<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>')}Resident</a>`;
-        links += `<a href="schedule.html" class="nav-link" id="nav-schedule">${icon('<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>')}Collection Schedule</a>`;
-        links += `<a href="reports.html" class="nav-link" id="nav-reports">${icon('<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>')}Report &amp; Issues</a>`;
-        links += `<a href="clenro-reports.html" class="nav-link" id="nav-clenro">${icon('<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>')}CLENRO Historical Data</a>`;
-        links += `<a href="attendance.html" class="nav-link" id="nav-attendance">${icon('<polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>')}Attendance</a>`;
-        links += `<a href="users.html" class="nav-link" id="nav-users">${icon('<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>')}User Profiles</a>`;
-        links += `<a href="archives.html" class="nav-link" id="nav-archives">${icon('<path d="M21 8v13H3V8"/><path d="M1 3h22v5H1z"/><path d="M10 12h4"/>')}Records &amp; Archives</a>`;
-    }
+    // Unified Cross-Connected Navigation Structure
+    let links = '';
 
-    // Settings is now housed inside the Profile at the bottom of the sidebar!
+    // ── SECTION 1: EXECUTIVE COMMAND & ANALYTICS ──
+    links += `<div class="sidebar-nav-section-title"><span>Executive Command &amp; Analytics</span></div>`;
+    links += `<a href="analytics.html" class="nav-link" id="nav-analytics">${icon('<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>')}Dashboard Analytics <span class="nav-tag tag-super">Super Admin</span></a>`;
+    links += `<a href="barangay-overview.html" class="nav-link" id="nav-overview">${icon('<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>')}Barangay Overview <span class="nav-tag tag-admin">Barangay Admin</span></a>`;
+    links += `<a href="clenro-reports.html" class="nav-link" id="nav-clenro">${icon('<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>')}CLENRO Historical Data <span class="nav-tag tag-shared">DSS</span></a>`;
+
+    // ── SECTION 2: FIELD OPERATIONS & FLEET ──
+    links += `<div class="sidebar-nav-section-title"><span>Operations &amp; Fleet</span></div>`;
+    links += `<a href="trucks.html" class="nav-link" id="nav-trucks">${icon('<rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>')}Monitor Truck</a>`;
+    links += `<a href="schedule.html" class="nav-link" id="nav-schedule">${icon('<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>')}Collection Schedule</a>`;
+    links += `<a href="reports.html" class="nav-link" id="nav-reports">${icon('<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>')}Reports &amp; Issues</a>`;
+
+    // ── SECTION 3: COMMUNITY & STAKEHOLDERS ──
+    links += `<div class="sidebar-nav-section-title"><span>Community &amp; Stakeholders</span></div>`;
+    links += `<a href="residents.html" class="nav-link" id="nav-residents">${icon('<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>')}Resident Accounts <span class="nav-tag tag-admin">Barangay</span></a>`;
+    links += `<a href="vendors.html" class="nav-link" id="nav-vendors">${icon('<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>')}Market Vendors <span class="nav-tag tag-super">CLENRO</span></a>`;
+    links += `<a href="contractors.html" class="nav-link" id="nav-contractors">${icon('<path d="M20 7H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/><path d="M16 3H8a2 2 0 0 0-2 2v2h12V5a2 2 0 0 0-2-2z"/>')}Contractor Fleets <span class="nav-tag tag-super">CLENRO</span></a>`;
+
+    // ── SECTION 4: PERSONNEL & GOVERNANCE ──
+    links += `<div class="sidebar-nav-section-title"><span>Personnel &amp; Governance</span></div>`;
+    links += `<a href="employees.html" class="nav-link" id="nav-employees">${icon('<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>')}Field Employees</a>`;
+    links += `<a href="attendance.html" class="nav-link" id="nav-attendance">${icon('<polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>')}Attendance Roster</a>`;
+    links += `<a href="users.html" class="nav-link" id="nav-users">${icon('<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>')}User Management</a>`;
+    links += `<a href="archives.html" class="nav-link" id="nav-archives">${icon('<path d="M21 8v13H3V8"/><path d="M1 3h22v5H1z"/><path d="M10 12h4"/>')}Records &amp; Archives</a>`;
+    links += `<a href="activity-logs.html" class="nav-link" id="nav-activity-logs">${icon('<path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>')}Activity Logs</a>`;
 
     // Append evergreen pine tree motif accent before footer
     links += `
@@ -212,26 +252,58 @@ function loadSidebar() {
         if(activeLink) activeLink.classList.add('active');
     }
 
-    // Header branding
+    // Header branding with integrated navigation toggle button
     const sidebarHeader = document.querySelector('.sidebar-header');
     if (sidebarHeader) {
         sidebarHeader.innerHTML = `
-            <div style="display:flex;align-items:center;gap:3px;justify-content:center;">
-                <span class="brand-katok">Katok</span><span class="brand-kalinisan">Kalinis</span>
+            <div class="sidebar-header-row">
+                <div class="sidebar-brand-group">
+                    <div style="display:flex;align-items:center;gap:3px;">
+                        <span class="brand-katok">Katok</span><span class="brand-kalinisan">Kalinis</span>
+                    </div>
+                    <div class="brand-tagline">Katok. Linis. Gaan ang Buhay.</div>
+                </div>
+                <button type="button" class="sidebar-toggle-btn-inside" id="sidebar-toggle-btn-inside" title="Collapse navigation menu (Ctrl+B)" aria-label="Toggle navigation">
+                    <svg class="sidebar-toggle-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="9" y1="3" x2="9" y2="21"></line>
+                        <path class="toggle-arrow" d="M15 9l-3 3 3 3"></path>
+                    </svg>
+                </button>
             </div>
-            <div class="brand-tagline">Katok. Linis. Gaan ang Buhay.</div>
         `;
     }
 
-    // Role block at the top of the sidebar
+    // Cross-Connected Role & Perspective Switcher in Sidebar Header
     const roleContainer = document.getElementById('sidebar-role');
     if (roleContainer) {
-        roleContainer.innerHTML = `<span>CLENRO Department</span><span class="sidebar-role-badge">${roleLabel}</span>`;
+        roleContainer.innerHTML = `
+            <div class="sidebar-role-badge-row">
+                <span class="sidebar-role-badge ${isSuperAdminMode ? 'role-super' : 'role-admin'}">
+                    <span class="role-dot"></span>
+                    ${perspectiveLabel}
+                </span>
+                <button type="button" class="sidebar-switch-view-btn" onclick="toggleActivePerspective()" title="Cross-Connect: Switch between Super Admin and Barangay Admin View">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>
+                    Switch
+                </button>
+            </div>
+        `;
     }
 
+    // Topbar Cross-Connected Greeting & Perspective Control
     const userNameEl = document.getElementById('topbar-user');
     if (userNameEl) {
-        userNameEl.textContent = `Welcome, ${user.name} (${roleLabel})`;
+        userNameEl.innerHTML = `
+            <div class="topbar-perspective-wrap">
+                <span class="topbar-role-pill ${isSuperAdminMode ? 'pill-super' : 'pill-admin'}">
+                    ${isSuperAdminMode ? 'Super Admin Mode' : 'Barangay Admin Mode'}
+                </span>
+                <button type="button" class="topbar-switch-perspective-btn" onclick="toggleActivePerspective()" title="Click to toggle perspective">
+                    Switch to ${isSuperAdminMode ? 'Barangay View' : 'Super Admin View'}
+                </button>
+            </div>
+        `;
     }
 
     // Render Integrated Profile Component in Sidebar Footer
@@ -293,6 +365,231 @@ function loadSidebar() {
             </div>
         `;
     }
+
+    // Initialize Mobile Responsive Navigation Drawer & Table Wrappers
+    initResponsiveLayout();
+}
+
+function initResponsiveLayout() {
+    const layout = document.querySelector('.dashboard-layout');
+    const sidebar = document.querySelector('.sidebar');
+    const topbar = document.querySelector('.topbar');
+    if (!layout || !sidebar || !topbar) return;
+
+    // 1. Off-canvas Backdrop Overlay
+    let backdrop = document.getElementById('sidebar-backdrop');
+    if (!backdrop) {
+        backdrop = document.createElement('div');
+        backdrop.id = 'sidebar-backdrop';
+        backdrop.className = 'sidebar-backdrop';
+        backdrop.setAttribute('aria-hidden', 'true');
+        layout.appendChild(backdrop);
+    }
+
+    // 2. Navigation Toggle Button INSIDE Sidebar Header
+    const insideToggleBtn = document.getElementById('sidebar-toggle-btn-inside');
+
+    // 3. Floating Expand Button when Sidebar is Collapsed on Desktop
+    let floatExpandBtn = document.getElementById('sidebar-expand-float-btn');
+    if (!floatExpandBtn) {
+        floatExpandBtn = document.createElement('button');
+        floatExpandBtn.id = 'sidebar-expand-float-btn';
+        floatExpandBtn.className = 'sidebar-expand-float-btn';
+        floatExpandBtn.type = 'button';
+        floatExpandBtn.setAttribute('title', 'Expand Navigation (Ctrl+B)');
+        floatExpandBtn.setAttribute('aria-label', 'Expand Navigation');
+        floatExpandBtn.innerHTML = `
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="9" y1="3" x2="9" y2="21"></line>
+                <path d="M13 9l3 3-3 3"></path>
+            </svg>
+        `;
+        layout.appendChild(floatExpandBtn);
+    }
+
+    // 4. Mobile Navigation Toggle in Topbar (Only created / shown on mobile <= 1024px)
+    let mobileToggleBtn = document.getElementById('mobile-nav-toggle');
+    if (window.innerWidth <= 1024) {
+        if (!mobileToggleBtn) {
+            mobileToggleBtn = document.createElement('button');
+            mobileToggleBtn.id = 'mobile-nav-toggle';
+            mobileToggleBtn.className = 'mobile-nav-toggle nav-toggle-btn';
+            mobileToggleBtn.type = 'button';
+            mobileToggleBtn.setAttribute('aria-label', 'Toggle navigation menu');
+            mobileToggleBtn.setAttribute('title', 'Open navigation menu');
+            mobileToggleBtn.innerHTML = `
+                <svg class="sidebar-toggle-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="9" y1="3" x2="9" y2="21"></line>
+                    <path class="toggle-arrow" d="M15 9l-3 3 3 3"></path>
+                </svg>
+            `;
+
+            let leftGroup = topbar.querySelector('.topbar-left');
+            const heading = topbar.querySelector('h2, .topbar-title');
+            if (!leftGroup) {
+                leftGroup = document.createElement('div');
+                leftGroup.className = 'topbar-left';
+                leftGroup.style.display = 'flex';
+                leftGroup.style.alignItems = 'center';
+                leftGroup.style.gap = '12px';
+                if (heading) {
+                    topbar.insertBefore(leftGroup, heading);
+                    leftGroup.appendChild(mobileToggleBtn);
+                    leftGroup.appendChild(heading);
+                } else {
+                    topbar.insertBefore(leftGroup, topbar.firstChild);
+                    leftGroup.appendChild(mobileToggleBtn);
+                }
+            } else if (!leftGroup.contains(mobileToggleBtn)) {
+                leftGroup.insertBefore(mobileToggleBtn, leftGroup.firstChild);
+            }
+        }
+    } else {
+        // Desktop (> 1024px): completely remove any toggle button in the topbar
+        if (mobileToggleBtn) {
+            mobileToggleBtn.remove();
+            mobileToggleBtn = null;
+        }
+        const leftoverToggle = topbar.querySelector('.mobile-nav-toggle, .nav-toggle-btn');
+        if (leftoverToggle) {
+            leftoverToggle.remove();
+        }
+    }
+
+    function updateToggleUI(isCollapsed) {
+        if (insideToggleBtn) {
+            insideToggleBtn.setAttribute('aria-expanded', isCollapsed ? 'false' : 'true');
+            insideToggleBtn.setAttribute('title', isCollapsed ? 'Expand Navigation' : 'Collapse Navigation (Ctrl+B)');
+        }
+        if (mobileToggleBtn) {
+            const isOpen = sidebar.classList.contains('open');
+            mobileToggleBtn.classList.toggle('active', isOpen);
+            mobileToggleBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        }
+    }
+
+    // Restore desktop collapsed preference from localStorage
+    if (window.innerWidth > 1024) {
+        const savedCollapsed = localStorage.getItem('katok_sidebar_collapsed') === 'true';
+        if (savedCollapsed) {
+            layout.classList.add('sidebar-collapsed');
+            updateToggleUI(true);
+        } else {
+            updateToggleUI(false);
+        }
+    }
+
+    function openDrawer() {
+        sidebar.classList.add('open');
+        backdrop.classList.add('active');
+        if (mobileToggleBtn) {
+            mobileToggleBtn.classList.add('active');
+            mobileToggleBtn.setAttribute('aria-expanded', 'true');
+        }
+        document.body.classList.add('sidebar-open');
+    }
+
+    function closeDrawer() {
+        sidebar.classList.remove('open');
+        backdrop.classList.remove('active');
+        if (mobileToggleBtn) {
+            mobileToggleBtn.classList.remove('active');
+            mobileToggleBtn.setAttribute('aria-expanded', 'false');
+        }
+        document.body.classList.remove('sidebar-open');
+    }
+
+    function toggleSidebarAction(e) {
+        if (e) e.stopPropagation();
+        if (window.innerWidth <= 1024) {
+            // Mobile / Tablet drawer behavior
+            if (sidebar.classList.contains('open')) {
+                closeDrawer();
+            } else {
+                openDrawer();
+            }
+        } else {
+            // Desktop collapse / showcase mode
+            const isCollapsed = layout.classList.toggle('sidebar-collapsed');
+            localStorage.setItem('katok_sidebar_collapsed', isCollapsed ? 'true' : 'false');
+            updateToggleUI(isCollapsed);
+            // Trigger resize event so charts, maps, and canvas elements re-fit immediately
+            window.dispatchEvent(new Event('resize'));
+            setTimeout(() => {
+                window.dispatchEvent(new Event('resize'));
+            }, 300);
+        }
+    }
+
+    if (insideToggleBtn) {
+        insideToggleBtn.onclick = toggleSidebarAction;
+    }
+    if (floatExpandBtn) {
+        floatExpandBtn.onclick = toggleSidebarAction;
+    }
+    if (mobileToggleBtn) {
+        mobileToggleBtn.onclick = toggleSidebarAction;
+    }
+    backdrop.onclick = closeDrawer;
+
+    // 3. Mobile Close Button in Sidebar Header
+    const sidebarHeader = sidebar.querySelector('.sidebar-header');
+    if (sidebarHeader && !document.getElementById('sidebar-close-btn')) {
+        const closeBtn = document.createElement('button');
+        closeBtn.id = 'sidebar-close-btn';
+        closeBtn.className = 'sidebar-close-btn';
+        closeBtn.type = 'button';
+        closeBtn.setAttribute('aria-label', 'Close navigation menu');
+        closeBtn.innerHTML = `&times;`;
+        closeBtn.onclick = closeDrawer;
+        sidebarHeader.appendChild(closeBtn);
+    }
+
+    // Keyboard shortcut: Escape closes drawer on mobile; Ctrl+B toggles showcase on desktop
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && sidebar.classList.contains('open')) {
+            closeDrawer();
+        } else if ((e.key === '[' || e.key === 'b') && e.ctrlKey && !e.target.matches('input, textarea, select')) {
+            e.preventDefault();
+            toggleSidebarAction();
+        }
+    });
+
+    // Close drawer when clicking a nav link on mobile/tablet
+    sidebar.querySelectorAll('.nav-link').forEach(link => {
+        link.addEventListener('click', () => {
+            if (window.innerWidth <= 1024) {
+                closeDrawer();
+            }
+        });
+    });
+
+    // Auto adapt if resized between desktop and mobile
+    window.addEventListener('resize', () => {
+        if (window.innerWidth > 1024) {
+            if (sidebar.classList.contains('open')) {
+                closeDrawer();
+            }
+            const savedCollapsed = localStorage.getItem('katok_sidebar_collapsed') === 'true';
+            layout.classList.toggle('sidebar-collapsed', savedCollapsed);
+            updateToggleUI(savedCollapsed);
+        } else {
+            layout.classList.remove('sidebar-collapsed');
+            updateToggleUI(false);
+        }
+    });
+
+    // Auto-wrap tables in responsive scrollable container
+    document.querySelectorAll('table').forEach(tbl => {
+        if (!tbl.closest('.table-responsive') && !tbl.closest('.table-container')) {
+            const wrap = document.createElement('div');
+            wrap.className = 'table-responsive';
+            tbl.parentNode.insertBefore(wrap, tbl);
+            wrap.appendChild(tbl);
+        }
+    });
 }
 
 // Profile Dropdown Toggle
@@ -407,6 +704,7 @@ class PaginationControls {
         this.itemLabel = options.itemLabel || 'users';
         this.onPageChange = options.onPageChange || (() => {});
         this.onRowsPerPageChange = options.onRowsPerPageChange || (() => {});
+        this.render();
     }
 
     update({ currentPage, totalItems, rowsPerPage }) {
@@ -523,6 +821,137 @@ class PaginationControls {
 }
 window.PaginationControls = PaginationControls;
 
+/*
+|--------------------------------------------------------------------------
+| STANDARD REAL-TIME & NORMAL TIME FORMATTERS (12-Hour AM/PM)
+|--------------------------------------------------------------------------
+*/
+function formatStandardTime(timeStr) {
+    if (!timeStr || timeStr === '-' || timeStr === 'null') return '-';
+    // Handle ISO date strings (e.g. 2026-10-21T03:55:26.000000Z)
+    if (typeof timeStr === 'string' && timeStr.includes('T')) {
+        const d = new Date(timeStr);
+        if (!isNaN(d.getTime())) {
+            return d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true });
+        }
+    }
+    // Handle time strings (e.g. "17:02:05", "17:02", "09:16")
+    const parts = String(timeStr).trim().split(':');
+    if (parts.length >= 2) {
+        let hour = parseInt(parts[0], 10);
+        const minute = parts[1].substring(0, 2);
+        if (isNaN(hour)) return timeStr;
+        const ampm = hour >= 12 ? 'PM' : 'AM';
+        hour = hour % 12 || 12;
+        return `${hour}:${minute} ${ampm}`;
+    }
+    return timeStr;
+}
+window.formatStandardTime = formatStandardTime;
+
+function formatStandardDate(dateStr) {
+    if (!dateStr || dateStr === '-' || dateStr === 'null') return '-';
+    const cleanStr = String(dateStr).trim().substring(0, 10);
+    const parts = cleanStr.split('-');
+    if (parts.length === 3) {
+        const year = parseInt(parts[0], 10);
+        const month = parseInt(parts[1], 10) - 1;
+        const day = parseInt(parts[2], 10);
+        const d = new Date(year, month, day);
+        if (!isNaN(d.getTime())) {
+            return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        }
+    }
+    const d = new Date(dateStr);
+    if (!isNaN(d.getTime())) {
+        return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    }
+    return dateStr;
+}
+window.formatStandardDate = formatStandardDate;
+
+function initRealtimeClock(elementId) {
+    const el = document.getElementById(elementId);
+    if (!el) return;
+    function tick() {
+        const now = new Date();
+        const datePart = now.toLocaleDateString('en-US', {
+            weekday: 'short',
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric'
+        });
+        const timePart = now.toLocaleTimeString('en-US', {
+            hour: 'numeric',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: true
+        });
+        el.textContent = `${datePart} • ${timePart}`;
+    }
+    tick();
+    setInterval(tick, 1000);
+}
+window.initRealtimeClock = initRealtimeClock;
+
+// ==============================================================================
+// GLOBAL TOAST NOTIFICATION COMPONENT & WINDOW.ALERT DEPRECATION
+// ==============================================================================
+function showToast(message, type = 'success', duration = 4000) {
+    let container = document.getElementById('toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'toast-container';
+        container.className = 'toast-container';
+        container.setAttribute('aria-live', 'polite');
+        container.setAttribute('aria-atomic', 'true');
+        document.body.appendChild(container);
+    }
+
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.setAttribute('role', type === 'error' ? 'alert' : 'status');
+
+    let iconSvg = '';
+    if (type === 'success') {
+        iconSvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>`;
+    } else if (type === 'error') {
+        iconSvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`;
+    } else {
+        iconSvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>`;
+    }
+
+    toast.innerHTML = `
+        <span class="toast-icon">${iconSvg}</span>
+        <div class="toast-message">${escapeHtml(message)}</div>
+        <button type="button" class="toast-close-btn" aria-label="Close notification">&times;</button>
+    `;
+
+    const closeBtn = toast.querySelector('.toast-close-btn');
+    function dismiss() {
+        if (toast.classList.contains('toast-closing')) return;
+        toast.classList.add('toast-closing');
+        setTimeout(() => {
+            if (toast.parentNode) toast.parentNode.removeChild(toast);
+        }, 260);
+    }
+
+    closeBtn.onclick = dismiss;
+
+    if (duration > 0) {
+        setTimeout(dismiss, duration);
+    }
+
+    container.appendChild(toast);
+}
+
+window.showToast = showToast;
+
+// Completely deprecate window.alert by routing all alerts to in-app toast
+window.alert = function(msg) {
+    window.showToast(msg, 'info', 4000);
+};
+
 // Run auth check on load
 checkAuth();
 
@@ -530,5 +959,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!isAuthPage()) {
         loadSidebar();
     }
+    initResponsiveLayout();
 });
 

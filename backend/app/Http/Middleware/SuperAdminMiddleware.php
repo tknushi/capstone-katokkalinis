@@ -31,19 +31,19 @@ class SuperAdminMiddleware
 
         /*
         |--------------------------------------------------------------------------
-        | CHECK SUPER ADMIN ROLE
+        | CHECK SUPER ADMIN & ADMIN ROLE (CROSS-CONNECTED)
         |--------------------------------------------------------------------------
         */
 
-        $isSuperAdmin = $request->user()
+        $hasAccess = $request->user()
             ->roles()
-            ->where('name', 'super_admin')
+            ->whereIn('name', ['super_admin', 'admin'])
             ->exists();
 
-        if (!$isSuperAdmin) {
+        if (!$hasAccess) {
             return response()->json([
                 'success' => false,
-                'message' => 'Unauthorized. Super Admin access required.',
+                'message' => 'Unauthorized. Administrative access required.',
             ], 403);
         }
 

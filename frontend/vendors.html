@@ -306,78 +306,125 @@
             
             <section class="content">
                 <div class="exec-command-center">
-                    <!-- Standard Executive Header Banner -->
+                    <!-- Standard Executive Header Banner (Image 3 Template) -->
                     <div class="exec-header-banner">
                         <div class="exec-header-left">
                             <div class="exec-shield-icon">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M12 2l8 4.5v6c0 5-3.5 9.5-8 11.5-4.5-2-8-6.5-8-11.5v-6z"/>
-                                    <path d="M8 12h8M12 8v8"/>
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
                                 </svg>
                             </div>
-                            <div class="exec-title-block">
-                                <h1>Commercial Market &amp; Vendor Compliance</h1>
-                                <p>CITY ENVIRONMENT &bull; PUBLIC MARKETS SOLID WASTE DIVISION &bull; CAGAYAN DE ORO CITY</p>
-                            </div>
-                            <div class="exec-clenro-pill">
-                                <span class="live-dot"></span>
-                                CLENRO MARKET AUDIT
+                            <div class="exec-header-title-wrap">
+                                <div class="exec-header-title-row">
+                                    <h2>Commercial Market &amp; Vendor Compliance</h2>
+                                    <span class="exec-clenro-pill">CLENRO MARKET AUDIT</span>
+                                </div>
+                                <p class="exec-header-subtitle">Public Markets Solid Waste Division &bull; Cagayan de Oro City</p>
                             </div>
                         </div>
                         <div class="exec-header-right">
-                            <a href="residents.html" class="exec-btn-cross-connect" title="Open Resident Directory">
-                                <span>&#128101;</span> Resident Directory
-                            </a>
-                            <a href="analytics.html" class="exec-btn-cross-connect" title="Open Executive Dashboard">
-                                <span>&#128202;</span> Executive Analytics
-                            </a>
-                            <a href="barangay-overview.html" class="exec-btn-cross-connect" title="Open Barangay Command">
-                                <span>&#127963;</span> Barangay Command
-                            </a>
+                            <button type="button" class="exec-btn-brief" onclick="openModal()" style="background:#22c55e;border-color:#4ade80;color:#fff;">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                                + Add Vendor
+                            </button>
                         </div>
                     </div>
 
-                    <!-- Operational Stat Cards Grid -->
+                    <!-- 4 Executive KPI Cards (Image 3 Template) -->
                     <div class="exec-stats-grid">
                         <div class="exec-kpi-card">
-                            <div class="kpi-header">
-                                <span class="kpi-label">Total Markets</span>
-                                <span class="kpi-icon-wrap" style="background: rgba(34, 197, 94, 0.1); color: var(--green-600);">&#127978;</span>
+                            <div class="exec-kpi-top">
+                                <span class="exec-kpi-label">TOTAL MARKETS</span>
+                                <div class="exec-icon-circle green">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+                                </div>
                             </div>
-                            <div class="kpi-value-row">
-                                <span class="kpi-value" id="stat-markets">...</span>
+                            <div class="exec-kpi-mid">
+                                <span class="exec-kpi-val" id="stat-markets">...</span>
+                                <span class="exec-tag green">Commercial Hubs</span>
                             </div>
-                            <div class="kpi-footer">Registered commercial centers</div>
+                            <div class="exec-kpi-bottom">
+                                <span>Registered commercial centers</span>
+                                <span class="bold-green">Active</span>
+                            </div>
                         </div>
                         <div class="exec-kpi-card">
-                            <div class="kpi-header">
-                                <span class="kpi-label">Registered Vendors</span>
-                                <span class="kpi-icon-wrap" style="background: rgba(59, 130, 246, 0.1); color: #2563eb;">&#129489;&#8205;&#127806;</span>
+                            <div class="exec-kpi-top">
+                                <span class="exec-kpi-label">REGISTERED VENDORS</span>
+                                <div class="exec-icon-circle blue">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                                </div>
                             </div>
-                            <div class="kpi-value-row">
-                                <span class="kpi-value" id="stat-vendors">...</span>
+                            <div class="exec-kpi-mid">
+                                <span class="exec-kpi-val" id="stat-vendors">...</span>
+                                <span class="exec-tag blue">QR Enrolled</span>
                             </div>
-                            <div class="kpi-footer">Active market stallholders</div>
+                            <div class="exec-kpi-bottom">
+                                <span>Active market stallholders</span>
+                                <span class="bold-blue">Verified</span>
+                            </div>
                         </div>
                         <div class="exec-kpi-card">
-                            <div class="kpi-header">
-                                <span class="kpi-label">Inspections Audited</span>
-                                <span class="kpi-icon-wrap" style="background: rgba(16, 185, 129, 0.1); color: #059669;">&#9989;</span>
+                            <div class="exec-kpi-top">
+                                <span class="exec-kpi-label">INSPECTIONS AUDITED</span>
+                                <div class="exec-icon-circle green">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                                </div>
                             </div>
-                            <div class="kpi-value-row">
-                                <span class="kpi-value" id="stat-inspections" style="color: var(--green-700);">...</span>
+                            <div class="exec-kpi-mid">
+                                <span class="exec-kpi-val" id="stat-inspections">...</span>
+                                <span class="exec-tag green">Graded</span>
                             </div>
-                            <div class="kpi-footer">Compliance reports submitted</div>
+                            <div class="exec-kpi-bottom">
+                                <span>Compliance reports submitted</span>
+                                <span class="bold-green">Audited</span>
+                            </div>
                         </div>
                         <div class="exec-kpi-card">
-                            <div class="kpi-header">
-                                <span class="kpi-label">Pending Reviews</span>
-                                <span class="kpi-icon-wrap" style="background: rgba(245, 158, 11, 0.1); color: #d97706;">&#9203;</span>
+                            <div class="exec-kpi-top">
+                                <span class="exec-kpi-label danger">PENDING REVIEWS</span>
+                                <div class="exec-icon-circle amber">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                                </div>
                             </div>
-                            <div class="kpi-value-row">
-                                <span class="kpi-value" id="stat-pending" style="color: #ea580c;">...</span>
+                            <div class="exec-kpi-mid">
+                                <span class="exec-kpi-val danger" id="stat-pending">...</span>
+                                <span class="exec-tag amber">Queue</span>
                             </div>
-                            <div class="kpi-footer">Awaiting administrative decision</div>
+                            <div class="exec-kpi-bottom">
+                                <span>Awaiting administrative decision</span>
+                                <span class="bold-amber">Review</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Fast Visual Market Compliance Distribution Bar (Image 3 Template) -->
+                    <div class="analytics-chart-card">
+                        <div class="chart-card-header">
+                            <div class="chart-header-left">
+                                <div class="chart-header-icon market-icon">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                                </div>
+                                <div>
+                                    <h3>Market Sanitation Compliance Distribution</h3>
+                                    <p class="chart-header-sub">Proportion of compliant stalls vs pending and flagged inspections</p>
+                                </div>
+                            </div>
+                            <span class="chart-badge badge-green" id="vendor-comp-badge">Sanitation Audit</span>
+                        </div>
+                        <div class="analytics-chart-body" style="padding: 12px 18px;">
+                            <div class="stacked-bar-wrap">
+                                <div class="stacked-bar-track">
+                                    <div class="stacked-bar-segment" id="ven-seg-pass" style="width: 70%; background: #16a34a;" title="Compliant / Passed"></div>
+                                    <div class="stacked-bar-segment" id="ven-seg-pend" style="width: 20%; background: #f59e0b;" title="Pending Review"></div>
+                                    <div class="stacked-bar-segment" id="ven-seg-fail" style="width: 10%; background: #ef4444;" title="Flagged / Failed"></div>
+                                </div>
+                                <div class="stacked-bar-legend">
+                                    <span class="legend-chip"><span class="legend-dot" style="background:#16a34a;"></span>Compliant / Passed: <strong id="ven-leg-pass">0</strong></span>
+                                    <span class="legend-chip"><span class="legend-dot" style="background:#f59e0b;"></span>Pending Review: <strong id="ven-leg-pend">0</strong></span>
+                                    <span class="legend-chip"><span class="legend-dot" style="background:#ef4444;"></span>Flagged / Failed: <strong id="ven-leg-fail">0</strong></span>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -734,8 +781,29 @@
 
                 // Update Stats
                 const pending = allInspections.filter(i => !i.decision);
+                const failed = allInspections.filter(i => i.decision === 'rejected' || (Number(i.total_score) <= flagThreshold && !i.decision));
+                const passed = Math.max(0, allInspections.length - pending.length - allInspections.filter(i => i.decision === 'rejected').length);
                 document.getElementById('stat-inspections').textContent = allInspections.length;
                 document.getElementById('stat-pending').textContent = pending.length;
+
+                const totI = allInspections.length || 1;
+                const pPct = Math.round((passed / totI) * 100);
+                const pendPct = Math.round((pending.length / totI) * 100);
+                const fPct = Math.max(0, 100 - pPct - pendPct);
+                const segP = document.getElementById('ven-seg-pass');
+                if (segP) segP.style.width = `${pPct}%`;
+                const segPend = document.getElementById('ven-seg-pend');
+                if (segPend) segPend.style.width = `${pendPct}%`;
+                const segF = document.getElementById('ven-seg-fail');
+                if (segF) segF.style.width = `${fPct}%`;
+                const legP = document.getElementById('ven-leg-pass');
+                if (legP) legP.textContent = passed;
+                const legPend = document.getElementById('ven-leg-pend');
+                if (legPend) legPend.textContent = pending.length;
+                const legF = document.getElementById('ven-leg-fail');
+                if (legF) legF.textContent = failed.length;
+                const vBadge = document.getElementById('vendor-comp-badge');
+                if (vBadge) vBadge.textContent = `${pPct}% Compliant`;
                 document.getElementById('badge-compliance-count').textContent = allInspections.length;
                 document.getElementById('compliance-total-badge').textContent = allInspections.length + ' audits';
 

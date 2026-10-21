@@ -485,57 +485,32 @@
             
             <section class="content">
                 <div class="exec-command-center">
-                    <!-- Standard Executive Header Banner -->
+                    <!-- Standard Executive Header Banner (Image 3 Template) -->
                     <div class="exec-header-banner">
                         <div class="exec-header-left">
                             <div class="exec-shield-icon">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M12 2l8 4.5v6c0 5-3.5 9.5-8 11.5-4.5-2-8-6.5-8-11.5v-6z"/>
-                                    <path d="M8 12h8M12 8v8"/>
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
                                 </svg>
                             </div>
-                            <div class="exec-title-block">
-                                <h1>Collection Scheduling & Dispatch Control</h1>
-                                <p>CITY ENVIRONMENT & NATURAL RESOURCES OFFICE (CLENRO) &bull; CAGAYAN DE ORO CITY</p>
-                            </div>
-                            <div class="exec-clenro-pill">
-                                <span class="live-dot"></span>
-                                CLENRO DISPATCH SYNC
+                            <div class="exec-header-title-wrap">
+                                <div class="exec-header-title-row">
+                                    <h2>Collection Scheduling &amp; Dispatch Control</h2>
+                                    <span class="exec-clenro-pill">CLENRO DISPATCH SYNC</span>
+                                </div>
+                                <p class="exec-header-subtitle">Route Timetables &amp; Barangay Pick-Up Windows &bull; Cagayan de Oro City</p>
                             </div>
                         </div>
                         <div class="exec-header-right">
-                            <a href="trucks.html" class="exec-btn-cross-connect" title="Open Fleet Operations">
-                                <span>&#128667;</span> Fleet Dispatch
-                            </a>
-                            <a href="analytics.html" class="exec-btn-cross-connect" title="Open Executive Dashboard">
-                                <span>&#128202;</span> Executive Analytics
-                            </a>
-                            <a href="barangay-overview.html" class="exec-btn-cross-connect" title="Open Barangay Command">
-                                <span>&#127963;</span> Barangay Command
-                            </a>
+                            <button type="button" id="dss-quick-schedule-btn" class="exec-btn-brief" style="display:none; background:#7c3aed; border-color:#a78bfa; color:#fff;" onclick="openPreFilledDssModal()">
+                                &#9889; Pre-Fill Schedule from DSS
+                            </button>
+                            <button type="button" class="exec-btn-brief" onclick="openModal()" style="background:#22c55e;border-color:#4ade80;color:#fff;">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                                + Add Schedule
+                            </button>
                         </div>
                     </div>
-                <!-- CLENRO Decision Support Live Schedule Connection Banner -->
-                <div id="dss-schedule-banner" class="card" style="margin-bottom: 18px; border-left: 4px solid #16a34a; background: var(--surface); padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
-                    <div>
-                        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-                            <span style="font-size:15px;">&#129504;</span>
-                            <strong style="font-size:14px; color:var(--text);" id="dss-banner-title">CLENRO Decision Support &amp; Historical Data Connected</strong>
-                            <span id="dss-schedule-count-pill" style="font-size:11px; font-weight:700; padding:2px 8px; border-radius:12px; background:#dcfce7; color:#166534;">Live Calendar Sync</span>
-                        </div>
-                        <p id="dss-banner-desc" style="margin:4px 0 0; font-size:12.5px; color:var(--text-muted);">
-                            Relief trips, date adjustments, and frequency upgrades applied in <strong>CLENRO Decision Support</strong> appear directly on this calendar. Marking a schedule <strong>Completed</strong> feeds tonnage back into the Historical Dataset.
-                        </p>
-                    </div>
-                    <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-                        <button type="button" id="dss-quick-schedule-btn" class="btn" style="display:none; width:auto; background:#7c3aed; padding:7px 14px; font-size:12.5px;" onclick="openPreFilledDssModal()">
-                            &#9889; Pre-Fill Schedule from DSS
-                        </button>
-                        <a href="clenro-reports.html" class="btn" style="width:auto; background:var(--surface-alt); color:var(--text); border:1px solid var(--border); text-decoration:none; padding:7px 14px; font-size:12.5px;">
-                            &#128202; Open Historical DSS Report
-                        </a>
-                    </div>
-                </div>
 
                 <!-- Collection Calendar Section -->
                 <div class="card calendar-card">

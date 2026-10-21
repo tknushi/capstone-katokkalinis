@@ -120,34 +120,134 @@
             
             <section class="content">
                 <div class="exec-command-center">
-                    <!-- Standard Executive Header Banner -->
+                    <!-- Standard Executive Header Banner (Image 3 Template) -->
                     <div class="exec-header-banner">
                         <div class="exec-header-left">
                             <div class="exec-shield-icon">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M12 2l8 4.5v6c0 5-3.5 9.5-8 11.5-4.5-2-8-6.5-8-11.5v-6z"/>
-                                    <path d="M8 12h8M12 8v8"/>
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
                                 </svg>
                             </div>
-                            <div class="exec-title-block">
-                                <h1>Personnel Attendance Records</h1>
-                                <p>CITY ENVIRONMENT &bull; CLENRO WORKFORCE LOGISTICS &bull; CAGAYAN DE ORO CITY</p>
-                            </div>
-                            <div class="exec-clenro-pill">
-                                <span class="live-dot"></span>
-                                CLENRO TIME SYNC
+                            <div class="exec-header-title-wrap">
+                                <div class="exec-header-title-row">
+                                    <h2>Personnel Attendance Roster</h2>
+                                    <span class="exec-clenro-pill">CLENRO TIME SYNC</span>
+                                </div>
+                                <p class="exec-header-subtitle">Workforce Timekeeping &amp; Shift Logs &bull; Cagayan de Oro City</p>
                             </div>
                         </div>
                         <div class="exec-header-right">
-                            <a href="employees.html" class="exec-btn-cross-connect" title="Open Workforce Roster">
-                                <span>&#128101;</span> Personnel Roster
-                            </a>
-                            <a href="analytics.html" class="exec-btn-cross-connect" title="Open Executive Dashboard">
-                                <span>&#128202;</span> Executive Analytics
-                            </a>
-                            <a href="barangay-overview.html" class="exec-btn-cross-connect" title="Open Barangay Command">
-                                <span>&#127963;</span> Barangay Command
-                            </a>
+                            <button type="button" class="exec-btn-brief" onclick="quickSelfCheckInOut()" id="btn-quick-checkin">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                                Quick Check-In / Out
+                            </button>
+                            <button type="button" class="exec-btn-brief" onclick="openModal()" style="background:#22c55e;border-color:#4ade80;color:#fff;">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                                Add Attendance
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 4 Executive KPI Cards (Image 3 Template) -->
+                    <div class="exec-stats-grid">
+                        <div class="exec-kpi-card">
+                            <div class="exec-kpi-top">
+                                <span class="exec-kpi-label">TOTAL LOGGED RECORDS</span>
+                                <div class="exec-icon-circle blue">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                                </div>
+                            </div>
+                            <div class="exec-kpi-mid">
+                                <span class="exec-kpi-val" id="att-kpi-total">15</span>
+                                <span class="exec-tag blue" id="att-kpi-rate-tag">100% Synced</span>
+                            </div>
+                            <div class="exec-kpi-bottom">
+                                <span>Workforce Time Roster</span>
+                                <span class="bold-blue">Live PST</span>
+                            </div>
+                        </div>
+
+                        <div class="exec-kpi-card">
+                            <div class="exec-kpi-top">
+                                <span class="exec-kpi-label">PRESENT ON-TIME</span>
+                                <div class="exec-icon-circle green">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                                </div>
+                            </div>
+                            <div class="exec-kpi-mid">
+                                <span class="exec-kpi-val" id="att-kpi-present">10</span>
+                                <span class="exec-tag green" id="att-kpi-present-pct">67% On-Time</span>
+                            </div>
+                            <div class="exec-kpi-bottom">
+                                <span>Checked in before shift cutoff</span>
+                                <span class="bold-green">Compliant</span>
+                            </div>
+                        </div>
+
+                        <div class="exec-kpi-card">
+                            <div class="exec-kpi-top">
+                                <span class="exec-kpi-label">LATE ARRIVALS</span>
+                                <div class="exec-icon-circle amber">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                                </div>
+                            </div>
+                            <div class="exec-kpi-mid">
+                                <span class="exec-kpi-val" id="att-kpi-late">3</span>
+                                <span class="exec-tag amber" id="att-kpi-late-pct">20% Tardy</span>
+                            </div>
+                            <div class="exec-kpi-bottom">
+                                <span>Logged past grace period</span>
+                                <span class="bold-amber">Monitored</span>
+                            </div>
+                        </div>
+
+                        <div class="exec-kpi-card">
+                            <div class="exec-kpi-top">
+                                <span class="exec-kpi-label danger">ON LEAVE / ABSENT</span>
+                                <div class="exec-icon-circle red">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                                </div>
+                            </div>
+                            <div class="exec-kpi-mid">
+                                <span class="exec-kpi-val danger" id="att-kpi-absent">2</span>
+                                <span class="exec-tag red" id="att-kpi-absent-pct">13% Off-Duty</span>
+                            </div>
+                            <div class="exec-kpi-bottom">
+                                <span>Approved leave or unexcused</span>
+                                <span class="bold-red">Requires Relief</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Fast Visual Attendance Distribution Bar (Image 3 Analytics Style) -->
+                    <div class="analytics-chart-card">
+                        <div class="chart-card-header">
+                            <div class="chart-header-left">
+                                <div class="chart-header-icon drivers-icon">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/></svg>
+                                </div>
+                                <div>
+                                    <h3>Attendance Status Distribution</h3>
+                                    <p class="chart-header-sub">Proportional breakdown across active shift records</p>
+                                </div>
+                            </div>
+                            <span class="chart-badge badge-green" id="att-chart-summary-badge">87% Attendance Rate</span>
+                        </div>
+                        <div class="analytics-chart-body" style="padding: 12px 18px;">
+                            <div class="stacked-bar-wrap">
+                                <div class="stacked-bar-track" id="att-stacked-track">
+                                    <div class="stacked-bar-segment" id="att-seg-present" style="width: 67%; background: #16a34a;" title="Present"></div>
+                                    <div class="stacked-bar-segment" id="att-seg-late" style="width: 20%; background: #f59e0b;" title="Late"></div>
+                                    <div class="stacked-bar-segment" id="att-seg-leave" style="width: 7%; background: #0284c7;" title="On Leave"></div>
+                                    <div class="stacked-bar-segment" id="att-seg-absent" style="width: 6%; background: #ef4444;" title="Absent"></div>
+                                </div>
+                                <div class="stacked-bar-legend">
+                                    <span class="legend-chip"><span class="legend-dot" style="background:#16a34a;"></span>Present: <strong id="att-leg-present">10</strong></span>
+                                    <span class="legend-chip"><span class="legend-dot" style="background:#f59e0b;"></span>Late: <strong id="att-leg-late">3</strong></span>
+                                    <span class="legend-chip"><span class="legend-dot" style="background:#0284c7;"></span>On Leave: <strong id="att-leg-leave">1</strong></span>
+                                    <span class="legend-chip"><span class="legend-dot" style="background:#ef4444;"></span>Absent: <strong id="att-leg-absent">1</strong></span>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -160,7 +260,7 @@
                             </p>
                         </div>
                         <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                            <button type="button" class="btn btn-secondary" onclick="quickSelfCheckInOut()" style="width: auto;" id="btn-quick-checkin">
+                            <button type="button" class="btn btn-secondary" onclick="quickSelfCheckInOut()" style="width: auto;">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 4px;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
                                 Quick Check-In / Out
                             </button>
@@ -768,6 +868,56 @@
                     return timeB.localeCompare(timeA);
                 });
             }
+
+            // 5.5 UPDATE KPI CARDS & DISTRIBUTION BAR
+            const activeSource = allRecords.filter(r => !Boolean(r.is_archived || r.archived_at));
+            const totalCnt = activeSource.length || 1;
+            const presentCnt = activeSource.filter(r => (r.status || '').toLowerCase() === 'present').length;
+            const lateCnt = activeSource.filter(r => (r.status || '').toLowerCase() === 'late').length;
+            const leaveCnt = activeSource.filter(r => (r.status || '').toLowerCase() === 'on_leave').length;
+            const absentCnt = activeSource.filter(r => (r.status || '').toLowerCase() === 'absent').length;
+            const offCnt = leaveCnt + absentCnt;
+
+            const pPct = Math.round((presentCnt / totalCnt) * 100);
+            const lPct = Math.round((lateCnt / totalCnt) * 100);
+            const lvPct = Math.round((leaveCnt / totalCnt) * 100);
+            const aPct = Math.max(0, 100 - pPct - lPct - lvPct);
+            const attRate = Math.round(((presentCnt + lateCnt) / totalCnt) * 100);
+
+            const elTotal = document.getElementById('att-kpi-total');
+            if (elTotal) elTotal.textContent = activeSource.length;
+            const elPres = document.getElementById('att-kpi-present');
+            if (elPres) elPres.textContent = presentCnt;
+            const elPresPct = document.getElementById('att-kpi-present-pct');
+            if (elPresPct) elPresPct.textContent = `${pPct}% On-Time`;
+            const elLate = document.getElementById('att-kpi-late');
+            if (elLate) elLate.textContent = lateCnt;
+            const elLatePct = document.getElementById('att-kpi-late-pct');
+            if (elLatePct) elLatePct.textContent = `${lPct}% Tardy`;
+            const elAbs = document.getElementById('att-kpi-absent');
+            if (elAbs) elAbs.textContent = offCnt;
+            const elAbsPct = document.getElementById('att-kpi-absent-pct');
+            if (elAbsPct) elAbsPct.textContent = `${lvPct + aPct}% Off-Duty`;
+            const elBadge = document.getElementById('att-chart-summary-badge');
+            if (elBadge) elBadge.textContent = `${attRate}% Attendance Rate`;
+
+            const segP = document.getElementById('att-seg-present');
+            if (segP) segP.style.width = `${pPct}%`;
+            const segL = document.getElementById('att-seg-late');
+            if (segL) segL.style.width = `${lPct}%`;
+            const segLv = document.getElementById('att-seg-leave');
+            if (segLv) segLv.style.width = `${lvPct}%`;
+            const segA = document.getElementById('att-seg-absent');
+            if (segA) segA.style.width = `${aPct}%`;
+
+            const legP = document.getElementById('att-leg-present');
+            if (legP) legP.textContent = presentCnt;
+            const legL = document.getElementById('att-leg-late');
+            if (legL) legL.textContent = lateCnt;
+            const legLv = document.getElementById('att-leg-leave');
+            if (legLv) legLv.textContent = leaveCnt;
+            const legA = document.getElementById('att-leg-absent');
+            if (legA) legA.textContent = absentCnt;
 
             // 6. PAGINATE
             const totalItems = filtered.length;

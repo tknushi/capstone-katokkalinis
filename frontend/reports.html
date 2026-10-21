@@ -29,13 +29,12 @@
             <section class="content">
                 <div class="exec-command-center">
 
-                    <!-- Top Executive Header Banner with Cross-Connect Buttons -->
+                    <!-- Top Executive Header Banner (Image 3 Template) -->
                     <div class="exec-header-banner">
                         <div class="exec-header-left">
                             <div class="exec-shield-icon">
                                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                                    <path d="m9 12 2 2 4-4"/>
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
                                 </svg>
                             </div>
                             <div class="exec-header-title-wrap">
@@ -48,72 +47,106 @@
                         </div>
 
                         <div class="exec-header-right">
-                            <a href="analytics.html" class="exec-btn-brief" title="Return to Executive Analytics">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-                                Executive Analytics
-                            </a>
-                            <a href="barangay-overview.html" class="exec-btn-brief" title="Open Barangay Operations">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
-                                Barangay Command
-                            </a>
-                            <a href="clenro-reports.html" class="exec-btn-cross-connect" title="Open CLENRO Decision Support Analytics">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                                Historical DSS Analytics &rarr;
-                            </a>
+                            <button type="button" class="exec-btn-brief" onclick="loadData()">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
+                                Refresh Reports
+                            </button>
                         </div>
                     </div>
 
-                    <!-- Executive KPI Cards -->
+                    <!-- 4 Executive KPI Cards (Image 3 Template) -->
                     <div class="exec-stats-grid">
                         <div class="exec-kpi-card">
                             <div class="exec-kpi-top">
-                                <span class="exec-kpi-label">Reports This Month</span>
-                                <div class="exec-kpi-icon-wrap exec-kpi-icon-blue">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                                <span class="exec-kpi-label">REPORTS THIS MONTH</span>
+                                <div class="exec-icon-circle blue">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
                                 </div>
                             </div>
-                            <div class="exec-kpi-value-row">
-                                <span class="exec-kpi-num" id="stat-total">...</span>
+                            <div class="exec-kpi-mid">
+                                <span class="exec-kpi-val" id="stat-total">...</span>
+                                <span class="exec-tag blue">Logged</span>
                             </div>
-                            <p class="exec-kpi-subtext">Total verified incidents filed</p>
+                            <div class="exec-kpi-bottom">
+                                <span>Total verified incidents filed</span>
+                                <span class="bold-blue">Active Feed</span>
+                            </div>
                         </div>
                         <div class="exec-kpi-card">
                             <div class="exec-kpi-top">
-                                <span class="exec-kpi-label">Pending Review</span>
-                                <div class="exec-kpi-icon-wrap exec-kpi-icon-amber">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                                <span class="exec-kpi-label danger">PENDING REVIEW</span>
+                                <div class="exec-icon-circle amber">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
                                 </div>
                             </div>
-                            <div class="exec-kpi-value-row">
-                                <span class="exec-kpi-num" id="stat-pending" style="color:#d97706;">...</span>
-                                <span class="exec-kpi-trend negative">&#9888; Action Req</span>
+                            <div class="exec-kpi-mid">
+                                <span class="exec-kpi-val danger" id="stat-pending">...</span>
+                                <span class="exec-tag red">&#9888; Action Req</span>
                             </div>
-                            <p class="exec-kpi-subtext">Awaiting administrative clearance</p>
+                            <div class="exec-kpi-bottom">
+                                <span>Awaiting dispatch clearance</span>
+                                <span class="bold-red">Priority</span>
+                            </div>
                         </div>
                         <div class="exec-kpi-card">
                             <div class="exec-kpi-top">
-                                <span class="exec-kpi-label">Completed &amp; Cleared</span>
-                                <div class="exec-kpi-icon-wrap exec-kpi-icon-green">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                <span class="exec-kpi-label">COMPLETED &amp; CLEARED</span>
+                                <div class="exec-icon-circle green">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="20 6 9 17 4 12"></polyline></svg>
                                 </div>
                             </div>
-                            <div class="exec-kpi-value-row">
-                                <span class="exec-kpi-num" id="stat-completed" style="color:#16a34a;">...</span>
-                                <span class="exec-kpi-trend positive">&#10003; Cleared</span>
+                            <div class="exec-kpi-mid">
+                                <span class="exec-kpi-val" id="stat-completed">...</span>
+                                <span class="exec-tag green">&#10003; Cleared</span>
                             </div>
-                            <p class="exec-kpi-subtext">Resolved within SLA timeline</p>
+                            <div class="exec-kpi-bottom">
+                                <span>Resolved within SLA timeline</span>
+                                <span class="bold-green">Verified</span>
+                            </div>
                         </div>
                         <div class="exec-kpi-card">
                             <div class="exec-kpi-top">
-                                <span class="exec-kpi-label">Avg Response Time</span>
-                                <div class="exec-kpi-icon-wrap exec-kpi-icon-purple">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                                <span class="exec-kpi-label">AVG RESPONSE TIME</span>
+                                <div class="exec-icon-circle purple">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
                                 </div>
                             </div>
-                            <div class="exec-kpi-value-row">
-                                <span class="exec-kpi-num" id="stat-response">...</span>
+                            <div class="exec-kpi-mid">
+                                <span class="exec-kpi-val" id="stat-response">...</span>
+                                <span class="exec-tag subtle">SLA Metric</span>
                             </div>
-                            <p class="exec-kpi-subtext">Average incident clearance time</p>
+                            <div class="exec-kpi-bottom">
+                                <span>Average incident clearance time</span>
+                                <span class="bold-dark">Tracked</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Fast Visual Report Resolution Bar (Image 3 Analytics Style) -->
+                    <div class="analytics-chart-card">
+                        <div class="chart-card-header">
+                            <div class="chart-header-left">
+                                <div class="chart-header-icon reports-icon">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                                </div>
+                                <div>
+                                    <h3>Incident Resolution Breakdown</h3>
+                                    <p class="chart-header-sub">Live ratio of resolved vs pending citizen waste reports</p>
+                                </div>
+                            </div>
+                            <span class="chart-badge badge-blue" id="rep-resolution-badge">Resolution Rate</span>
+                        </div>
+                        <div class="analytics-chart-body" style="padding: 12px 18px;">
+                            <div class="stacked-bar-wrap">
+                                <div class="stacked-bar-track">
+                                    <div class="stacked-bar-segment" id="rep-seg-resolved" style="width: 60%; background: #16a34a;" title="Resolved"></div>
+                                    <div class="stacked-bar-segment" id="rep-seg-pending" style="width: 40%; background: #f59e0b;" title="Pending / Reviewed"></div>
+                                </div>
+                                <div class="stacked-bar-legend">
+                                    <span class="legend-chip"><span class="legend-dot" style="background:#16a34a;"></span>Resolved: <strong id="rep-leg-resolved">0</strong></span>
+                                    <span class="legend-chip"><span class="legend-dot" style="background:#f59e0b;"></span>Pending / Reviewed: <strong id="rep-leg-pending">0</strong></span>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -194,6 +227,20 @@
                 document.getElementById('stat-pending').textContent = pending;
                 document.getElementById('stat-completed').textContent = completed;
                 document.getElementById('stat-response').textContent = avgResponse;
+
+                const tot = data.length || 1;
+                const resPct = Math.round((completed / tot) * 100);
+                const penPct = Math.max(0, 100 - resPct);
+                const segRes = document.getElementById('rep-seg-resolved');
+                if (segRes) segRes.style.width = `${resPct}%`;
+                const segPen = document.getElementById('rep-seg-pending');
+                if (segPen) segPen.style.width = `${penPct}%`;
+                const legRes = document.getElementById('rep-leg-resolved');
+                if (legRes) legRes.textContent = completed;
+                const legPen = document.getElementById('rep-leg-pending');
+                if (legPen) legPen.textContent = pending;
+                const repBadge = document.getElementById('rep-resolution-badge');
+                if (repBadge) repBadge.textContent = `${resPct}% Resolved`;
 
                 if (data.length === 0) {
                     container.innerHTML = '<p class="empty-state">No reports found.</p>';

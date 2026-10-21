@@ -516,13 +516,12 @@
             <section class="content" style="padding: 14px 24px;">
                 <div class="exec-command-center">
 
-                    <!-- Top Executive Header Banner with Cross-Connect to Dashboard Analytics -->
+                    <!-- Top Executive Header Banner (Barangay Admin) -->
                     <div class="exec-header-banner">
                         <div class="exec-header-left">
                             <div class="exec-shield-icon">
                                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                                    <path d="m9 12 2 2 4-4"/>
+                                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
                                 </svg>
                             </div>
                             <div class="exec-header-title-wrap">
@@ -535,72 +534,120 @@
                         </div>
 
                         <div class="exec-header-right">
-                            <a href="analytics.html" class="exec-btn-cross-connect" title="Cross-Connect: Switch to CLENRO Executive Command Center">
-                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                    <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
-                                </svg>
-                                CLENRO Executive Analytics &rarr;
-                            </a>
                             <button type="button" class="exec-btn-brief" onclick="triggerManualRefresh()" title="Refresh Field Telemetry">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
                                     <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
                                 </svg>
                                 Live Refresh
                             </button>
+                            <div class="exec-sa-badge" title="Barangay Administrator">BA</div>
                         </div>
                     </div>
 
-                    <!-- SECTION 1: Key Numbers at a Glance -->
-                    <div class="overview-section-header">
-                        <div class="overview-section-title">
-                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
-                                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
-                                <line x1="8" y1="21" x2="16" y2="21"></line>
-                                <line x1="12" y1="17" x2="12" y2="21"></line>
-                            </svg>
-                            Key Numbers at a Glance
+                    <!-- SECTION 1: Key Numbers at a Glance (Image 3 KPI Card Template) -->
+                    <div class="exec-kpi-grid" style="grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));">
+                        <div class="exec-kpi-card">
+                            <div class="exec-kpi-top">
+                                <span class="exec-kpi-label">TOTAL RESIDENTS</span>
+                                <div class="exec-icon-circle green">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                                </div>
+                            </div>
+                            <div class="exec-kpi-mid">
+                                <span class="exec-kpi-val" id="stat-residents">...</span>
+                                <span class="exec-tag green">Verified</span>
+                            </div>
+                            <div class="exec-kpi-bottom">
+                                <span id="stat-residents-sub">Registered mobile accounts</span>
+                                <span class="bold-green">Active</span>
+                            </div>
                         </div>
-                        <span class="overview-section-desc">Live counts from mobile accounts and field records</span>
-                    </div>
 
-                    <!-- 6 Accessible & Compact Stat Cards -->
-                    <div class="stats-grid overview-stats-grid-6">
-                        <div class="overview-stat-card">
-                            <div class="overview-stat-label">Total Residents</div>
-                            <div class="overview-stat-num" id="stat-residents">...</div>
-                        <div class="overview-stat-meta" id="stat-residents-sub">Registered mobile accounts</div>
-                    </div>
+                        <div class="exec-kpi-card">
+                            <div class="exec-kpi-top">
+                                <span class="exec-kpi-label">REGISTERED VENDORS</span>
+                                <div class="exec-icon-circle blue">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                                </div>
+                            </div>
+                            <div class="exec-kpi-mid">
+                                <span class="exec-kpi-val" id="stat-vendors">...</span>
+                                <span class="exec-tag blue">Public Markets</span>
+                            </div>
+                            <div class="exec-kpi-bottom">
+                                <span id="stat-vendors-sub">Active market stalls</span>
+                                <span class="bold-blue">Monitored</span>
+                            </div>
+                        </div>
 
-                    <div class="overview-stat-card">
-                        <div class="overview-stat-label">Registered Vendors</div>
-                        <div class="overview-stat-num" id="stat-vendors">...</div>
-                        <div class="overview-stat-meta" id="stat-vendors-sub">Active market stalls</div>
-                    </div>
+                        <div class="exec-kpi-card">
+                            <div class="exec-kpi-top">
+                                <span class="exec-kpi-label">FIELD PERSONNEL</span>
+                                <div class="exec-icon-circle purple">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/></svg>
+                                </div>
+                            </div>
+                            <div class="exec-kpi-mid">
+                                <span class="exec-kpi-val" id="stat-personnel">...</span>
+                                <span class="exec-tag purple">On Roster</span>
+                            </div>
+                            <div class="exec-kpi-bottom">
+                                <span id="stat-personnel-sub">Drivers &amp; Inspectors</span>
+                                <span class="bold-dark">Deployed</span>
+                            </div>
+                        </div>
 
-                    <div class="overview-stat-card">
-                        <div class="overview-stat-label">Field Personnel</div>
-                        <div class="overview-stat-num" id="stat-personnel">...</div>
-                        <div class="overview-stat-meta" id="stat-personnel-sub">Drivers &amp; Inspectors</div>
-                    </div>
+                        <div class="exec-kpi-card">
+                            <div class="exec-kpi-top">
+                                <span class="exec-kpi-label">WEEKLY COLLECTIONS</span>
+                                <div class="exec-icon-circle green">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><polyline points="20 6 9 17 4 12"/></svg>
+                                </div>
+                            </div>
+                            <div class="exec-kpi-mid">
+                                <span class="exec-kpi-val" id="stat-collections">...</span>
+                                <span class="exec-tag green">7-Day Window</span>
+                            </div>
+                            <div class="exec-kpi-bottom">
+                                <span id="stat-collections-sub">Completed in past 7 days</span>
+                                <span class="bold-green">On Schedule</span>
+                            </div>
+                        </div>
 
-                    <div class="overview-stat-card">
-                        <div class="overview-stat-label">Weekly Collections</div>
-                        <div class="overview-stat-num" id="stat-collections">...</div>
-                        <div class="overview-stat-meta" id="stat-collections-sub">Completed in past 7 days</div>
-                    </div>
+                        <div class="exec-kpi-card">
+                            <div class="exec-kpi-top">
+                                <span class="exec-kpi-label">AVG. COLLECTION TIME</span>
+                                <div class="exec-icon-circle amber">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                                </div>
+                            </div>
+                            <div class="exec-kpi-mid">
+                                <span class="exec-kpi-val" id="stat-avg-time">...</span>
+                                <span class="exec-tag subtle">Route SLA</span>
+                            </div>
+                            <div class="exec-kpi-bottom">
+                                <span id="stat-avg-time-sub">Average route duration</span>
+                                <span class="bold-dark">Optimal</span>
+                            </div>
+                        </div>
 
-                    <div class="overview-stat-card">
-                        <div class="overview-stat-label">Avg. Collection Time</div>
-                        <div class="overview-stat-num" id="stat-avg-time">...</div>
-                        <div class="overview-stat-meta" id="stat-avg-time-sub">Average route duration</div>
+                        <div class="exec-kpi-card">
+                            <div class="exec-kpi-top">
+                                <span class="exec-kpi-label danger">PENDING REPORTS</span>
+                                <div class="exec-icon-circle red">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                                </div>
+                            </div>
+                            <div class="exec-kpi-mid">
+                                <span class="exec-kpi-val danger" id="stat-pending-reports">...</span>
+                                <span class="exec-tag red">Action Needed</span>
+                            </div>
+                            <div class="exec-kpi-bottom">
+                                <span id="stat-pending-reports-sub">Awaiting admin review</span>
+                                <span class="bold-red">Review Queue</span>
+                            </div>
+                        </div>
                     </div>
-
-                    <div class="overview-stat-card">
-                        <div class="overview-stat-label">Pending Reports</div>
-                        <div class="overview-stat-num" id="stat-pending-reports" style="color: #d97706;">...</div>
-                        <div class="overview-stat-meta" id="stat-pending-reports-sub">Awaiting admin review</div>
-                    </div>
-                </div>
 
                 <!-- SECTION 2: Operations & Activity (Unified Single Header) -->
                 <div class="overview-section-header">

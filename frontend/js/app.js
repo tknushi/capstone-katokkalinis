@@ -148,41 +148,9 @@ function getRoleDisplayName(role) {
     return role || 'User';
 }
 
-function getActivePerspective() {
-    const stored = localStorage.getItem('active_perspective');
-    if (stored === 'super_admin' || stored === 'admin') return stored;
-    const actualRole = getUserRole() || 'super_admin';
-    return actualRole === 'admin' ? 'admin' : 'super_admin';
-}
-
-function setActivePerspective(perspective) {
-    localStorage.setItem('active_perspective', perspective);
-    loadSidebar();
-}
-
-function toggleActivePerspective() {
-    const current = getActivePerspective();
-    const next = current === 'super_admin' ? 'admin' : 'super_admin';
-    setActivePerspective(next);
-    
-    // Cross-connect navigation when toggling on primary hub pages
-    const currentPage = (window.location.pathname.split('/').pop() || '').toLowerCase();
-    if ((currentPage === 'analytics.html' || currentPage === 'analytics') && next === 'admin') {
-        window.location.href = 'barangay-overview.html';
-    } else if ((currentPage === 'barangay-overview.html' || currentPage === 'barangay-overview') && next === 'super_admin') {
-        window.location.href = 'analytics.html';
-    }
-}
-window.getActivePerspective = getActivePerspective;
-window.setActivePerspective = setActivePerspective;
-window.toggleActivePerspective = toggleActivePerspective;
-
 // Where each role should land after logging in / when visiting "home".
 function getHomePage(role) {
-    const activePerspective = getActivePerspective();
-    if (activePerspective === 'admin') return 'barangay-overview.html';
-    if (activePerspective === 'super_admin') return 'analytics.html';
-    return role === 'admin' ? 'barangay-overview.html' : 'analytics.html';
+    return role === 'super_admin' ? 'analytics.html' : 'barangay-overview.html';
 }
 
 function loadSidebar() {
@@ -194,48 +162,46 @@ function loadSidebar() {
     if (!user) {
         user = { name: 'CLENRO Official', role: 'super_admin' };
     }
-    const baseRole = getUserRole() || user.role || 'super_admin';
-    const activePerspective = getActivePerspective();
-    const isSuperAdminMode = activePerspective === 'super_admin';
-    const perspectiveLabel = isSuperAdminMode ? 'Super Admin' : 'Barangay Admin';
+    const role = getUserRole() || user.role || 'super_admin';
+    const isSuperAdmin = role === 'super_admin';
+    const roleLabel = getRoleDisplayName(role);
 
     // SVG icon helper
     const icon = (path, extra = '') => `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;" ${extra}>${path}</svg>`;
 
-    // Unified Cross-Connected Navigation Structure
+    // Role-Separated Navigation Structure (Super Admin vs Barangay Admin)
     let links = '';
 
-    // ── SECTION 1: EXECUTIVE COMMAND & ANALYTICS ──
-    links += `<div class="sidebar-nav-section-title"><span>Executive Command &amp; Analytics</span></div>`;
-    links += `<a href="analytics.html" class="nav-link" id="nav-analytics">${icon('<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>')}Dashboard Analytics <span class="nav-tag tag-super">Super Admin</span></a>`;
-    links += `<a href="barangay-overview.html" class="nav-link" id="nav-overview">${icon('<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>')}Barangay Overview <span class="nav-tag tag-admin">Barangay Admin</span></a>`;
-    links += `<a href="clenro-reports.html" class="nav-link" id="nav-clenro">${icon('<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>')}CLENRO Historical Data <span class="nav-tag tag-shared">DSS</span></a>`;
-
-    // ── SECTION 2: FIELD OPERATIONS & FLEET ──
-    links += `<div class="sidebar-nav-section-title"><span>Operations &amp; Fleet</span></div>`;
-    links += `<a href="trucks.html" class="nav-link" id="nav-trucks">${icon('<rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>')}Monitor Truck</a>`;
-    links += `<a href="schedule.html" class="nav-link" id="nav-schedule">${icon('<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>')}Collection Schedule</a>`;
-    links += `<a href="reports.html" class="nav-link" id="nav-reports">${icon('<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>')}Reports &amp; Issues</a>`;
-
-    // ── SECTION 3: COMMUNITY & STAKEHOLDERS ──
-    links += `<div class="sidebar-nav-section-title"><span>Community &amp; Stakeholders</span></div>`;
-    links += `<a href="residents.html" class="nav-link" id="nav-residents">${icon('<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>')}Resident Accounts <span class="nav-tag tag-admin">Barangay</span></a>`;
-    links += `<a href="vendors.html" class="nav-link" id="nav-vendors">${icon('<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>')}Market Vendors <span class="nav-tag tag-super">CLENRO</span></a>`;
-    links += `<a href="contractors.html" class="nav-link" id="nav-contractors">${icon('<path d="M20 7H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/><path d="M16 3H8a2 2 0 0 0-2 2v2h12V5a2 2 0 0 0-2-2z"/>')}Contractor Fleets <span class="nav-tag tag-super">CLENRO</span></a>`;
-
-    // ── SECTION 4: PERSONNEL & GOVERNANCE ──
-    links += `<div class="sidebar-nav-section-title"><span>Personnel &amp; Governance</span></div>`;
-    links += `<a href="employees.html" class="nav-link" id="nav-employees">${icon('<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>')}Field Employees</a>`;
-    links += `<a href="attendance.html" class="nav-link" id="nav-attendance">${icon('<polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>')}Attendance Roster</a>`;
-    links += `<a href="users.html" class="nav-link" id="nav-users">${icon('<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>')}User Management</a>`;
-    links += `<a href="archives.html" class="nav-link" id="nav-archives">${icon('<path d="M21 8v13H3V8"/><path d="M1 3h22v5H1z"/><path d="M10 12h4"/>')}Records &amp; Archives</a>`;
-    links += `<a href="activity-logs.html" class="nav-link" id="nav-activity-logs">${icon('<path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>')}Activity Logs</a>`;
+    if (isSuperAdmin) {
+        links += `<a href="analytics.html" class="nav-link" id="nav-analytics">${icon('<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>')}Dashboard Analytics</a>`;
+        links += `<a href="trucks.html" class="nav-link" id="nav-trucks">${icon('<rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>')}Monitor Truck</a>`;
+        links += `<a href="employees.html" class="nav-link" id="nav-employees">${icon('<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>')}Field Employees</a>`;
+        links += `<a href="contractors.html" class="nav-link" id="nav-contractors">${icon('<path d="M20 7H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/><path d="M16 3H8a2 2 0 0 0-2 2v2h12V5a2 2 0 0 0-2-2z"/>')}Contractor Fleets</a>`;
+        links += `<a href="reports.html" class="nav-link" id="nav-reports">${icon('<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>')}Reports &amp; Issues</a>`;
+        links += `<a href="clenro-reports.html" class="nav-link" id="nav-clenro">${icon('<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>')}CLENRO Historical Data</a>`;
+        links += `<a href="schedule.html" class="nav-link" id="nav-schedule">${icon('<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>')}Collection Schedule</a>`;
+        links += `<a href="vendors.html" class="nav-link" id="nav-vendors">${icon('<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>')}Market Vendors</a>`;
+        links += `<a href="attendance.html" class="nav-link" id="nav-attendance">${icon('<polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>')}Attendance Roster</a>`;
+        links += `<a href="users.html" class="nav-link" id="nav-users">${icon('<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>')}User Management</a>`;
+        links += `<a href="activity-logs.html" class="nav-link" id="nav-activity-logs">${icon('<path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>')}Activity Logs</a>`;
+    } else {
+        links += `<a href="barangay-overview.html" class="nav-link" id="nav-overview">${icon('<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>')}Barangay Overview</a>`;
+        links += `<a href="trucks.html" class="nav-link" id="nav-trucks">${icon('<rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>')}Monitor Truck</a>`;
+        links += `<a href="residents.html" class="nav-link" id="nav-residents">${icon('<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>')}Resident Accounts</a>`;
+        links += `<a href="schedule.html" class="nav-link" id="nav-schedule">${icon('<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>')}Collection Schedule</a>`;
+        links += `<a href="reports.html" class="nav-link" id="nav-reports">${icon('<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>')}Reports &amp; Issues</a>`;
+        links += `<a href="clenro-reports.html" class="nav-link" id="nav-clenro">${icon('<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>')}CLENRO Historical Data</a>`;
+        links += `<a href="attendance.html" class="nav-link" id="nav-attendance">${icon('<polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>')}Attendance Roster</a>`;
+        links += `<a href="users.html" class="nav-link" id="nav-users">${icon('<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>')}User Management</a>`;
+        links += `<a href="archives.html" class="nav-link" id="nav-archives">${icon('<path d="M21 8v13H3V8"/><path d="M1 3h22v5H1z"/><path d="M10 12h4"/>')}Records &amp; Archives</a>`;
+        links += `<a href="activity-logs.html" class="nav-link" id="nav-activity-logs">${icon('<path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>')}Activity Logs</a>`;
+    }
 
     // Append evergreen pine tree motif accent before footer
     links += `
         <div class="sidebar-tree-motif" aria-hidden="true">
             <svg viewBox="0 0 240 28" fill="currentColor" width="100%" height="24" opacity="0.35">
-                <path d="M12 28L18 16H15L20 8H17L22 0L27 8H24L29 16H26L32 28H12ZM42 28L47 18H44L49 10H46L51 2L56 10H53L58 18H55L60 28H42ZM75 28L80 17H77L82 9H79L84 1L89 9H86L91 17H88L93 28H75ZM110 28L115 19H112L117 11H114L119 3L124 11H121L126 19H123L128 28H110ZM145 28L151 16H148L153 8H150L155 0L160 8H157L162 16H159L165 28H145ZM180 28L185 18H182L187 10H184L189 2L194 10H191L196 18H193L198 28H180ZM212 28L217 17H214L219 9H216L221 1L226 9H223L228 17H225L230 28H212Z"/>
+                <path d="M12 28L18 16H15L20 8H17L22 0L27 8H24L29 16H26L32 28H12ZM42 28L47 18H44L49 10H46L51 2L56 10H53L58 18H55L60 28H42ZM75 28L80 17H77L82 9H79L84 1L89 9H86L91 17H88L93 28H75ZM110 28L115 19H112L117 11H114L119 3L124 11H121L126 19H123L128 28H110ZM145 28L151 16H148L153 8H150L155 0L160 8H157L162 16H159L165 28H145ZM180 28L185 18H182L187 10H184L189 2L194 10H191L196 18H193L198 28H180ZM212 28L217 17H214L219 9H216L221 1L226 9H223L228 17H225L230 28H12Z"/>
             </svg>
         </div>
     `;
@@ -274,36 +240,24 @@ function loadSidebar() {
         `;
     }
 
-    // Cross-Connected Role & Perspective Switcher in Sidebar Header
+    // Role Badge in Sidebar Header (Separated Super Admin vs Barangay Admin)
     const roleContainer = document.getElementById('sidebar-role');
     if (roleContainer) {
         roleContainer.innerHTML = `
             <div class="sidebar-role-badge-row">
-                <span class="sidebar-role-badge ${isSuperAdminMode ? 'role-super' : 'role-admin'}">
+                <span style="font-size:12px;font-weight:700;color:rgba(255,255,255,0.92);">${isSuperAdmin ? 'CLENRO Department' : 'Barangay Command'}</span>
+                <span class="sidebar-role-badge ${isSuperAdmin ? 'role-super' : 'role-admin'}">
                     <span class="role-dot"></span>
-                    ${perspectiveLabel}
+                    ${isSuperAdmin ? 'SUPER ADMIN' : 'BARANGAY ADMIN'}
                 </span>
-                <button type="button" class="sidebar-switch-view-btn" onclick="toggleActivePerspective()" title="Cross-Connect: Switch between Super Admin and Barangay Admin View">
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>
-                    Switch
-                </button>
             </div>
         `;
     }
 
-    // Topbar Cross-Connected Greeting & Perspective Control
+    // Topbar Greeting
     const userNameEl = document.getElementById('topbar-user');
     if (userNameEl) {
-        userNameEl.innerHTML = `
-            <div class="topbar-perspective-wrap">
-                <span class="topbar-role-pill ${isSuperAdminMode ? 'pill-super' : 'pill-admin'}">
-                    ${isSuperAdminMode ? 'Super Admin Mode' : 'Barangay Admin Mode'}
-                </span>
-                <button type="button" class="topbar-switch-perspective-btn" onclick="toggleActivePerspective()" title="Click to toggle perspective">
-                    Switch to ${isSuperAdminMode ? 'Barangay View' : 'Super Admin View'}
-                </button>
-            </div>
-        `;
+        userNameEl.innerText = `Welcome, ${user.name || 'CLENRO Officer'} (${roleLabel})`;
     }
 
     // Render Integrated Profile Component in Sidebar Footer

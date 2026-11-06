@@ -1891,6 +1891,85 @@
                         </div>
                     </div>
 
+                    <!-- 4 Executive KPI Cards (Image 3 Template) -->
+                    <div class="exec-stats-grid">
+                        <div class="exec-kpi-card">
+                            <div class="exec-kpi-top">
+                                <span class="exec-kpi-label">TOTAL CITYWIDE HAULED</span>
+                                <div class="exec-icon-circle green">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                        <rect x="1" y="3" width="15" height="13" rx="2"/><polygon points="16 8 20 8 23 11 23 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="exec-kpi-mid">
+                                <span class="exec-kpi-val" id="stat-dss-total-hauled">38,420 Tons</span>
+                                <span class="exec-tag green">Solid Waste Tonnage</span>
+                            </div>
+                            <div class="exec-kpi-bottom">
+                                <span>Annual Haul Volume:</span>
+                                <span class="bold-dark">Disposal Sites Synced</span>
+                            </div>
+                        </div>
+
+                        <div class="exec-kpi-card">
+                            <div class="exec-kpi-top">
+                                <span class="exec-kpi-label">AVG. DAILY GENERATION</span>
+                                <div class="exec-icon-circle blue">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                        <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="exec-kpi-mid">
+                                <span class="exec-kpi-val">105.2 Tons/day</span>
+                                <span class="exec-tag blue">Fleet Capacity</span>
+                            </div>
+                            <div class="exec-kpi-bottom">
+                                <span>Citywide Dispatch Benchmark:</span>
+                                <span class="bold-green">Within Operational Limits</span>
+                            </div>
+                        </div>
+
+                        <div class="exec-kpi-card">
+                            <div class="exec-kpi-top">
+                                <span class="exec-kpi-label">BARANGAY DIVERSION RATE</span>
+                                <div class="exec-icon-circle purple">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                        <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="exec-kpi-mid">
+                                <span class="exec-kpi-val">32.4% Diverted</span>
+                                <span class="exec-tag purple">Exceeds RA 9003</span>
+                            </div>
+                            <div class="exec-kpi-bottom">
+                                <span>Material Recovery (MRF):</span>
+                                <span class="bold-dark">Target &gt; 25% Satisfied</span>
+                            </div>
+                        </div>
+
+                        <div class="exec-kpi-card">
+                            <div class="exec-kpi-top">
+                                <span class="exec-kpi-label">FORECAST ACCURACY (OLS)</span>
+                                <div class="exec-icon-circle amber">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="exec-kpi-mid">
+                                <span class="exec-kpi-val">98.6% R&sup2; Fit</span>
+                                <span class="exec-tag amber">Decision Support</span>
+                            </div>
+                            <div class="exec-kpi-bottom">
+                                <span>Statistical Regression:</span>
+                                <span class="bold-green">High Confidence Model</span>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Simplified & Decision-Oriented Filters -->
                     <div class="filter-panel">
                     <div class="filter-row">
@@ -3142,6 +3221,11 @@
             const totalTons = filtered.reduce((s, i) => s + Number(i.estimated_tonnage), 0);
             const avgWt = filtered.length ? (totalTons / filtered.length) : 0;
             const locs = summaryData.length;
+
+            const statTotalTons = document.getElementById('stat-dss-total-hauled');
+            if (statTotalTons && totalTons > 0) {
+                statTotalTons.textContent = `${Math.round(totalTons).toLocaleString()} Tons`;
+            }
 
             // Screen KPI cards
             const locsEl = document.getElementById('kpi-locations');

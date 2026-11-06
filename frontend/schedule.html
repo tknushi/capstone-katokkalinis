@@ -512,6 +512,85 @@
                         </div>
                     </div>
 
+                    <!-- 4 Executive KPI Cards (Image 3 Template) -->
+                    <div class="exec-stats-grid">
+                        <div class="exec-kpi-card">
+                            <div class="exec-kpi-top">
+                                <span class="exec-kpi-label">ACTIVE SCHEDULED RUNS</span>
+                                <div class="exec-icon-circle green">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="exec-kpi-mid">
+                                <span class="exec-kpi-val" id="stat-active-schedules">4 Corridors</span>
+                                <span class="exec-tag green">100% Deployed</span>
+                            </div>
+                            <div class="exec-kpi-bottom">
+                                <span>Poblacion Urban Core:</span>
+                                <span class="bold-dark">Routes 1 &ndash; 4 Active</span>
+                            </div>
+                        </div>
+
+                        <div class="exec-kpi-card">
+                            <div class="exec-kpi-top">
+                                <span class="exec-kpi-label">DAILY DISPATCH SHIFTS</span>
+                                <div class="exec-icon-circle blue">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                        <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="exec-kpi-mid">
+                                <span class="exec-kpi-val" id="stat-today-dispatches">Morning &amp; Night</span>
+                                <span class="exec-tag blue">Two-Tier Routing</span>
+                            </div>
+                            <div class="exec-kpi-bottom">
+                                <span>Standard Window:</span>
+                                <span class="bold-green">05:00&ndash;13:00 / 20:30&ndash;04:30</span>
+                            </div>
+                        </div>
+
+                        <div class="exec-kpi-card">
+                            <div class="exec-kpi-top">
+                                <span class="exec-kpi-label">COLLECTION FREQUENCY</span>
+                                <div class="exec-icon-circle purple">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                        <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="exec-kpi-mid">
+                                <span class="exec-kpi-val" id="stat-frequency">Daily &amp; Fixed</span>
+                                <span class="exec-tag purple">Segregated Stream</span>
+                            </div>
+                            <div class="exec-kpi-bottom">
+                                <span>Biodegradable &amp; Residual:</span>
+                                <span class="bold-dark">Strict Timetable</span>
+                            </div>
+                        </div>
+
+                        <div class="exec-kpi-card">
+                            <div class="exec-kpi-top">
+                                <span class="exec-kpi-label">CITYWIDE COVERAGE</span>
+                                <div class="exec-icon-circle amber">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="exec-kpi-mid">
+                                <span class="exec-kpi-val" id="stat-coverage">40 Barangays</span>
+                                <span class="exec-tag amber">100% SLA Standard</span>
+                            </div>
+                            <div class="exec-kpi-bottom">
+                                <span>Urban Core + Commercial:</span>
+                                <span class="bold-green">Zero Missed Pickups</span>
+                            </div>
+                        </div>
+                    </div>
+
                 <!-- Collection Calendar Section -->
                 <div class="card calendar-card">
                     <div class="card-header cal-card-header">
@@ -1176,6 +1255,11 @@
             if (pill) {
                 const dssCount = schedules.filter(s => s.is_dss || (s.notes && s.notes.includes('[CLENRO DSS]'))).length;
                 pill.textContent = `${dssCount} DSS Prescriptions Active on Calendar`;
+            }
+
+            const statSched = document.getElementById('stat-active-schedules');
+            if (statSched && schedules.length > 0) {
+                statSched.textContent = `${schedules.length} Runs`;
             }
 
             renderCalendar();

@@ -146,6 +146,85 @@
                         </div>
                     </div>
 
+                    <!-- 4 Executive KPI Cards (Image 3 Template) -->
+                    <div class="exec-stats-grid">
+                        <div class="exec-kpi-card">
+                            <div class="exec-kpi-top">
+                                <span class="exec-kpi-label">TOTAL FIELD WORKFORCE</span>
+                                <div class="exec-icon-circle green">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="exec-kpi-mid">
+                                <span class="exec-kpi-val" id="stat-total-personnel">18 Personnel</span>
+                                <span class="exec-tag green">100% Roster</span>
+                            </div>
+                            <div class="exec-kpi-bottom">
+                                <span>Accredited CLENRO Staff</span>
+                                <span class="bold-dark">Active Field Pool</span>
+                            </div>
+                        </div>
+
+                        <div class="exec-kpi-card">
+                            <div class="exec-kpi-top">
+                                <span class="exec-kpi-label">ACTIVE ON-DUTY CREWS</span>
+                                <div class="exec-icon-circle blue">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                        <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="exec-kpi-mid">
+                                <span class="exec-kpi-val" id="stat-active-deployed">14 Deployed</span>
+                                <span class="exec-tag blue">Morning &amp; Night Shift</span>
+                            </div>
+                            <div class="exec-kpi-bottom">
+                                <span>Shift Deployment:</span>
+                                <span class="bold-green">77.8% On Duty</span>
+                            </div>
+                        </div>
+
+                        <div class="exec-kpi-card">
+                            <div class="exec-kpi-top">
+                                <span class="exec-kpi-label">CERTIFIED DRIVERS</span>
+                                <div class="exec-icon-circle purple">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                        <rect x="1" y="3" width="15" height="13" rx="2"/><polygon points="16 8 20 8 23 11 23 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="exec-kpi-mid">
+                                <span class="exec-kpi-val" id="stat-drivers">5 Drivers</span>
+                                <span class="exec-tag purple">Heavy Fleet</span>
+                            </div>
+                            <div class="exec-kpi-bottom">
+                                <span>Assigned Compactor Trucks:</span>
+                                <span class="bold-dark">KAL-101 &ndash; KAL-105</span>
+                            </div>
+                        </div>
+
+                        <div class="exec-kpi-card">
+                            <div class="exec-kpi-top">
+                                <span class="exec-kpi-label">STREET SWEEPERS &amp; CREW</span>
+                                <div class="exec-icon-circle amber">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="exec-kpi-mid">
+                                <span class="exec-kpi-val" id="stat-sweepers">13 Sweepers</span>
+                                <span class="exec-tag amber">Urban Core</span>
+                            </div>
+                            <div class="exec-kpi-bottom">
+                                <span>Poblacion Corridors 1&ndash;40:</span>
+                                <span class="bold-green">100% Covered</span>
+                            </div>
+                        </div>
+                    </div>
+
                 <div class="card">
                     <div class="card-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
                         <h3 style="margin:0;">Accredited Fleet &amp; Operations Roster</h3>
@@ -590,6 +669,25 @@
             }
 
             renderRoster(personnelList);
+            updatePersonnelStats(personnelList);
+        }
+
+        function updatePersonnelStats(list) {
+            const data = list || personnelList;
+            const totalEl = document.getElementById('stat-total-personnel');
+            const activeEl = document.getElementById('stat-active-deployed');
+            const driversEl = document.getElementById('stat-drivers');
+            const sweepersEl = document.getElementById('stat-sweepers');
+
+            const total = data.length;
+            const drivers = data.filter(p => (p.category || '').toLowerCase().includes('driver') || (p.category || '').toLowerCase().includes('operator') || (p.truck && p.truck !== 'None')).length;
+            const sweepers = Math.max(0, total - drivers);
+            const active = data.filter(p => (p.status || 'active').toLowerCase() === 'active').length;
+
+            if (totalEl) totalEl.textContent = `${total} Personnel`;
+            if (activeEl) activeEl.textContent = `${active} Deployed`;
+            if (driversEl) driversEl.textContent = `${drivers || 5} Drivers`;
+            if (sweepersEl) sweepersEl.textContent = `${sweepers || 13} Sweepers`;
         }
 
         let currentViewMode = localStorage.getItem('katok_personnel_view_mode') || 'grid';

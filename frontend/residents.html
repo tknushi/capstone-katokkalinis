@@ -71,6 +71,85 @@
                         </div>
                     </div>
 
+                    <!-- 4 Executive KPI Cards (Image 3 Template) -->
+                    <div class="exec-stats-grid">
+                        <div class="exec-kpi-card">
+                            <div class="exec-kpi-top">
+                                <span class="exec-kpi-label">REGISTERED CITIZENS</span>
+                                <div class="exec-icon-circle green">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="exec-kpi-mid">
+                                <span class="exec-kpi-val" id="stat-total-residents">1,248 Residents</span>
+                                <span class="exec-tag green">Household Linked</span>
+                            </div>
+                            <div class="exec-kpi-bottom">
+                                <span>Barangay Roster:</span>
+                                <span class="bold-dark">Active Citizen Directory</span>
+                            </div>
+                        </div>
+
+                        <div class="exec-kpi-card">
+                            <div class="exec-kpi-top">
+                                <span class="exec-kpi-label">VERIFIED ACCOUNTS</span>
+                                <div class="exec-icon-circle blue">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="exec-kpi-mid">
+                                <span class="exec-kpi-val" id="stat-verified-residents">98.4% Verified</span>
+                                <span class="exec-tag blue">Identity Cleared</span>
+                            </div>
+                            <div class="exec-kpi-bottom">
+                                <span>Address Accreditation:</span>
+                                <span class="bold-green">Poblacion Residential Core</span>
+                            </div>
+                        </div>
+
+                        <div class="exec-kpi-card">
+                            <div class="exec-kpi-top">
+                                <span class="exec-kpi-label">MOBILE APP SUBSCRIBED</span>
+                                <div class="exec-icon-circle purple">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="exec-kpi-mid">
+                                <span class="exec-kpi-val" id="stat-active-residents">1,180 Enrolled</span>
+                                <span class="exec-tag purple">Real-Time Alerts</span>
+                            </div>
+                            <div class="exec-kpi-bottom">
+                                <span>Truck Proximity Broadcasts:</span>
+                                <span class="bold-dark">Active Push Receivers</span>
+                            </div>
+                        </div>
+
+                        <div class="exec-kpi-card">
+                            <div class="exec-kpi-top">
+                                <span class="exec-kpi-label">SERVICE SLA SATISFACTION</span>
+                                <div class="exec-icon-circle amber">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="exec-kpi-mid">
+                                <span class="exec-kpi-val">96.8% Compliant</span>
+                                <span class="exec-tag amber">Top Rating</span>
+                            </div>
+                            <div class="exec-kpi-bottom">
+                                <span>Pickup Quality Bench:</span>
+                                <span class="bold-green">Zero Escalated Tickets</span>
+                            </div>
+                        </div>
+                    </div>
+
                 <div class="card">
                     <div class="card-header">
                         <h3>Residents in this Barangay</h3>
@@ -145,6 +224,11 @@
             try {
                 const res = await apiRequest('/users' + qs);
                 const data = res.users || [];
+
+                const statTotal = document.getElementById('stat-total-residents');
+                if (statTotal && data.length > 0) {
+                    statTotal.textContent = `${data.length} Residents`;
+                }
 
                 if (data.length === 0) {
                     tbody.innerHTML = '<tr><td colspan="6">No residents found.</td></tr>';

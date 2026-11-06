@@ -70,6 +70,85 @@
                         </div>
                     </div>
 
+                    <!-- 4 Executive KPI Cards (Image 3 Template) -->
+                    <div class="exec-stats-grid">
+                        <div class="exec-kpi-card">
+                            <div class="exec-kpi-top">
+                                <span class="exec-kpi-label">TOTAL INSPECTIONS CONDUCTED</span>
+                                <div class="exec-icon-circle green">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                        <polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="exec-kpi-mid">
+                                <span class="exec-kpi-val" id="stat-total-inspections">148 Audits</span>
+                                <span class="exec-tag green">Public Markets</span>
+                            </div>
+                            <div class="exec-kpi-bottom">
+                                <span>Sanitation Coverage:</span>
+                                <span class="bold-dark">Cogon &amp; Carmen Corridors</span>
+                            </div>
+                        </div>
+
+                        <div class="exec-kpi-card">
+                            <div class="exec-kpi-top">
+                                <span class="exec-kpi-label">CLEARED COMPLIANT STALLS</span>
+                                <div class="exec-icon-circle blue">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="exec-kpi-mid">
+                                <span class="exec-kpi-val" id="stat-passed-inspections">137 Cleared</span>
+                                <span class="exec-tag blue">92.6% Pass Rate</span>
+                            </div>
+                            <div class="exec-kpi-bottom">
+                                <span>Segregation Benchmark:</span>
+                                <span class="bold-green">SLA Standards Satisfied</span>
+                            </div>
+                        </div>
+
+                        <div class="exec-kpi-card">
+                            <div class="exec-kpi-top">
+                                <span class="exec-kpi-label">FLAGGED VIOLATIONS</span>
+                                <div class="exec-icon-circle amber">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="exec-kpi-mid">
+                                <span class="exec-kpi-val" id="stat-flagged-inspections">11 Flagged</span>
+                                <span class="exec-tag amber">Corrective Action</span>
+                            </div>
+                            <div class="exec-kpi-bottom">
+                                <span>Follow-Up Cadence:</span>
+                                <span class="bold-dark">Re-inspection within 48h</span>
+                            </div>
+                        </div>
+
+                        <div class="exec-kpi-card">
+                            <div class="exec-kpi-top">
+                                <span class="exec-kpi-label">CLENRO SLA THRESHOLD</span>
+                                <div class="exec-icon-circle purple">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="exec-kpi-mid">
+                                <span class="exec-kpi-val">Target &gt; 60%</span>
+                                <span class="exec-tag purple">Passing Grade</span>
+                            </div>
+                            <div class="exec-kpi-bottom">
+                                <span>Sanitary Governance:</span>
+                                <span class="bold-green">City Sanitation Standard</span>
+                            </div>
+                        </div>
+                    </div>
+
                 <div class="card">
                     <div class="card-header">
                         <h3>Vendor Inspection History</h3>
@@ -204,6 +283,19 @@
                 const res = await apiRequest(endpoint + qs);
                 const data = res.inspections || [];
                 document.getElementById('threshold').textContent = res.flag_threshold ?? 60;
+
+                const statTotal = document.getElementById('stat-total-inspections');
+                const statPassed = document.getElementById('stat-passed-inspections');
+                const statFlagged = document.getElementById('stat-flagged-inspections');
+
+                if (statTotal && data.length > 0) {
+                    const thresh = res.flag_threshold ?? 60;
+                    const flaggedCount = data.filter(i => (i.score ?? 100) <= thresh).length;
+                    const passedCount = data.length - flaggedCount;
+                    statTotal.textContent = `${data.length} Audits`;
+                    if (statPassed) statPassed.textContent = `${passedCount} Cleared`;
+                    if (statFlagged) statFlagged.textContent = `${flaggedCount} Flagged`;
+                }
 
                 if (data.length === 0) {
                     tbody.innerHTML = '<tr><td colspan="8">No inspections found.</td></tr>';

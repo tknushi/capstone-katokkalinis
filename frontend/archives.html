@@ -61,6 +61,85 @@
                         </div>
                     </div>
 
+                    <!-- 4 Executive KPI Cards (Image 3 Template) -->
+                    <div class="exec-stats-grid">
+                        <div class="exec-kpi-card">
+                            <div class="exec-kpi-top">
+                                <span class="exec-kpi-label">ARCHIVED PUBLIC MARKETS</span>
+                                <div class="exec-icon-circle green">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="exec-kpi-mid">
+                                <span class="exec-kpi-val" id="stat-archived-markets">2 Commercial Hubs</span>
+                                <span class="exec-tag green">Cogon &amp; Carmen</span>
+                            </div>
+                            <div class="exec-kpi-bottom">
+                                <span>Public Centers:</span>
+                                <span class="bold-dark">Active Archival Records</span>
+                            </div>
+                        </div>
+
+                        <div class="exec-kpi-card">
+                            <div class="exec-kpi-top">
+                                <span class="exec-kpi-label">HISTORICAL VENDOR RECORDS</span>
+                                <div class="exec-icon-circle blue">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="exec-kpi-mid">
+                                <span class="exec-kpi-val" id="stat-archived-vendors">1,240 Registered</span>
+                                <span class="exec-tag blue">Verified Stalls</span>
+                            </div>
+                            <div class="exec-kpi-bottom">
+                                <span>Membership Ledger:</span>
+                                <span class="bold-green">Accredited Traders</span>
+                            </div>
+                        </div>
+
+                        <div class="exec-kpi-card">
+                            <div class="exec-kpi-top">
+                                <span class="exec-kpi-label">COLLECTION ARCHIVAL VAULT</span>
+                                <div class="exec-icon-circle purple">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M21 8v13H3V8"/><path d="M1 3h22v5H1z"/><path d="M10 12h4"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="exec-kpi-mid">
+                                <span class="exec-kpi-val" id="stat-archived-runs">52 Weeks Synced</span>
+                                <span class="exec-tag purple">Full City History</span>
+                            </div>
+                            <div class="exec-kpi-bottom">
+                                <span>Annual Solid Waste Haul:</span>
+                                <span class="bold-dark">2024&ndash;2026 Archive</span>
+                            </div>
+                        </div>
+
+                        <div class="exec-kpi-card">
+                            <div class="exec-kpi-top">
+                                <span class="exec-kpi-label">RETENTION COMPLIANCE</span>
+                                <div class="exec-icon-circle amber">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="exec-kpi-mid">
+                                <span class="exec-kpi-val">RA 9003 Standard</span>
+                                <span class="exec-tag amber">10-Yr Vault</span>
+                            </div>
+                            <div class="exec-kpi-bottom">
+                                <span>Regulatory Governance:</span>
+                                <span class="bold-green">Immutable Records</span>
+                            </div>
+                        </div>
+                    </div>
+
                 <div class="card">
                     <div class="card-header">
                         <div>
@@ -125,6 +204,11 @@
             try {
                 const res = await apiRequest('/vendors');
                 const vendors = res.vendors || [];
+
+                const statVendors = document.getElementById('stat-archived-vendors');
+                if (statVendors && vendors.length > 0) {
+                    statVendors.textContent = `${vendors.length} Registered`;
+                }
                 const markets = vendors.reduce((result, vendor) => {
                     const key = vendor.market || 'Unassigned market';
                     result[key] = result[key] || { name: key, location: vendor.address || vendor.barangay?.name || 'Location not recorded', members: [] };

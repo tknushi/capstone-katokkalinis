@@ -188,3 +188,4 @@ class AttendanceSeeder extends Seeder
         $this->command->info('Seeded ' . count($records) . ' attendance records.');
     }
 }
+

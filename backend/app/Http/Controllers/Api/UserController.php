@@ -7,6 +7,7 @@ use App\Models\ActivityLog;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 
@@ -72,6 +73,69 @@ class UserController extends Controller
     | GET SINGLE USER PROFILE
     |--------------------------------------------------------------------------
     */
+
+    /*
+    |--------------------------------------------------------------------------
+    | CREATE USER ACCOUNT
+    |--------------------------------------------------------------------------
+    */
+
+    public function store(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:users,email',
+            'password' => 'required|string|min:6',
+            'phone' => 'nullable|string|max:40',
+            'role_ids' => 'nullable|array',
+            'role_ids.*' => 'integer|exists:roles,id',
+            'role' => 'nullable|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation errors occurred.',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $user = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'phone' => $request->phone,
+            'password' => Hash::make($request->password),
+            'joined_at' => now(),
+        ]);
+
+        if ($request->has('role_ids') && is_array($request->role_ids)) {
+            $user->roles()->sync($request->role_ids);
+        } elseif ($request->filled('role')) {
+            $role = Role::where('name', $request->role)->first();
+            if ($role) {
+                $user->roles()->sync([$role->id]);
+            }
+        } else {
+            $defaultRole = Role::where('name', 'employee')->orWhere('name', 'resident')->first();
+            if ($defaultRole) {
+                $user->roles()->sync([$defaultRole->id]);
+            }
+        }
+
+        $user->load('roles');
+
+        ActivityLog::record(
+            'user.created',
+            "Created user account '{$user->name}' ({$user->email}).",
+            $user
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => 'User created successfully.',
+            'user' => $user,
+        ], 201);
+    }
 
     public function show($id)
     {

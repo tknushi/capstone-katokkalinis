@@ -1125,19 +1125,24 @@ function getBaselineModuleNotifications() {
         }
     ];
 
-    // Helper to extract a clean string from potentially nested barangay/sector objects
-    const resolveSectorString = (val, fallback = 'Poblacion Sector') => {
+    // Helper to safely extract a clean string from any value (preventing [object Object])
+    const resolveSectorString = (val, fallback = 'Poblacion Corridor') => {
         if (!val) return fallback;
-        if (typeof val === 'string') return val.includes('[object Object]') ? fallback : val;
-        if (typeof val === 'object') return val.name || val.barangay_name || val.sector || val.title || fallback;
-        return String(val);
+        if (typeof val === 'object') {
+            return val.name || val.barangay_name || val.sector_name || val.sector || val.title || fallback;
+        }
+        const str = String(val).trim();
+        if (!str || str === '[object Object]' || str.includes('[object Object]')) {
+            return fallback;
+        }
+        return str;
     };
 
     // Also pull live localStorage events from all modules so custom actions persist across pages
     try {
         const pickupLogs = JSON.parse(localStorage.getItem('clenro_custom_pickup_logs') || '[]');
         pickupLogs.slice(0, 4).forEach((log, idx) => {
-            const sectorName = resolveSectorString(log.barangay || log.sector, 'Poblacion');
+            const sectorName = resolveSectorString(log.barangay || log.sector || log.location_zone, 'Poblacion Corridor');
             items.unshift({
                 id: `notif-pickup-${log.id || idx}-${log.truck_code || 'KAL'}`,
                 moduleKey: 'trucks',
@@ -1157,7 +1162,7 @@ function getBaselineModuleNotifications() {
     try {
         const dssApplied = JSON.parse(localStorage.getItem('clenro_dss_applied_decisions') || '[]');
         dssApplied.slice(0, 4).forEach((dec, idx) => {
-            const actorLabel = resolveSectorString(dec.barangay || dec.sector, 'CLENRO DSS');
+            const actorLabel = resolveSectorString(dec.barangay || dec.sector, 'CLENRO Command');
             items.unshift({
                 id: `notif-dss-dec-${dec.id || idx}`,
                 moduleKey: 'dss',
@@ -1177,8 +1182,11 @@ function getBaselineModuleNotifications() {
     try {
         const dssSchedules = JSON.parse(localStorage.getItem('clenro_dss_schedules') || '[]');
         dssSchedules.slice(0, 3).forEach((sched, idx) => {
-            const actorLabel = resolveSectorString(sched.barangay_name || sched.barangay, 'Poblacion Sector');
-            const truckHandle = typeof sched.truck === 'object' && sched.truck ? (sched.truck.truck_code || sched.truck.code) : (sched.truck_code || 'KAL-104');
+            const rawBrgy = sched.barangay_name || sched.barangay;
+            const actorLabel = resolveSectorString(rawBrgy, 'Barangay Corridor');
+            const truckHandle = typeof sched.truck === 'object' && sched.truck 
+                ? (sched.truck.truck_code || sched.truck.code || sched.truck.plate_number) 
+                : (sched.truck_code || sched.assigned_truck || 'KAL-104');
             items.unshift({
                 id: `notif-sched-${sched.id || idx}`,
                 moduleKey: 'schedule',
@@ -1205,12 +1213,15 @@ function getStoredCustomNotifications() {
         if (!Array.isArray(parsed)) return [];
         return parsed.map(item => {
             if (!item) return item;
-            if (typeof item.actor === 'object' || String(item.actor).includes('[object Object]')) {
-                item.actor = (item.actor && item.actor.name) ? item.actor.name : (item.moduleLabel || 'Poblacion Sector');
-            }
-            if (String(item.actionText || '').includes('[object Object]')) {
-                item.actionText = String(item.actionText).replace(/\[object Object\]/g, 'Poblacion Sector');
-            }
+            const sanitize = (val, fb = 'Barangay Corridor') => {
+                if (!val) return fb;
+                if (typeof val === 'object') return val.name || val.barangay_name || val.title || fb;
+                const s = String(val).trim();
+                return (!s || s === '[object Object]' || s.includes('[object Object]')) ? fb : s;
+            };
+            item.actor = sanitize(item.actor, item.moduleLabel || 'Barangay Corridor');
+            item.handle = sanitize(item.handle, '@Dispatcher');
+            item.actionText = sanitize(item.actionText, 'updated scheduled collection run.');
             return item;
         });
     } catch (e) {
@@ -1448,6 +1459,16 @@ function renderGlobalNotifications(ringBell = false) {
     const cardsHtml = displayItems.map(item => {
         const isRead = readSet.has(item.id);
         const formattedTime = formatNotifTimestamp(item.timestamp);
+        const cleanActor = (!item.actor || typeof item.actor === 'object' || String(item.actor).includes('[object Object]'))
+            ? ((item.actor && typeof item.actor === 'object' && item.actor.name) ? item.actor.name : (item.moduleLabel || 'Barangay Corridor'))
+            : String(item.actor);
+        const cleanHandle = (!item.handle || typeof item.handle === 'object' || String(item.handle).includes('[object Object]'))
+            ? '@KAL-104'
+            : String(item.handle);
+        const cleanActionText = (!item.actionText || typeof item.actionText === 'object' || String(item.actionText).includes('[object Object]'))
+            ? String(item.actionText || 'scheduled collection run').replace(/\[object Object\]/g, 'Barangay Corridor')
+            : String(item.actionText);
+
         return `
             <div class="gnotif-card ${isRead ? 'read' : 'unread'}" onclick="handleGlobalNotifClick('${escapeHtml(item.id)}', '${escapeHtml(item.link || 'analytics.html')}')">
                 <div class="gnotif-avatar ${escapeHtml(item.avatarClass || 'mod-analytics')}">
@@ -1456,9 +1477,9 @@ function renderGlobalNotifications(ringBell = false) {
                 </div>
                 <div class="gnotif-content">
                     <div class="gnotif-text">
-                        <strong>${escapeHtml(item.actor)}</strong>
-                        <span class="gnotif-handle">${escapeHtml(item.handle || '')}</span>
-                        ${escapeHtml(item.actionText)}
+                        <strong>${escapeHtml(cleanActor)}</strong>
+                        <span class="gnotif-handle">${escapeHtml(cleanHandle)}</span>
+                        ${escapeHtml(cleanActionText)}
                     </div>
                     <div class="gnotif-meta">
                         <span>${escapeHtml(formattedTime)}</span>

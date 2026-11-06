@@ -17,10 +17,10 @@ class EmployeeController extends Controller
     public function index()
     {
         $employees = User::whereHas('roles', function ($query) {
-            $query->where('name', 'driver');
+            $query->whereIn('name', ['driver', 'employee', 'inspector', 'contractor']);
         })
         ->with('roles')
-        ->orderBy('id', 'desc')
+        ->orderBy('name', 'asc')
         ->get();
 
         return response()->json([

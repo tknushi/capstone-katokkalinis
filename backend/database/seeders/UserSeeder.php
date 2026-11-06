@@ -25,7 +25,7 @@ class UserSeeder extends Seeder
 
         /*
         |--------------------------------------------------------------------------
-        | ADMIN
+        | ADMIN & BARANGAY ADMINS
         |--------------------------------------------------------------------------
         */
 
@@ -36,9 +36,23 @@ class UserSeeder extends Seeder
             roleName: 'admin'
         );
 
+        $this->createUserWithRole(
+            name: 'Barangay 1 Administrator',
+            email: 'brgy1.admin@katokkalinis.com',
+            password: 'Admin@123',
+            roleName: 'barangay_admin'
+        );
+
+        $this->createUserWithRole(
+            name: 'Barangay 2 Administrator',
+            email: 'brgy2.admin@katokkalinis.com',
+            password: 'Admin@123',
+            roleName: 'barangay_admin'
+        );
+
         /*
         |--------------------------------------------------------------------------
-        | DRIVER
+        | DRIVERS & FLEET OPERATORS
         |--------------------------------------------------------------------------
         */
 
@@ -55,9 +69,72 @@ class UserSeeder extends Seeder
             password: 'Driver@123',
             roleName: 'driver'
         );
+
+        $this->createUserWithRole(
+            name: 'Danilo Ramos',
+            email: 'danilo.driver@katokkalinis.com',
+            password: 'Driver@123',
+            roleName: 'driver'
+        );
+
+        $this->createUserWithRole(
+            name: 'Rodrigo Villanueva',
+            email: 'rodrigo.driver@katokkalinis.com',
+            password: 'Driver@123',
+            roleName: 'driver'
+        );
+
+        $this->createUserWithRole(
+            name: 'Nestor Cabunoc',
+            email: 'nestor.driver@katokkalinis.com',
+            password: 'Driver@123',
+            roleName: 'driver'
+        );
+
+        $this->createUserWithRole(
+            name: 'Crisanto Ocampos',
+            email: 'crisanto.driver@katokkalinis.com',
+            password: 'Driver@123',
+            roleName: 'driver'
+        );
+
         /*
         |--------------------------------------------------------------------------
-        | INSPECTOR
+        | EMPLOYEES / SWEEPERS & FIELD CREWS
+        |--------------------------------------------------------------------------
+        */
+
+        $this->createUserWithRole(
+            name: 'Ramon Bautista',
+            email: 'ramon.crew@katokkalinis.com',
+            password: 'Employee@123',
+            roleName: 'employee'
+        );
+
+        $this->createUserWithRole(
+            name: 'Carlos Mendoza',
+            email: 'carlos.crew@katokkalinis.com',
+            password: 'Employee@123',
+            roleName: 'employee'
+        );
+
+        $this->createUserWithRole(
+            name: 'Lito Atienza',
+            email: 'lito.crew@katokkalinis.com',
+            password: 'Employee@123',
+            roleName: 'employee'
+        );
+
+        $this->createUserWithRole(
+            name: 'Mario Santos',
+            email: 'mario.crew@katokkalinis.com',
+            password: 'Employee@123',
+            roleName: 'employee'
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | INSPECTORS
         |--------------------------------------------------------------------------
         */
 
@@ -66,6 +143,26 @@ class UserSeeder extends Seeder
             email: 'inspector@katokkalinis.com',
             password: 'Inspector@123',
             roleName: 'inspector'
+        );
+
+        $this->createUserWithRole(
+            name: 'Maria Inspector',
+            email: 'maria.inspector@katokkalinis.com',
+            password: 'Inspector@123',
+            roleName: 'inspector'
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | CONTRACTORS
+        |--------------------------------------------------------------------------
+        */
+
+        $this->createUserWithRole(
+            name: 'IPM Urban Haulers Manager',
+            email: 'ipm.contractor@katokkalinis.com',
+            password: 'Contractor@123',
+            roleName: 'contractor'
         );
 
         /*

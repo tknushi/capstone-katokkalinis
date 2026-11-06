@@ -15,6 +15,7 @@ class DatabaseSeeder extends Seeder
             Barangay1to40Seeder::class,
             ClenroPileupReportSeeder::class,
             OverviewDataSeeder::class,
+            AttendanceSeeder::class,
         ]);
     }
 }

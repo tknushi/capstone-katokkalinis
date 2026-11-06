@@ -18,7 +18,7 @@ class AttendanceController extends Controller
 
     public function index(Request $request)
     {
-        $query = Attendance::with('user');
+        $query = Attendance::with('user.roles');
 
         /*
         |--------------------------------------------------------------------------
@@ -160,7 +160,7 @@ class AttendanceController extends Controller
 
     public function show($id)
     {
-        $attendance = Attendance::with('user')->find($id);
+        $attendance = Attendance::with('user.roles')->find($id);
 
         if (!$attendance) {
             return response()->json([
@@ -429,7 +429,7 @@ class AttendanceController extends Controller
 
     public function archive(Request $request, $id)
     {
-        $attendance = Attendance::with('user')->find($id);
+        $attendance = Attendance::with('user.roles')->find($id);
 
         if (!$attendance) {
             return response()->json([
@@ -463,7 +463,7 @@ class AttendanceController extends Controller
 
     public function restore(Request $request, $id)
     {
-        $attendance = Attendance::with('user')->find($id);
+        $attendance = Attendance::with('user.roles')->find($id);
 
         if (!$attendance) {
             return response()->json([

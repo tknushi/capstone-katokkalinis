@@ -1747,7 +1747,7 @@ window.initGlobalNotificationBell = initGlobalNotificationBell;
 |--------------------------------------------------------------------------
 | Automatically applies staged lazy-loading (shimmer skeleton -> viewport
 | intersection -> staggered progressive hydration) to all floating bars,
-| topbars, executive banners, filter/tab bars, map HUD bars, pagination
+| topbars, executive banners, filter/tab bars, pagination
 | bars, KPI bars, and visual progress bars across all connected modules.
 */
 const FLOATING_BAR_SELECTORS = [
@@ -1760,9 +1760,6 @@ const FLOATING_BAR_SELECTORS = [
     '.ops-tabs',
     '.vendor-tabs-bar',
     '.card-filter-row',
-    '.exec-map-header',
-    '.exec-map-hud-legend',
-    '.exec-fleet-deck',
     '.exec-sectors-header',
     '.pagination-container',
     '#pagination-container',

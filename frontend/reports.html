@@ -508,8 +508,14 @@
                     <textarea id="status-notes" class="form-control" rows="3" placeholder="Enter dispatch directive, compactor assignment, or clearance verification details..."></textarea>
                 </div>
                 <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px;">
-                    <button type="button" class="btn report-outline" onclick="closeModal()">Cancel</button>
-                    <button type="submit" class="btn" style="background:var(--green-700); color:#fff;">Save Status</button>
+                    <button type="button" class="btn report-outline" onclick="closeModal()" style="display:inline-flex; align-items:center; gap:5px;">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                        Cancel
+                    </button>
+                    <button type="submit" class="btn" style="background:var(--green-700); color:#fff; display:inline-flex; align-items:center; gap:5px;">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        Save Status
+                    </button>
                 </div>
             </form>
         </div>
@@ -605,8 +611,14 @@
                 </div>
 
                 <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px;">
-                    <button type="button" class="btn report-outline" onclick="closeNewReportModal()">Cancel</button>
-                    <button type="submit" class="btn" style="background:#22c55e; border-color:#4ade80; color:#fff;">Submit Directive</button>
+                    <button type="button" class="btn report-outline" onclick="closeNewReportModal()" style="display:inline-flex; align-items:center; gap:5px;">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                        Cancel
+                    </button>
+                    <button type="submit" class="btn" style="background:#22c55e; border-color:#4ade80; color:#fff; display:inline-flex; align-items:center; gap:5px;">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                        Submit Directive
+                    </button>
                 </div>
             </form>
         </div>
@@ -1022,11 +1034,23 @@
                             Directive: ${safeHtml(r.decision_recommendation || r.clenro_action_taken || 'Active sweep scheduled')}
                         </span>
                         <div style="display:flex; gap:6px; align-items:center;">
-                            <button type="button" class="btn report-outline" style="font-size:11px; padding:5px 10px;" onclick="viewReportDetails('${safeCode}')">View Details</button>
-                            <button type="button" class="btn report-outline" style="font-size:11px; padding:5px 10px;" onclick="openStatusModal('${safeCode}', '${r.status || 'pending'}')">Triage Status</button>
-                            <button type="button" class="btn report-outline" style="font-size:11px; padding:5px 10px;" onclick="downloadSingleReport('${safeCode}')" title="Download JSON format">JSON</button>
+                            <button type="button" class="btn report-outline" style="font-size:11px; padding:5px 10px; display:inline-flex; align-items:center; gap:5px;" onclick="viewReportDetails('${safeCode}')">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                                View Details
+                            </button>
+                            <button type="button" class="btn report-outline" style="font-size:11px; padding:5px 10px; display:inline-flex; align-items:center; gap:5px;" onclick="openStatusModal('${safeCode}', '${r.status || 'pending'}')">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+                                Triage Status
+                            </button>
+                            <button type="button" class="btn report-outline" style="font-size:11px; padding:5px 10px; display:inline-flex; align-items:center; gap:5px;" onclick="downloadSingleReport('${safeCode}')" title="Download JSON format">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                                JSON
+                            </button>
                             ${isSuperAdmin ? `
-                                <button type="button" class="btn report-delete" style="font-size:11px; padding:5px 10px;" onclick="deleteReport('${safeCode}')">Delete</button>
+                                <button type="button" class="btn report-delete" style="font-size:11px; padding:5px 10px; display:inline-flex; align-items:center; gap:5px;" onclick="deleteReport('${safeCode}')">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                    Delete
+                                </button>
                             ` : ''}
                         </div>
                     </div>
@@ -1082,8 +1106,14 @@
                         ${getStatusPill(r.status)}
                     </td>
                     <td style="text-align:right; white-space:nowrap;">
-                        <button type="button" class="btn report-outline" style="font-size:10px; padding:4px 8px; margin-right:4px;" onclick="viewReportDetails('${safeCode}')">View</button>
-                        <button type="button" class="btn report-outline" style="font-size:10px; padding:4px 8px;" onclick="openStatusModal('${safeCode}', '${r.status || 'pending'}')">Triage</button>
+                        <button type="button" class="btn report-outline" style="font-size:10.5px; padding:4px 8px; margin-right:4px; display:inline-flex; align-items:center; gap:4px;" onclick="viewReportDetails('${safeCode}')">
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                            View
+                        </button>
+                        <button type="button" class="btn report-outline" style="font-size:10.5px; padding:4px 8px; display:inline-flex; align-items:center; gap:4px;" onclick="openStatusModal('${safeCode}', '${r.status || 'pending'}')">
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+                            Triage
+                        </button>
                     </td>
                 </tr>
                 `;
@@ -1184,8 +1214,14 @@
                     </div>
                 ` : ''}
                 <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px;">
-                    <button type="button" class="btn report-outline" onclick="closeDetailsModal()">Close</button>
-                    <button type="button" class="btn" style="background:var(--green-700); color:#fff;" onclick="closeDetailsModal(); openStatusModal('${safeCode}', '${r.status || 'pending'}')">Update Status</button>
+                    <button type="button" class="btn report-outline" onclick="closeDetailsModal()" style="display:inline-flex; align-items:center; gap:5px;">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                        Close
+                    </button>
+                    <button type="button" class="btn" style="background:var(--green-700); color:#fff; display:inline-flex; align-items:center; gap:5px;" onclick="closeDetailsModal(); openStatusModal('${safeCode}', '${r.status || 'pending'}')">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+                        Update Status
+                    </button>
                 </div>
             `;
             document.getElementById('details-modal').classList.add('active');

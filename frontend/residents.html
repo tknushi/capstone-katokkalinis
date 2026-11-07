@@ -195,7 +195,7 @@
                     <label>Roles / Permissions</label>
                     <div class="checkbox-list" id="roles-checklist"></div>
                 </div>
-                <button type="submit" class="btn">Save Permissions</button>
+                <button type="submit" class="btn" style="display:inline-flex; align-items:center; justify-content:center; gap:6px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="20 6 9 17 4 12"></polyline></svg>Save Permissions</button>
             </form>
         </div>
     </div>
@@ -246,7 +246,10 @@
                         <td>${roleBadges || '-'}</td>
                         <td>${joined}</td>
                         <td>
-                            <button class="btn" style="padding: 5px 10px; width: auto; background: #3498db;" onclick='editPermissions(${JSON.stringify(item).replace(/'/g, "&#39;")})'>Edit Permissions</button>
+                            <button class="btn" style="padding: 5px 10px; width: auto; background: #3498db; display:inline-flex; align-items:center; gap:5px;" onclick='editPermissions(${JSON.stringify(item).replace(/'/g, "&#39;")})'>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                        Edit Permissions
+                    </button>
                         </td>
                     </tr>
                 `;}).join('');

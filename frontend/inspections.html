@@ -222,7 +222,7 @@
                     <label>Inspection Findings</label>
                     <textarea id="notes" class="form-control" placeholder="Write something"></textarea>
                 </div>
-                <button type="submit" class="btn">Save</button>
+                <button type="submit" class="btn" style="display:inline-flex; align-items:center; justify-content:center; gap:6px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="20 6 9 17 4 12"></polyline></svg>Save Inspection</button>
             </form>
         </div>
     </div>
@@ -238,7 +238,7 @@
                 <!-- dynamic content -->
             </div>
             <div style="display: flex; justify-content: flex-end; margin-top: 15px;">
-                <button class="btn" style="width: auto; background: #6c757d;" onclick="closeAuditModal()">Close Audit</button>
+                <button class="btn" style="width: auto; background: #6c757d; display:inline-flex; align-items:center; gap:5px;" onclick="closeAuditModal()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>Close Audit</button>
             </div>
         </div>
     </div>
@@ -320,9 +320,18 @@
                         <td>${item.status}</td>
                         <td>${inspectedAt}</td>
                         <td>
-                            <button class="btn" style="padding: 5px 10px; width: auto; background: #27ae60;" onclick='viewAudit(${JSON.stringify(item).replace(/'/g, "&#39;")})'>Audit</button>
-                            <button class="btn" style="padding: 5px 10px; width: auto; background: #f39c12;" onclick='editItem(${JSON.stringify(item).replace(/'/g, "&#39;")})'>Edit</button>
-                            <button class="btn" style="padding: 5px 10px; width: auto; background: #e74c3c;" onclick="deleteItem(${item.id})">Delete</button>
+                            <button class="btn" style="padding: 5px 10px; width: auto; background: #27ae60; display:inline-flex; align-items:center; gap:5px;" onclick='viewAudit(${JSON.stringify(item).replace(/'/g, "&#39;")})'>
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                                Audit
+                            </button>
+                            <button class="btn" style="padding: 5px 10px; width: auto; background: #f39c12; display:inline-flex; align-items:center; gap:5px;" onclick='editItem(${JSON.stringify(item).replace(/'/g, "&#39;")})'>
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                                Edit
+                            </button>
+                            <button class="btn" style="padding: 5px 10px; width: auto; background: #e74c3c; display:inline-flex; align-items:center; gap:5px;" onclick="deleteItem(${item.id})">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                Delete
+                            </button>
                         </td>
                     </tr>
                 `;}).join('');

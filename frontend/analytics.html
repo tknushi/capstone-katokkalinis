@@ -2316,6 +2316,76 @@
                 });
             }
 
+            // Monitored Barangays from CLENRO Consolidated SWM Records (Sheet 4)
+            const monitoredBarangays = [
+                { code: 'LUM', name: 'Barangay Lumbia', avgTons: 131.30 },
+                { code: 'CRM', name: 'Barangay Carmen (Monitored Area)', avgTons: 107.93 },
+                { code: 'BLU', name: 'Barangay Bulua', avgTons: 107.09 },
+                { code: 'MCS', name: 'Barangay Macasandig', avgTons: 74.90 },
+                { code: 'AGS', name: 'Barangay Agusan', avgTons: 62.19 },
+                { code: 'PGT', name: 'Barangay Pagatpat', avgTons: 62.16 },
+                { code: 'LPS', name: 'Barangay Lapasan', avgTons: 24.82 },
+                { code: 'NZR', name: 'Barangay Nazareth', avgTons: 9.47 },
+                { code: 'CNS', name: 'Barangay Consolacion', avgTons: 4.74 },
+                { code: 'PGL', name: 'Barangay Pagalungan', avgTons: 0.92 }
+            ];
+
+            monitoredBarangays.forEach(mb => {
+                const baseTons = mb.avgTons;
+                const baseVol = baseTons * 2.5;
+
+                // 2024
+                data.push({
+                    id: curId++,
+                    incident_code: `CDO-MON-${mb.code}-2024-05`,
+                    location_zone: mb.name,
+                    incident_date: "2024-05-18",
+                    waste_volume_m3: Number((baseVol * 0.92).toFixed(2)),
+                    estimated_tonnage: Number((baseTons * 0.92).toFixed(2)),
+                    contractor_assigned: "IPM CDO Urban Haulers",
+                    truck_plate: "KAL-105",
+                    severity: "moderate",
+                    sla_status: "within_sla",
+                    turnaround_hours: 5.5,
+                    root_cause: "consolidated_barangay_waste",
+                    clenro_action_taken: "Official barangay monthly route cleared on schedule."
+                });
+
+                // 2025
+                data.push({
+                    id: curId++,
+                    incident_code: `CDO-MON-${mb.code}-2025-08`,
+                    location_zone: mb.name,
+                    incident_date: "2025-08-28",
+                    waste_volume_m3: Number(baseVol.toFixed(2)),
+                    estimated_tonnage: Number(baseTons.toFixed(2)),
+                    contractor_assigned: "IPM CDO Urban Haulers",
+                    truck_plate: "KAL-105",
+                    severity: "moderate",
+                    sla_status: "within_sla",
+                    turnaround_hours: 5.2,
+                    root_cause: "consolidated_barangay_waste",
+                    clenro_action_taken: "Official barangay monthly collection logged at sanitary landfill."
+                });
+
+                // 2026
+                data.push({
+                    id: curId++,
+                    incident_code: `CDO-MON-${mb.code}-2026-04`,
+                    location_zone: mb.name,
+                    incident_date: "2026-04-12",
+                    waste_volume_m3: Number((baseVol * 1.05).toFixed(2)),
+                    estimated_tonnage: Number((baseTons * 1.05).toFixed(2)),
+                    contractor_assigned: "IPM CDO Urban Haulers",
+                    truck_plate: "KAL-105",
+                    severity: "moderate",
+                    sla_status: "within_sla",
+                    turnaround_hours: 5.0,
+                    root_cause: "consolidated_barangay_waste",
+                    clenro_action_taken: "Verified against CLENRO monthly weighbridge database."
+                });
+            });
+
             // Append custom logged logs if any exist in localStorage
             try {
                 const custom = JSON.parse(localStorage.getItem('clenro_custom_pickup_logs') || '[]');

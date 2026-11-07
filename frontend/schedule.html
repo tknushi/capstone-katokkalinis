@@ -87,6 +87,89 @@
             background: var(--green-50);
         }
 
+        
+        /* Proleptic Gregorian Calendar Navigation & Controls */
+        .cal-proleptic-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            color: #15803d;
+            background: rgba(34, 197, 94, 0.12);
+            border: 1px solid rgba(34, 197, 94, 0.25);
+            padding: 3px 8px;
+            border-radius: 999px;
+            white-space: nowrap;
+        }
+
+        .cal-select-picker {
+            padding: 5px 9px;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--green-900);
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            cursor: pointer;
+            outline: none;
+            transition: all 0.15s ease;
+        }
+        .cal-select-picker:hover, .cal-select-picker:focus {
+            border-color: var(--green-600);
+            box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.15);
+        }
+
+        .cal-year-input {
+            width: 78px;
+            padding: 5px 8px;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--green-900);
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            text-align: center;
+            outline: none;
+            transition: all 0.15s ease;
+        }
+        .cal-year-input:hover, .cal-year-input:focus {
+            border-color: var(--green-600);
+            box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.15);
+        }
+
+        .cal-date-picker {
+            padding: 4px 8px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text);
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            outline: none;
+            transition: all 0.15s ease;
+        }
+        .cal-date-picker:hover, .cal-date-picker:focus {
+            border-color: var(--green-600);
+            box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.15);
+        }
+
+        .cal-purge-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-muted);
+            background: var(--surface-alt);
+            border: 1px solid var(--border);
+            padding: 4px 9px;
+            border-radius: 6px;
+            white-space: nowrap;
+        }
+
         /* Calendar Grid */
         .schedule-calendar {
             display: grid;
@@ -591,34 +674,100 @@
                         </div>
                     </div>
 
-                <!-- Collection Calendar Section -->
+                <!-- Collection Calendar Section (Proleptic Gregorian ISO 8601) -->
                 <div class="card calendar-card">
                     <div class="card-header cal-card-header">
                         <div class="cal-nav-container">
+                            <!-- Prev Year & Prev Month Buttons -->
                             <div class="cal-title-nav">
+                                <button type="button" 
+                                        class="cal-nav-btn has-tooltip" 
+                                        id="cal-prev-year-btn" 
+                                        data-tooltip="Previous Year" 
+                                        aria-label="Previous Year" 
+                                        onclick="changeYear(-1)" 
+                                        title="Previous Year">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                                        <polyline points="11 17 6 12 11 7"></polyline>
+                                        <polyline points="18 17 13 12 18 7"></polyline>
+                                    </svg>
+                                </button>
                                 <button type="button" 
                                         class="cal-nav-btn has-tooltip" 
                                         id="cal-prev-btn" 
                                         data-tooltip="Previous Month" 
                                         aria-label="Previous Month" 
-                                        onclick="changeMonth(-1)">
+                                        onclick="changeMonth(-1)" 
+                                        title="Previous Month">
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                         <polyline points="15 18 9 12 15 6"></polyline>
                                     </svg>
                                 </button>
-                                <h3 id="calendar-title" class="cal-main-title">Collection Calendar</h3>
+
+                                <!-- Calendar Title & Proleptic Gregorian Identifier -->
+                                <h3 id="calendar-title" class="cal-main-title" style="white-space:nowrap;">Collection Calendar</h3>
+                                <span class="cal-proleptic-pill" title="Standard Proleptic Gregorian Calendar (ISO-8601 Compliant)">Proleptic Gregorian</span>
+
+                                <!-- Direct Month & Year Pickers -->
+                                <div style="display:inline-flex; align-items:center; gap:6px;">
+                                    <select id="cal-month-select" class="cal-select-picker" onchange="onMonthSelect(this.value)" title="Choose Month">
+                                        <option value="0">January</option>
+                                        <option value="1">February</option>
+                                        <option value="2">March</option>
+                                        <option value="3">April</option>
+                                        <option value="4">May</option>
+                                        <option value="5">June</option>
+                                        <option value="6">July</option>
+                                        <option value="7">August</option>
+                                        <option value="8">September</option>
+                                        <option value="9">October</option>
+                                        <option value="10">November</option>
+                                        <option value="11">December</option>
+                                    </select>
+                                    <input type="number" id="cal-year-input" class="cal-year-input" min="1900" max="2100" value="2026" onchange="onYearInput(this.value)" title="Directly edit year (1900-2100)">
+                                </div>
+
+                                <!-- Next Month & Next Year Buttons -->
                                 <button type="button" 
                                         class="cal-nav-btn has-tooltip" 
                                         id="cal-next-btn" 
                                         data-tooltip="Next Month" 
                                         aria-label="Next Month" 
-                                        onclick="changeMonth(1)">
+                                        onclick="changeMonth(1)" 
+                                        title="Next Month">
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                         <polyline points="9 18 15 12 9 6"></polyline>
                                     </svg>
                                 </button>
+                                <button type="button" 
+                                        class="cal-nav-btn has-tooltip" 
+                                        id="cal-next-year-btn" 
+                                        data-tooltip="Next Year" 
+                                        aria-label="Next Year" 
+                                        onclick="changeYear(1)" 
+                                        title="Next Year">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                                        <polyline points="13 17 18 12 13 7"></polyline>
+                                        <polyline points="6 17 11 12 6 7"></polyline>
+                                    </svg>
+                                </button>
                             </div>
-                            <button type="button" class="cal-today-btn" id="cal-today-btn" onclick="goToToday()">Today</button>
+
+                            <!-- Direct Date Jump Picker & Today Button -->
+                            <div style="display:inline-flex; align-items:center; gap:6px;">
+                                <input type="date" id="cal-date-jump" class="cal-date-picker" onchange="jumpToDate(this.value)" title="Jump directly to specific date">
+                                <button type="button" class="cal-today-btn" id="cal-today-btn" onclick="goToToday()" title="Jump to Current Date">Today</button>
+                            </div>
+
+                            <!-- Auto-Purge Expired Schedules Indicator & Toggle -->
+                            <div class="cal-purge-badge" id="cal-purge-indicator" title="Expired schedules are automatically removed from active display">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                <span>Auto-Purge Expired: <strong id="expired-count-text" style="color:var(--green-700);">Active</strong></span>
+                                <label style="margin-left:6px; font-size:11px; display:inline-flex; align-items:center; gap:3px; cursor:pointer;" title="Toggle to audit past schedules">
+                                    <input type="checkbox" id="toggle-show-expired" onchange="toggleShowExpired(this.checked)" style="cursor:pointer;">
+                                    Show History
+                                </label>
+                            </div>
                         </div>
                         <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                             <button class="btn" onclick="openBroadcastModal()" style="width: auto; background: #2e7d32; display: inline-flex; align-items: center; gap: 6px;">
@@ -879,14 +1028,131 @@
             }
         }
 
+        // =========================================================================
+        // PROLEPTIC GREGORIAN CALENDAR ENGINE (ISO 8601 SPECIFICATION)
+        // =========================================================================
+
+        function isProlepticGregorianLeapYear(year) {
+            // Proleptic Gregorian Leap Year Rule:
+            // Every year divisible by 4 is a leap year, except centuries (divisible by 100),
+            // unless also divisible by 400 (e.g. 2000, 2024 are leap; 1900, 2100 are not).
+            return (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
+        }
+
+        function getProlepticDaysInMonth(year, month) {
+            // month is 0-indexed: 0 = January, 1 = February, ..., 11 = December
+            const days = [31, isProlepticGregorianLeapYear(year) ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+            return days[month];
+        }
+
+        function getProlepticFirstDayOfWeek(year, month) {
+            return new Date(year, month, 1).getDay();
+        }
+
+        // =========================================================================
+        // AUTOMATIC SCHEDULE EXPIRY & RETIREMENT ENGINE
+        // =========================================================================
+
+        function isScheduleExpired(item) {
+            if (!item || !item.date) return false;
+            const now = new Date();
+            const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+            const schedDateStr = String(item.date).substring(0, 10);
+
+            // 1. Any schedule on a past calendar date is expired
+            if (schedDateStr < todayStr) return true;
+
+            // 2. If scheduled for today, check status or pickup time window
+            if (schedDateStr === todayStr) {
+                if (item.status === 'completed' || item.status === 'cancelled') return true;
+                if (item.pickup_time) {
+                    const timeParts = item.pickup_time.split(':');
+                    const schedHour = parseInt(timeParts[0], 10) || 0;
+                    const schedMin = parseInt(timeParts[1], 10) || 0;
+                    const schedExpiry = new Date(now.getFullYear(), now.getMonth(), now.getDate(), schedHour, schedMin);
+                    // Add 2.5 hours route completion window, after which schedule is retired
+                    schedExpiry.setMinutes(schedExpiry.getMinutes() + 150);
+                    if (now > schedExpiry) return true;
+                }
+            }
+            return false;
+        }
+
+        let showExpiredHistory = false;
+
+        function toggleShowExpired(checked) {
+            showExpiredHistory = checked;
+            renderCalendar();
+            updateScheduleStats();
+        }
+
+        function getActiveSchedules() {
+            if (showExpiredHistory) return schedules;
+            // Automatically remove expired schedules from calendar and schedule modules
+            return schedules.filter(s => !isScheduleExpired(s));
+        }
+
+        function autoPurgeExpiredStorage() {
+            try {
+                const stored = JSON.parse(localStorage.getItem('clenro_dss_schedules') || '[]');
+                const expired = stored.filter(isScheduleExpired);
+                if (expired.length > 0) {
+                    const activeOnly = stored.filter(s => !isScheduleExpired(s));
+                    localStorage.setItem('clenro_dss_schedules', JSON.stringify(activeOnly));
+                    const archive = JSON.parse(localStorage.getItem('clenro_expired_schedules_archive') || '[]');
+                    archive.push(...expired);
+                    localStorage.setItem('clenro_expired_schedules_archive', JSON.stringify(archive));
+                }
+            } catch(e) {}
+        }
+
+        // =========================================================================
+        // CALENDAR INTERACTIVE DATE & YEAR CONTROLS
+        // =========================================================================
+
+        function onMonthSelect(val) {
+            const m = parseInt(val, 10);
+            currentCalDate = new Date(currentCalDate.getFullYear(), m, 1);
+            renderCalendar();
+        }
+
+        function onYearInput(val) {
+            const y = parseInt(val, 10);
+            if (!isNaN(y) && y >= 1900 && y <= 2100) {
+                currentCalDate = new Date(y, currentCalDate.getMonth(), 1);
+                renderCalendar();
+            }
+        }
+
+        function changeYear(delta) {
+            currentCalDate = new Date(currentCalDate.getFullYear() + delta, currentCalDate.getMonth(), 1);
+            renderCalendar();
+        }
+
         function changeMonth(delta) {
             // Set date to 1st of month to avoid overflow issues (e.g. 31st to 30-day month)
             currentCalDate = new Date(currentCalDate.getFullYear(), currentCalDate.getMonth() + delta, 1);
             renderCalendar();
         }
 
+        function jumpToDate(dateStr) {
+            if (!dateStr) return;
+            const parts = dateStr.split('-');
+            if (parts.length === 3) {
+                const y = parseInt(parts[0], 10);
+                const m = parseInt(parts[1], 10) - 1;
+                const d = parseInt(parts[2], 10);
+                currentCalDate = new Date(y, m, 1);
+                highlightedDssDate = dateStr;
+                renderCalendar();
+            }
+        }
+
         function goToToday() {
             currentCalDate = new Date();
+            highlightedDssDate = null;
+            const jumpPicker = document.getElementById('cal-date-jump');
+            if (jumpPicker) jumpPicker.value = '';
             renderCalendar();
         }
 
@@ -905,12 +1171,14 @@
             const now = new Date();
             const yr = now.getFullYear();
             const mo = String(now.getMonth() + 1).padStart(2, '0');
+            const day = now.getDate();
+            // Upgraded baseline schedules aligned to active upcoming dates
             return [
-                { id: 9001, barangay_id: 33, barangay: { id: 33, name: 'Cogon Market Zone' }, date: `${yr}-${mo}-05`, pickup_time: '20:30', status: 'completed', active: true, is_dss: true, notes: '[CLENRO DSS] Dedicated Night Compactor Sweep · 6.4t hauled' },
-                { id: 9002, barangay_id: 40, barangay: { id: 40, name: 'Carmen Market Zone' }, date: `${yr}-${mo}-10`, pickup_time: '20:30', status: 'scheduled', active: true, is_dss: true, notes: '[CLENRO DSS] Commercial Market Night Sweep · TRK-04' },
-                { id: 9003, barangay_id: 1, barangay: { id: 1, name: 'Barangay 1' }, date: `${yr}-${mo}-12`, pickup_time: '07:00', status: 'scheduled', active: true, notes: 'Standard Morning Residential Window (7:00–10:00 AM)' },
-                { id: 9004, barangay_id: 14, barangay: { id: 14, name: 'Barangay 14' }, date: `${yr}-${mo}-16`, pickup_time: '07:30', status: 'scheduled', active: true, is_dss: true, notes: '[CLENRO DSS] Upgraded 4x/Week Relief Pick-Up · TRK-02' },
-                { id: 9005, barangay_id: 24, barangay: { id: 24, name: 'Barangay 24' }, date: `${yr}-${mo}-21`, pickup_time: '08:00', status: 'scheduled', active: true, notes: 'Urban Core Sector East Collection' }
+                { id: 9001, barangay_id: 33, barangay: { id: 33, name: 'Cogon Market Zone' }, date: `${yr}-${mo}-${String(Math.min(28, day + 1)).padStart(2, '0')}`, pickup_time: '20:30', status: 'scheduled', active: true, is_dss: true, notes: '[CLENRO DSS] Dedicated Night Compactor Sweep · 6.4t hauled' },
+                { id: 9002, barangay_id: 40, barangay: { id: 40, name: 'Carmen Market Zone' }, date: `${yr}-${mo}-${String(Math.min(28, day + 3)).padStart(2, '0')}`, pickup_time: '20:30', status: 'scheduled', active: true, is_dss: true, notes: '[CLENRO DSS] Commercial Market Night Sweep · TRK-04' },
+                { id: 9003, barangay_id: 1, barangay: { id: 1, name: 'Barangay 1' }, date: `${yr}-${mo}-${String(Math.min(28, day + 5)).padStart(2, '0')}`, pickup_time: '07:00', status: 'scheduled', active: true, notes: 'Standard Morning Residential Window (7:00–10:00 AM)' },
+                { id: 9004, barangay_id: 14, barangay: { id: 14, name: 'Barangay 14' }, date: `${yr}-${mo}-${String(Math.min(28, day + 7)).padStart(2, '0')}`, pickup_time: '07:30', status: 'scheduled', active: true, is_dss: true, notes: '[CLENRO DSS] Upgraded 4x/Week Relief Pick-Up · TRK-02' },
+                { id: 9005, barangay_id: 24, barangay: { id: 24, name: 'Barangay 24' }, date: `${yr}-${mo}-${String(Math.min(28, day + 10)).padStart(2, '0')}`, pickup_time: '08:00', status: 'scheduled', active: true, notes: 'Urban Core Sector East Collection' }
             ];
         }
 
@@ -918,15 +1186,35 @@
             const calendar = document.getElementById('schedule-calendar');
             const year = currentCalDate.getFullYear();
             const month = currentCalDate.getMonth();
-            const firstDay = new Date(year, month, 1).getDay();
-            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            
+            // Calculate using Proleptic Gregorian engine
+            const firstDay = getProlepticFirstDayOfWeek(year, month);
+            const daysInMonth = getProlepticDaysInMonth(year, month);
             const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
             const now = new Date();
             const isCurrentMonth = (now.getFullYear() === year && now.getMonth() === month);
             const todayDate = now.getDate();
 
-            const scheduleDates = schedules.reduce((dates, item) => {
+            // Sync Month and Year interactive pickers
+            const monthSelect = document.getElementById('cal-month-select');
+            if (monthSelect) monthSelect.value = month;
+
+            const yearInput = document.getElementById('cal-year-input');
+            if (yearInput) yearInput.value = year;
+
+            // Filter active schedules (expired automatically removed unless Show History checked)
+            const activeSchedules = getActiveSchedules();
+            const totalExpired = schedules.filter(isScheduleExpired).length;
+
+            const expIndicator = document.getElementById('expired-count-text');
+            if (expIndicator) {
+                expIndicator.textContent = totalExpired > 0 
+                    ? (showExpiredHistory ? `${totalExpired} Showing` : `${totalExpired} Auto-Removed`) 
+                    : 'Active';
+            }
+
+            const scheduleDates = activeSchedules.reduce((dates, item) => {
                 if (item.date) {
                     const d = String(item.date).substring(0, 10);
                     dates[d] = (dates[d] || []).concat(item);
@@ -935,7 +1223,10 @@
             }, {});
 
             const monthTitle = currentCalDate.toLocaleString('en', { month: 'long', year: 'numeric' });
-            document.getElementById('calendar-title').textContent = `Collection Calendar · ${monthTitle}`;
+            const titleEl = document.getElementById('calendar-title');
+            if (titleEl) {
+                titleEl.textContent = `Collection Calendar · ${monthTitle}`;
+            }
 
             let html = dayNames.map(day => `<div class="calendar-day-name">${day}</div>`).join('');
             
@@ -958,9 +1249,10 @@
                     const time12 = formatTime12(item.pickup_time);
                     const brgy = item.barangay?.name || 'Collection';
                     const isDss = item.is_dss || (item.notes && item.notes.includes('[CLENRO DSS]'));
+                    const isExpired = isScheduleExpired(item);
                     const prefix = isDss ? '' : '';
                     const displayLabel = time12 ? `${prefix}${time12} · ${brgy}` : `${prefix}${brgy}`;
-                    const fullTooltip = `${brgy} (${time12 || 'No time set'}) - Status: ${item.status || 'scheduled'}${item.notes ? ' · ' + item.notes : ''}`;
+                    const fullTooltip = `${brgy} (${time12 || 'No time set'}) - Status: ${item.status || 'scheduled'}${isExpired ? ' [EXPIRED]' : ''}${item.notes ? ' · ' + item.notes : ''}`;
                     const dssStyle = isDss ? 'border-left: 3px solid #7c3aed; background: rgba(124, 58, 237, 0.10); font-weight: 700;' : '';
 
                     return `
@@ -1237,6 +1529,7 @@
         }
 
         async function loadData() {
+            autoPurgeExpiredStorage();
             const dssSchedules = getLocalDssSchedules();
             const baseline = generateBaselineMonthSchedules();
             let apiSchedules = [];
@@ -1251,18 +1544,22 @@
             const baseList = apiSchedules.length > 0 ? apiSchedules : baseline;
             schedules = [...dssSchedules, ...baseList];
 
+            updateScheduleStats();
+            renderCalendar();
+        }
+
+        function updateScheduleStats() {
+            const activeList = getActiveSchedules();
             const pill = document.getElementById('dss-schedule-count-pill');
             if (pill) {
-                const dssCount = schedules.filter(s => s.is_dss || (s.notes && s.notes.includes('[CLENRO DSS]'))).length;
+                const dssCount = activeList.filter(s => s.is_dss || (s.notes && s.notes.includes('[CLENRO DSS]'))).length;
                 pill.textContent = `${dssCount} DSS Prescriptions Active on Calendar`;
             }
 
             const statSched = document.getElementById('stat-active-schedules');
-            if (statSched && schedules.length > 0) {
-                statSched.textContent = `${schedules.length} Runs`;
+            if (statSched) {
+                statSched.textContent = `${activeList.length} Active Runs`;
             }
-
-            renderCalendar();
         }
 
         function handleIncomingDssParams() {

@@ -99,6 +99,28 @@
             padding: 7px 10px;
             font-size: 11.5px;
         }
+    
+        .filter-pill-btn {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            font-size: 11.5px;
+            font-weight: 600;
+            padding: 5px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .filter-pill-btn:hover {
+            border-color: var(--green-600);
+            color: var(--green-800);
+        }
+        .filter-pill-btn.active {
+            background: var(--green-700);
+            border-color: var(--green-700);
+            color: #ffffff;
+        }
+
     </style>
 </head>
 <body>
@@ -117,7 +139,7 @@
         <!-- Main Content -->
         <main class="main-content">
             <header class="topbar">
-                <h2>Personnel &amp; Drivers Management</h2>
+                <h2>Field Employees</h2>
                 <div id="topbar-user"></div>
             </header>
             
@@ -133,13 +155,17 @@
                             </div>
                             <div class="exec-header-title-wrap">
                                 <div class="exec-header-title-row">
-                                    <h2>Personnel &amp; Drivers Management</h2>
+                                    <h2>Field Employees &amp; Workforce Roster</h2>
                                     <span class="exec-clenro-pill">CLENRO WORKFORCE</span>
                                 </div>
                                 <p class="exec-header-subtitle">City Environment &amp; Natural Resources Office (CLENRO) &bull; Cagayan de Oro City</p>
                             </div>
                         </div>
                         <div class="exec-header-right">
+                            <button type="button" class="exec-btn-brief" onclick="exportPersonnelToCSV()" style="background:var(--surface); border-color:var(--border); color:var(--text); margin-right:8px;" title="Export roster to CSV spreadsheet">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                                Export CSV
+                            </button>
                             <button class="exec-btn-brief" onclick="openModal()" style="background:#22c55e;border-color:#4ade80;color:#fff;">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                                 Add Personnel
@@ -149,7 +175,7 @@
 
                     <!-- 4 Executive KPI Cards (Image 3 Template) -->
                     <div class="exec-stats-grid">
-                        <div class="exec-kpi-card">
+                        <div class="exec-kpi-card" onclick="setRoleFilter('all')" style="cursor:pointer;" title="Click to view all workforce staff">
                             <div class="exec-kpi-top">
                                 <span class="exec-kpi-label">TOTAL FIELD WORKFORCE</span>
                                 <div class="exec-icon-circle green">
@@ -168,7 +194,7 @@
                             </div>
                         </div>
 
-                        <div class="exec-kpi-card">
+                        <div class="exec-kpi-card" onclick="setStatusFilter('active')" style="cursor:pointer;" title="Click to view active deployed staff">
                             <div class="exec-kpi-top">
                                 <span class="exec-kpi-label">ACTIVE ON-DUTY CREWS</span>
                                 <div class="exec-icon-circle blue">
@@ -206,7 +232,7 @@
                             </div>
                         </div>
 
-                        <div class="exec-kpi-card">
+                        <div class="exec-kpi-card" onclick="setRoleFilter('sweeper')" style="cursor:pointer;" title="Click to view street sweepers and crew">
                             <div class="exec-kpi-top">
                                 <span class="exec-kpi-label">STREET SWEEPERS &amp; CREW</span>
                                 <div class="exec-icon-circle amber">
@@ -229,11 +255,18 @@
                 <div class="card">
                     <div class="card-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
                         <h3 style="margin:0;">Accredited Fleet &amp; Operations Roster</h3>
-                        <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+                        <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
                             <div class="search-input-wrap">
                                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                                <input type="text" id="search-personnel" placeholder="Search by name, code, vehicle, role..." oninput="filterPersonnel()">
+                                <input type="text" id="search-personnel" placeholder="Search name, code, truck, role..." oninput="filterPersonnel()">
                             </div>
+                            <select id="filter-personnel-status" onchange="filterPersonnel()" style="padding:6px 12px; font-size:12px; border-radius:8px; border:1px solid var(--border); background:var(--surface); color:var(--text); outline:none;">
+                                <option value="all">All Statuses</option>
+                                <option value="active">Active</option>
+                                <option value="on_route">On Live Route</option>
+                                <option value="standby">Standby</option>
+                                <option value="on_leave">On Leave</option>
+                            </select>
                             <div class="view-mode-toggle" id="view-mode-toggle" role="tablist" aria-label="Roster display mode">
                                 <button type="button" class="view-mode-btn active" id="btn-view-grid" onclick="setViewMode('grid')" title="Card Grid View">
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
@@ -246,7 +279,16 @@
                             </div>
                         </div>
                     </div>
-                    <div id="roster-view-container">
+                    <div class="roster-filter-pills-bar" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; margin-bottom:14px; padding:6px 0;">
+                            <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                                <button type="button" class="filter-pill-btn active" id="pill-role-all" onclick="setRoleFilter('all')">All Staff (<span id="pill-count-all">18</span>)</button>
+                                <button type="button" class="filter-pill-btn" id="pill-role-driver" onclick="setRoleFilter('driver')">Heavy Drivers (<span id="pill-count-drivers">5</span>)</button>
+                                <button type="button" class="filter-pill-btn" id="pill-role-sweeper" onclick="setRoleFilter('sweeper')">Street Sweepers (<span id="pill-count-sweepers">10</span>)</button>
+                                <button type="button" class="filter-pill-btn" id="pill-role-inspector" onclick="setRoleFilter('inspector')">Inspectors (<span id="pill-count-inspectors">3</span>)</button>
+                            </div>
+                            <div id="roster-results-counter" style="font-size:12px; color:var(--text-muted); font-weight:600;">Showing 18 Personnel</div>
+                        </div>
+                        <div id="roster-view-container">
                         <div id="table-body" class="record-grid">
                             <p>Loading CLENRO personnel roster...</p>
                         </div>
@@ -671,6 +713,7 @@
 
             renderRoster(personnelList);
             updatePersonnelStats(personnelList);
+            syncPersonnelToLocalStorage();
         }
 
         function updatePersonnelStats(list) {
@@ -868,17 +911,104 @@
             }
         }
 
-        function filterPersonnel() {
-            const query = (document.getElementById('search-personnel')?.value || '').toLowerCase().trim();
-            if (!query) {
-                renderRoster(personnelList);
+        
+        let currentRoleFilter = 'all';
+        let currentStatusFilter = 'all';
+
+        function setRoleFilter(role) {
+            currentRoleFilter = role;
+            document.querySelectorAll('.filter-pill-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.id === `pill-role-${role}`);
+            });
+            filterPersonnel();
+        }
+
+        function setStatusFilter(status) {
+            currentStatusFilter = status;
+            const sel = document.getElementById('filter-personnel-status');
+            if (sel) sel.value = status;
+            filterPersonnel();
+        }
+
+        function exportPersonnelToCSV() {
+            const data = personnelList || [];
+            if (!data.length) {
+                alert('No personnel records to export.');
                 return;
             }
+            const headers = ['Employee Code', 'Full Name', 'Category/Role', 'Status', 'Assigned Vehicle', 'Assigned Zone', 'Shift Schedule', 'Phone', 'Email', 'Contract Type', 'Fleet Partner'];
+            const rows = data.map(p => [
+                p.employee_code || '',
+                p.name || '',
+                p.category || '',
+                p.status || '',
+                p.truck || '',
+                p.zone || '',
+                p.shift || '',
+                p.phone || '',
+                p.email || '',
+                p.contract_type || '',
+                p.partner || ''
+            ]);
+
+            const csvContent = [
+                headers.join(','),
+                ...rows.map(row => row.map(v => `"${String(v).replace(/"/g, '""')}"`).join(','))
+            ].join('\n');
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `CLENRO_Personnel_Roster_${new Date().toISOString().substring(0, 10)}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function syncPersonnelToLocalStorage() {
+            try {
+                localStorage.setItem('clenro_personnel_roster', JSON.stringify(personnelList));
+            } catch (e) {}
+        }
+
+        function filterPersonnel() {
+            const query = (document.getElementById('search-personnel')?.value || '').toLowerCase().trim();
+            const statusVal = document.getElementById('filter-personnel-status')?.value || 'all';
 
             const filtered = personnelList.filter(item => {
-                const haystack = `${item.name} ${item.employee_code} ${item.category} ${item.truck} ${item.zone} ${item.email} ${item.phone}`.toLowerCase();
-                return haystack.includes(query);
+                // Role filter
+                if (currentRoleFilter === 'driver') {
+                    const isDriver = (item.category || '').toLowerCase().includes('driver') || (item.category || '').toLowerCase().includes('operator') || (item.truck && item.truck !== 'None');
+                    if (!isDriver) return false;
+                } else if (currentRoleFilter === 'sweeper') {
+                    const isSweeper = (item.category || '').toLowerCase().includes('sweeper') || (item.category || '').toLowerCase().includes('crew') || (item.category || '').toLowerCase().includes('collector');
+                    if (!isSweeper) return false;
+                } else if (currentRoleFilter === 'inspector') {
+                    const isInspector = (item.category || '').toLowerCase().includes('inspector') || (item.category || '').toLowerCase().includes('audit') || (item.category || '').toLowerCase().includes('officer');
+                    if (!isInspector) return false;
+                }
+
+                // Status filter
+                if (statusVal !== 'all' && (item.status || 'active').toLowerCase() !== statusVal.toLowerCase()) {
+                    return false;
+                }
+
+                // Text search query
+                if (query) {
+                    const haystack = `${item.name} ${item.employee_code} ${item.category} ${item.truck} ${item.zone} ${item.email} ${item.phone}`.toLowerCase();
+                    if (!haystack.includes(query)) return false;
+                }
+
+                return true;
             });
+
+            const countEl = document.getElementById('roster-results-counter');
+            if (countEl) {
+                countEl.textContent = `Showing ${filtered.length} of ${personnelList.length} Personnel`;
+            }
+
             renderRoster(filtered);
         }
 

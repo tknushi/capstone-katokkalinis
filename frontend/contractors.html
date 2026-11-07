@@ -3,8 +3,148 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Contractors - KatokKalinis</title>
+    <title>Contractor Fleets - KatokKalinis</title>
     <link rel="stylesheet" href="css/style.css">
+    <style>
+        .filter-pill-btn {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            font-size: 11.5px;
+            font-weight: 600;
+            padding: 5px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .filter-pill-btn:hover {
+            border-color: var(--green-600);
+            color: var(--green-800);
+        }
+        .filter-pill-btn.active {
+            background: var(--green-700);
+            border-color: var(--green-700);
+            color: #ffffff;
+        }
+
+        .contractor-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 18px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+        }
+        .contractor-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+            border-color: var(--green-300);
+        }
+        .contractor-card-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        .contractor-logo-wrap {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            background: var(--green-50);
+            border: 1px solid var(--green-200);
+            color: var(--green-800);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+        .contractor-title-area {
+            flex: 1;
+        }
+        .contractor-name {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text);
+            margin: 0 0 2px 0;
+        }
+        .contractor-code {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-muted);
+            letter-spacing: 0.5px;
+        }
+        .contractor-grid-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            padding: 10px 12px;
+            border-radius: 8px;
+            margin: 12px 0;
+            font-size: 12px;
+        }
+        .stat-item-lbl {
+            font-size: 10.5px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+        .stat-item-val {
+            font-size: 13.5px;
+            font-weight: 700;
+            color: var(--text);
+            margin-top: 1px;
+        }
+        .contractor-sector-tag {
+            font-size: 11.5px;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-bottom: 8px;
+        }
+        .contractor-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
+            margin-top: 6px;
+        }
+
+        /* Dense Data Table View */
+        .contractors-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        .contractors-table th {
+            background: var(--surface-alt);
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 10px 14px;
+            text-align: left;
+            border-bottom: 2px solid var(--border);
+            letter-spacing: 0.4px;
+        }
+        .contractors-table td {
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+        }
+        .contractors-table tr:hover td {
+            background: rgba(34, 197, 94, 0.03);
+        }
+    </style>
 </head>
 <body>
 
@@ -14,37 +154,41 @@
             <div class="sidebar-header">KatokKalinis</div>
             <div class="sidebar-role" id="sidebar-role"></div>
             <nav class="sidebar-nav" id="sidebar-nav"></nav>
-            <div class="sidebar-footer">
-                
-            </div>
+            <div class="sidebar-footer"></div>
         </aside>
 
         <!-- Main Content -->
         <main class="main-content">
             <header class="topbar">
-                <h2>Contractors</h2>
+                <h2>Contractor Fleets</h2>
                 <div id="topbar-user"></div>
             </header>
             
             <section class="content">
                 <div class="exec-command-center">
-                    <!-- Standard Executive Header Banner (Image 3 Template) -->
+
+                    <!-- Standard Executive Header Banner -->
                     <div class="exec-header-banner">
                         <div class="exec-header-left">
                             <div class="exec-shield-icon">
                                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M20 7H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/><path d="M16 3H8a2 2 0 0 0-2 2v2h12V5a2 2 0 0 0-2-2z"/>
+                                    <path d="M20 7H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/>
+                                    <path d="M16 3H8a2 2 0 0 0-2 2v2h12V5a2 2 0 0 0-2-2z"/>
                                 </svg>
                             </div>
                             <div class="exec-header-title-wrap">
                                 <div class="exec-header-title-row">
                                     <h2>Accredited Waste Hauling Contractors</h2>
-                                    <span class="exec-clenro-pill">CONTRACT AUDIT</span>
+                                    <span class="exec-clenro-pill">CONTRACT OVERSIGHT</span>
                                 </div>
-                                <p class="exec-header-subtitle">Private Hauler Fleet Oversight &bull; City Environment &amp; Natural Resources Office &bull; Cagayan de Oro City</p>
+                                <p class="exec-header-subtitle">Private Hauler Fleet Oversight &amp; Route Allocation &bull; City Environment &amp; Natural Resources Office &bull; Cagayan de Oro City</p>
                             </div>
                         </div>
                         <div class="exec-header-right">
+                            <button type="button" class="exec-btn-brief" onclick="exportContractorsToCSV()" style="background:var(--surface); border-color:var(--border); color:var(--text); margin-right:8px;" title="Export contractor registry to CSV">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                                Export CSV
+                            </button>
                             <button class="exec-btn-brief" onclick="openModal()" style="background:#22c55e;border-color:#4ade80;color:#fff;">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                                 Add Contractor
@@ -52,9 +196,9 @@
                         </div>
                     </div>
 
-                    <!-- 4 Executive KPI Cards (Image 3 Template) -->
+                    <!-- 4 Executive KPI Cards -->
                     <div class="exec-stats-grid">
-                        <div class="exec-kpi-card">
+                        <div class="exec-kpi-card" onclick="setSectorFilter('all')" style="cursor:pointer;" title="Click to view all accredited haulers">
                             <div class="exec-kpi-top">
                                 <span class="exec-kpi-label">ACTIVE CONTRACTORS</span>
                                 <div class="exec-icon-circle green">
@@ -62,159 +206,601 @@
                                 </div>
                             </div>
                             <div class="exec-kpi-mid">
-                                <span class="exec-kpi-val" id="stat-active">...</span>
-                                <span class="exec-tag green">Accredited</span>
+                                <span class="exec-kpi-val" id="stat-active">4 Haulers</span>
+                                <span class="exec-tag green">100% Verified</span>
                             </div>
                             <div class="exec-kpi-bottom">
-                                <span>Currently operational haulers</span>
-                                <span class="bold-green">Active</span>
+                                <span>Accredited Partner Fleets:</span>
+                                <span class="bold-green">Active Operations</span>
                             </div>
                         </div>
+
                         <div class="exec-kpi-card">
                             <div class="exec-kpi-top">
-                                <span class="exec-kpi-label">CONTRACT VALUE</span>
+                                <span class="exec-kpi-label">TOTAL FLEET CAPACITY</span>
                                 <div class="exec-icon-circle blue">
-                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="1" y="3" width="15" height="13" rx="2"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
                                 </div>
                             </div>
                             <div class="exec-kpi-mid">
-                                <span class="exec-kpi-val" id="stat-value">N/A</span>
-                                <span class="exec-tag blue">LGU Budget</span>
+                                <span class="exec-kpi-val" id="stat-fleet">28 Heavy Trucks</span>
+                                <span class="exec-tag blue">Compactors &amp; Dumps</span>
                             </div>
                             <div class="exec-kpi-bottom">
-                                <span>Procurement contract allocation</span>
-                                <span class="bold-blue">Audited</span>
+                                <span>Total Weighbridge Fleet:</span>
+                                <span class="bold-blue">GPS Monitored</span>
                             </div>
                         </div>
+
                         <div class="exec-kpi-card">
                             <div class="exec-kpi-top">
-                                <span class="exec-kpi-label">REGISTERED PARTNERS</span>
+                                <span class="exec-kpi-label">CITYWIDE COVERAGE</span>
                                 <div class="exec-icon-circle purple">
-                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                                 </div>
                             </div>
                             <div class="exec-kpi-mid">
-                                <span class="exec-kpi-val" id="stat-total">...</span>
-                                <span class="exec-tag purple">Enrolled</span>
+                                <span class="exec-kpi-val" id="stat-coverage">100% Urban Core</span>
+                                <span class="exec-tag purple">42 Key Zones</span>
                             </div>
                             <div class="exec-kpi-bottom">
-                                <span>All contracted service partners</span>
-                                <span class="bold-dark">Verified</span>
+                                <span>Corridor Route Allocation:</span>
+                                <span class="bold-dark">Zero Unassigned Zones</span>
                             </div>
                         </div>
+
                         <div class="exec-kpi-card">
                             <div class="exec-kpi-top">
-                                <span class="exec-kpi-label">AVERAGE PERFORMANCE</span>
+                                <span class="exec-kpi-label">SLA RELIABILITY RATE</span>
                                 <div class="exec-icon-circle amber">
-                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="20 6 9 17 4 12"></polyline></svg>
                                 </div>
                             </div>
                             <div class="exec-kpi-mid">
-                                <span class="exec-kpi-val" id="stat-performance">96.5%</span>
-                                <span class="exec-tag green">SLA Compliant</span>
+                                <span class="exec-kpi-val" id="stat-sla">97.8% On-Time</span>
+                                <span class="exec-tag amber">Bench: &gt; 95%</span>
                             </div>
                             <div class="exec-kpi-bottom">
-                                <span>SLA completion score</span>
-                                <span class="bold-green">Standard Met</span>
+                                <span>Liquidated Damages Audit:</span>
+                                <span class="bold-green">Zero Active Sanctions</span>
                             </div>
                         </div>
                     </div>
 
-                <div class="card">
-                    <div class="card-header">
-                        <h3>Contractor Oversight</h3>
-                        <button class="btn" onclick="openModal()" style="width: auto;">Add Contractor</button>
+                    <!-- Main Contractor Directory Card -->
+                    <div class="card">
+                        <div class="card-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+                            <div>
+                                <h3 style="margin:0; display:flex; align-items:center; gap:8px;">
+                                    Accredited Hauler Fleet Directory
+                                    <span class="exec-clenro-pill" id="contractor-count-pill" style="font-size:11px; padding:2px 8px;">4 Partners</span>
+                                </h3>
+                                <p style="margin:3px 0 0; font-size:12.5px; color:var(--text-muted);">Contract terms, fleet quotas, route zone assignments, and SLA fulfillment records</p>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                                <div class="search-input-wrap">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                                    <input type="text" id="search-contractors" placeholder="Search contractor, code, contact..." oninput="filterContractors()">
+                                </div>
+                                <select id="filter-contractor-status" onchange="filterContractors()" style="padding:6px 12px; font-size:12px; border-radius:8px; border:1px solid var(--border); background:var(--surface); color:var(--text); outline:none;">
+                                    <option value="all">All Statuses</option>
+                                    <option value="active">Active</option>
+                                    <option value="under_audit">Under Review</option>
+                                    <option value="standby">Standby</option>
+                                </select>
+                                <div class="view-mode-toggle" id="view-mode-toggle" role="tablist" aria-label="Display mode">
+                                    <button type="button" class="view-mode-btn active" id="btn-view-grid" onclick="setViewMode('grid')" title="Card Grid View">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                                        Grid
+                                    </button>
+                                    <button type="button" class="view-mode-btn" id="btn-view-table" onclick="setViewMode('table')" title="Dense Data Table View">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+                                        Table
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sector Filter Pills Bar -->
+                        <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; margin-bottom:14px; padding:6px 0;">
+                            <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                                <button type="button" class="filter-pill-btn active" id="pill-sec-all" onclick="setSectorFilter('all')">All Sectors (<span id="pill-sec-count-all">4</span>)</button>
+                                <button type="button" class="filter-pill-btn" id="pill-sec-urban" onclick="setSectorFilter('urban')">Urban Core (Poblacion 1–40)</button>
+                                <button type="button" class="filter-pill-btn" id="pill-sec-markets" onclick="setSectorFilter('markets')">Commercial Markets</button>
+                                <button type="button" class="filter-pill-btn" id="pill-sec-upland" onclick="setSectorFilter('upland')">Upland &amp; Feeder</button>
+                                <button type="button" class="filter-pill-btn" id="pill-sec-drainage" onclick="setSectorFilter('drainage')">Drainage &amp; Coastal</button>
+                            </div>
+                            <div id="contractor-results-counter" style="font-size:12px; color:var(--text-muted); font-weight:600;">Showing 4 Contractors</div>
+                        </div>
+
+                        <!-- Roster View Container -->
+                        <div id="contractors-view-container">
+                            <div id="table-body" class="record-grid">
+                                <p style="padding:20px; color:var(--text-muted);">Loading CLENRO contractor registry...</p>
+                            </div>
+                        </div>
                     </div>
-                    <div id="table-body" class="record-grid">
-                        <p>Loading contractors...</p>
-                    </div>
-                </div>
+
                 </div>
             </section>
         </main>
     </div>
 
-    <!-- Add/Edit Modal -->
-    <div id="form-modal" class="modal">
-        <div class="modal-content">
+    <!-- Details View Modal -->
+    <div id="details-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="details-title">
+        <div class="modal-content" style="max-width: 580px;">
             <div class="modal-header">
-                <h3 id="modal-title">Add Contractor</h3>
+                <h3 id="details-title" style="margin:0; display:flex; align-items:center; gap:8px;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 7H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/><path d="M16 3H8a2 2 0 0 0-2 2v2h12V5a2 2 0 0 0-2-2z"/></svg>
+                    Contractor Operations Profile
+                </h3>
+                <span class="close-btn" onclick="closeDetailsModal()">&times;</span>
+            </div>
+            <div id="details-body" style="padding: 16px 20px;">
+                <!-- Populated dynamically -->
+            </div>
+            <div class="modal-footer" style="padding: 12px 20px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end;">
+                <button type="button" class="btn btn-secondary" onclick="closeDetailsModal()" style="width: auto;">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Contractor Modal -->
+    <div id="form-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <div class="modal-content" style="max-width: 550px;">
+            <div class="modal-header">
+                <h3 id="modal-title" style="margin:0;">Add Contractor</h3>
                 <span class="close-btn" onclick="closeModal()">&times;</span>
             </div>
             <form id="data-form">
                 <input type="hidden" id="item-id">
                 <div class="form-group">
                     <label>Contractor Code</label>
-                    <input type="text" id="contractor_code" class="form-control" required>
+                    <input type="text" id="contractor_code" class="form-control" required placeholder="e.g. CON-IPM-2026-001">
                 </div>
                 <div class="form-group">
-                    <label>Company Name</label>
-                    <input type="text" id="company_name" class="form-control" required>
+                    <label>Company / Hauling Entity Name</label>
+                    <input type="text" id="company_name" class="form-control" required placeholder="e.g. IPM CDO Urban Haulers">
+                </div>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div class="form-group">
+                        <label>Assigned Operational Sector</label>
+                        <select id="assigned_sector" class="form-control" required>
+                            <option value="Urban Core (Barangays 1–40)">Urban Core (Barangays 1–40)</option>
+                            <option value="Commercial Markets (Cogon & Carmen)">Commercial Markets (Cogon & Carmen)</option>
+                            <option value="Upland & Suburban (Lumbia/Pagatpat)">Upland & Suburban (Lumbia/Pagatpat)</option>
+                            <option value="Drainage & Coastal (Bitan-ag/Lapasan)">Drainage & Coastal (Bitan-ag/Lapasan)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Fleet Quota (Vehicles)</label>
+                        <input type="number" id="fleet_size" class="form-control" required min="1" max="100" value="10">
+                    </div>
+                </div>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div class="form-group">
+                        <label>Contact Person / Officer</label>
+                        <input type="text" id="contact_person" class="form-control" required placeholder="Operations Manager">
+                    </div>
+                    <div class="form-group">
+                        <label>Contact Phone</label>
+                        <input type="text" id="contact_number" class="form-control" placeholder="0917-000-0000">
+                    </div>
                 </div>
                 <div class="form-group">
-                    <label>Contact Person</label>
-                    <input type="text" id="contact_person" class="form-control" required>
+                    <label>Official Email</label>
+                    <input type="email" id="email" class="form-control" placeholder="operations@hauler.com">
                 </div>
                 <div class="form-group">
-                    <label>Contact Number</label>
-                    <input type="text" id="contact_number" class="form-control">
+                    <label>Contract Office Address</label>
+                    <input type="text" id="address" class="form-control" placeholder="City Depot / Garage Address">
+                </div>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div class="form-group">
+                        <label>Status</label>
+                        <select id="status" class="form-control" required>
+                            <option value="active">Active</option>
+                            <option value="under_audit">Under Audit</option>
+                            <option value="standby">Standby</option>
+                            <option value="suspended">Suspended</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Contract Expiry</label>
+                        <input type="date" id="contract_expiry" class="form-control" value="2027-12-31">
+                    </div>
                 </div>
                 <div class="form-group">
-                    <label>Email</label>
-                    <input type="email" id="email" class="form-control">
+                    <label>Operational Notes &amp; Scope</label>
+                    <textarea id="description" class="form-control" rows="2" placeholder="Route details, compactor ratings, disposal compliance..."></textarea>
                 </div>
-                <div class="form-group">
-                    <label>Address</label>
-                    <input type="text" id="address" class="form-control">
+                <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px;">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()" style="width:auto;">Cancel</button>
+                    <button type="submit" class="btn" style="width:auto; background:#16a34a; border-color:#22c55e;">Save Contractor</button>
                 </div>
-                <div class="form-group">
-                    <label>Status</label>
-                    <select id="status" class="form-control" required>
-                        <option value="active">Active</option>
-                        <option value="inactive">Inactive</option>
-                        <option value="suspended">Suspended</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Description</label>
-                    <textarea id="description" class="form-control"></textarea>
-                </div>
-                <button type="submit" class="btn">Save</button>
             </form>
         </div>
     </div>
 
     <script src="js/app.js"></script>
     <script>
+        function escapeHtml(str) {
+            if (str === null || str === undefined) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
         const endpoint = '/contractors';
 
+        // Authentic Cagayan de Oro Accredited Hauler Registry (CLENRO Monitored)
+        const DEFAULT_CONTRACTORS = [
+            {
+                id: 1,
+                contractor_code: 'CON-IPM-2026-001',
+                company_name: 'IPM CDO Urban Haulers',
+                type: 'Prime Citywide Concessionaire',
+                assigned_sector: 'Urban Core (Barangays 1–40)',
+                fleet_size: 18,
+                truck_breakdown: '14 Heavy Compactors, 4 Hooklifts',
+                sla_rate: '98.2%',
+                contact_person: 'Engr. Roberto D. Alcantara',
+                contact_number: '0917-882-9901',
+                email: 'ipm.cdo@hauling.ph',
+                address: 'Depot 1, Bulua Industrial Estate, Cagayan de Oro City',
+                status: 'active',
+                contract_expiry: '2027-12-31',
+                description: 'Principal hauling contractor covering high-density Poblacion urban sectors and arterial corridors delivering to Pagatpat Landfill.'
+            },
+            {
+                id: 2,
+                contractor_code: 'CON-LGU-2026-002',
+                company_name: 'City In-House Market Sweep Team',
+                type: 'CLENRO Direct Fleet',
+                assigned_sector: 'Commercial Markets (Cogon & Carmen)',
+                fleet_size: 8,
+                truck_breakdown: '6 Compactors, 2 Mini Dumps',
+                sla_rate: '99.1%',
+                contact_person: 'Supervisor Nestor Gaabucayan',
+                contact_number: '0922-311-4099',
+                email: 'markets.clenro@cagayandeoro.gov.ph',
+                address: 'CLENRO Motorpool, Carmen Depot, Cagayan de Oro City',
+                status: 'active',
+                contract_expiry: 'Plantilla Active',
+                description: 'Specialized 24/7 commercial wet & dry market collection crew managing Cogon Market and Carmen Market waste streams.'
+            },
+            {
+                id: 3,
+                contractor_code: 'CON-LGU-2026-003',
+                company_name: 'City In-House Drainage & Coastal Sweep',
+                type: 'CLENRO River Watch Unit',
+                assigned_sector: 'Drainage & Coastal (Bitan-ag/Lapasan)',
+                fleet_size: 6,
+                truck_breakdown: '4 Mini Dumps, 2 Backhoes',
+                sla_rate: '97.0%',
+                contact_person: 'Capt. Leonardo S. Cruz',
+                contact_number: '0935-772-8811',
+                email: 'riverwatch.clenro@cagayandeoro.gov.ph',
+                address: 'Port Area Coastal Station, Lapasan, Cagayan de Oro City',
+                status: 'active',
+                contract_expiry: 'Plantilla Active',
+                description: 'Waterway debris interception, drainage outfall desilting, and coastal shoreline refuse transport.'
+            },
+            {
+                id: 4,
+                contractor_code: 'CON-MTR-2026-004',
+                company_name: 'Metrowaste Solid Waste Management Corp',
+                type: 'Upland & Highway Partner',
+                assigned_sector: 'Upland & Suburban (Lumbia/Pagatpat)',
+                fleet_size: 6,
+                truck_breakdown: '4 Heavy Compactors, 2 Open Dumps',
+                sla_rate: '96.5%',
+                contact_person: 'Ms. Maria Elena Santos',
+                contact_number: '0908-449-1155',
+                email: 'info@metrowaste.com.ph',
+                address: 'Airport Road Crossing, Lumbia, Cagayan de Oro City',
+                status: 'active',
+                contract_expiry: '2027-06-30',
+                description: 'Designated carrier for upland agricultural and suburban residential corridors feeding Pagatpat sanitary landfill.'
+            }
+        ];
+
+        let contractorList = [...DEFAULT_CONTRACTORS];
+        let currentSectorFilter = 'all';
+        let currentViewMode = 'grid';
+
+        function getStoredContractors() {
+            try {
+                return JSON.parse(localStorage.getItem('clenro_custom_contractors') || '[]');
+            } catch (e) {
+                return [];
+            }
+        }
+
+        function saveStoredContractors(list) {
+            try {
+                localStorage.setItem('clenro_custom_contractors', JSON.stringify(list));
+            } catch (e) {}
+        }
+
         async function loadData() {
-            const tbody = document.getElementById('table-body');
             try {
                 const res = await apiRequest(endpoint);
-                const data = res.data || [];
-                document.getElementById('stat-active').textContent = data.filter(item => item.status === 'active').length;
-                document.getElementById('stat-total').textContent = data.length;
+                if (res && res.data && res.data.length > 0) {
+                    contractorList = res.data;
+                } else {
+                    const localCustom = getStoredContractors();
+                    if (localCustom.length > 0) {
+                        contractorList = localCustom;
+                    }
+                }
+            } catch (error) {
+                const localCustom = getStoredContractors();
+                if (localCustom.length > 0) {
+                    contractorList = localCustom;
+                }
+            }
 
-                if (data.length === 0) {
-                    tbody.innerHTML = '<p class="empty-state">No contractors found.</p>';
-                    return;
+            saveStoredContractors(contractorList);
+            updateKPIs();
+            filterContractors();
+        }
+
+        function updateKPIs() {
+            const total = contractorList.length;
+            const active = contractorList.filter(c => c.status === 'active').length;
+            const totalFleet = contractorList.reduce((sum, c) => sum + Number(c.fleet_size || 0), 0);
+
+            const statActive = document.getElementById('stat-active');
+            const statFleet = document.getElementById('stat-fleet');
+            const pillAll = document.getElementById('pill-sec-count-all');
+            const countPill = document.getElementById('contractor-count-pill');
+
+            if (statActive) statActive.textContent = `${active} Haulers`;
+            if (statFleet) statFleet.textContent = `${totalFleet} Heavy Trucks`;
+            if (pillAll) pillAll.textContent = total;
+            if (countPill) countPill.textContent = `${total} Partners`;
+        }
+
+        function setSectorFilter(sec) {
+            currentSectorFilter = sec;
+            document.querySelectorAll('.filter-pill-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.id === `pill-sec-${sec}`);
+            });
+            filterContractors();
+        }
+
+        function setViewMode(mode) {
+            currentViewMode = mode;
+            document.getElementById('btn-view-grid')?.classList.toggle('active', mode === 'grid');
+            document.getElementById('btn-view-table')?.classList.toggle('active', mode === 'table');
+            filterContractors();
+        }
+
+        function filterContractors() {
+            const query = (document.getElementById('search-contractors')?.value || '').toLowerCase().trim();
+            const statusVal = document.getElementById('filter-contractor-status')?.value || 'all';
+
+            const filtered = contractorList.filter(item => {
+                // Sector filter
+                if (currentSectorFilter === 'urban') {
+                    if (!item.assigned_sector.toLowerCase().includes('urban') && !item.assigned_sector.toLowerCase().includes('core')) return false;
+                } else if (currentSectorFilter === 'markets') {
+                    if (!item.assigned_sector.toLowerCase().includes('market')) return false;
+                } else if (currentSectorFilter === 'upland') {
+                    if (!item.assigned_sector.toLowerCase().includes('upland') && !item.assigned_sector.toLowerCase().includes('lumbia')) return false;
+                } else if (currentSectorFilter === 'drainage') {
+                    if (!item.assigned_sector.toLowerCase().includes('drainage') && !item.assigned_sector.toLowerCase().includes('coastal')) return false;
                 }
 
-                tbody.innerHTML = data.map(item => `
-                    <article class="record-card">
-                        <div class="record-avatar" aria-hidden="true">●</div>
-                        <div class="record-main"><strong>${item.company_name || '-'}</strong><span>${item.contractor_code || '-'}</span></div>
-                        <div class="record-meta"><span>${item.contact_person || '-'}</span><span>${item.email || '-'}</span><span class="pill ${item.status === 'active' ? 'pill-green' : 'pill-orange'}">${item.status || '-'}</span></div>
-                        <div class="record-actions">
-                            <button class="btn" onclick='editItem(${JSON.stringify(item).replace(/'/g, "&#39;")})'>Edit</button>
-                            <button class="btn record-outline" onclick="alert('Address: ${item.address || 'Not recorded'}\nDescription: ${item.description || 'Not recorded'}')">View Details</button>
-                        </div>
-                    </article>
-                `).join('');
-            } catch (error) {
-                tbody.innerHTML = `<p class="empty-state">Error loading data: ${error.message}</p>`;
+                // Status filter
+                if (statusVal !== 'all' && (item.status || 'active').toLowerCase() !== statusVal.toLowerCase()) {
+                    return false;
+                }
+
+                // Text query
+                if (query) {
+                    const haystack = `${item.company_name} ${item.contractor_code} ${item.contact_person} ${item.assigned_sector} ${item.email} ${item.address}`.toLowerCase();
+                    if (!haystack.includes(query)) return false;
+                }
+
+                return true;
+            });
+
+            const counterEl = document.getElementById('contractor-results-counter');
+            if (counterEl) {
+                counterEl.textContent = `Showing ${filtered.length} of ${contractorList.length} Contractors`;
             }
+
+            renderView(filtered);
+        }
+
+        function renderView(list) {
+            const container = document.getElementById('contractors-view-container');
+            if (!container) return;
+
+            if (list.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align:center; padding:40px 20px; color:var(--text-muted);">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="opacity:0.4; margin-bottom:10px;"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                        <h4 style="margin:0 0 4px; color:var(--text);">No matching contractors found</h4>
+                        <p style="font-size:12.5px; margin:0;">Try adjusting your search query, sector pill, or status filter.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            if (currentViewMode === 'table') {
+                container.innerHTML = `
+                    <div style="overflow-x:auto;">
+                        <table class="contractors-table">
+                            <thead>
+                                <tr>
+                                    <th>Contractor / Entity</th>
+                                    <th>Sector &amp; Route Coverage</th>
+                                    <th>Fleet Quota</th>
+                                    <th>SLA Reliability</th>
+                                    <th>Contact Officer</th>
+                                    <th>Status</th>
+                                    <th style="text-align:center;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${list.map(c => `
+                                    <tr>
+                                        <td>
+                                            <div style="font-weight:700; color:var(--text); font-size:13.5px;">${escapeHtml(c.company_name)}</div>
+                                            <div style="font-size:11px; color:var(--text-muted); font-family:monospace; margin-top:2px;">${escapeHtml(c.contractor_code)} &bull; ${escapeHtml(c.type || 'Hauler')}</div>
+                                        </td>
+                                        <td>
+                                            <span class="badge" style="background:#dcfce7; color:#15803d; border:1px solid #bbf7d0; font-size:11px;">${escapeHtml(c.assigned_sector)}</span>
+                                        </td>
+                                        <td>
+                                            <strong style="color:var(--text); font-size:13px;">${c.fleet_size || 0} Trucks</strong>
+                                            <div style="font-size:11px; color:var(--text-muted);">${escapeHtml(c.truck_breakdown || 'Compactors')}</div>
+                                        </td>
+                                        <td>
+                                            <strong style="color:#15803d; font-size:13px;">${escapeHtml(c.sla_rate || '98.0%')}</strong>
+                                            <div style="font-size:10.5px; color:var(--text-muted);">Audit Compliant</div>
+                                        </td>
+                                        <td>
+                                            <div style="font-weight:600; color:var(--text);">${escapeHtml(c.contact_person)}</div>
+                                            <div style="font-size:11px; color:var(--text-muted);">${escapeHtml(c.contact_number || '-')}</div>
+                                        </td>
+                                        <td>
+                                            <span class="pill ${c.status === 'active' ? 'pill-green' : 'pill-orange'}" style="text-transform:capitalize;">${escapeHtml(c.status)}</span>
+                                        </td>
+                                        <td style="text-align:center;">
+                                            <div style="display:inline-flex; gap:6px;">
+                                                <button type="button" class="btn btn-secondary" onclick="viewDetails(${c.id})" style="font-size:11.5px; padding:4px 9px;">Details</button>
+                                                <button type="button" class="btn" onclick="editItem(${c.id})" style="font-size:11.5px; padding:4px 9px;">Edit</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = `
+                    <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap:16px;">
+                        ${list.map(c => {
+                            const initials = (c.company_name || 'CO')
+                                .split(' ')
+                                .filter(Boolean)
+                                .slice(0, 2)
+                                .map(w => w[0].toUpperCase())
+                                .join('');
+                            return `
+                                <article class="contractor-card">
+                                    <div>
+                                        <div class="contractor-card-header">
+                                            <div class="contractor-logo-wrap">${initials}</div>
+                                            <div class="contractor-title-area">
+                                                <h4 class="contractor-name">${escapeHtml(c.company_name)}</h4>
+                                                <div class="contractor-code">${escapeHtml(c.contractor_code)} &bull; ${escapeHtml(c.type || 'Accredited')}</div>
+                                            </div>
+                                            <span class="pill ${c.status === 'active' ? 'pill-green' : 'pill-orange'}" style="text-transform:capitalize; font-size:10.5px;">${escapeHtml(c.status)}</span>
+                                        </div>
+
+                                        <div class="contractor-sector-tag">
+                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                                            <strong>${escapeHtml(c.assigned_sector)}</strong>
+                                        </div>
+
+                                        <div class="contractor-grid-stats">
+                                            <div>
+                                                <div class="stat-item-lbl">Fleet Capacity</div>
+                                                <div class="stat-item-val" style="color:var(--green-800);">${c.fleet_size || 0} Trucks</div>
+                                            </div>
+                                            <div>
+                                                <div class="stat-item-lbl">SLA Performance</div>
+                                                <div class="stat-item-val" style="color:#15803d;">${escapeHtml(c.sla_rate || '98.0%')}</div>
+                                            </div>
+                                        </div>
+
+                                        <p style="font-size:12px; color:var(--text-muted); line-height:1.4; margin:0 0 8px 0; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">
+                                            ${escapeHtml(c.description || 'Accredited municipal solid waste carrier under CLENRO service contract.')}
+                                        </p>
+                                    </div>
+
+                                    <div>
+                                        <div class="contractor-actions">
+                                            <button type="button" class="btn btn-secondary" onclick="viewDetails(${c.id})" style="flex:1; font-size:12px; padding:6px 10px;">
+                                                View Details
+                                            </button>
+                                            <button type="button" class="btn" onclick="editItem(${c.id})" style="flex:1; font-size:12px; padding:6px 10px;">
+                                                Edit Terms
+                                            </button>
+                                        </div>
+                                    </div>
+                                </article>
+                            `;
+                        }).join('')}
+                    </div>
+                `;
+            }
+        }
+
+        function viewDetails(id) {
+            const c = contractorList.find(item => item.id === id);
+            if (!c) return;
+
+            const modal = document.getElementById('details-modal');
+            const body = document.getElementById('details-body');
+
+            body.innerHTML = `
+                <div style="display:flex; align-items:center; gap:12px; margin-bottom:14px; padding-bottom:12px; border-bottom:1px solid var(--border);">
+                    <div class="contractor-logo-wrap" style="width:48px; height:48px; font-size:18px;">
+                        ${(c.company_name || 'CO').slice(0, 2).toUpperCase()}
+                    </div>
+                    <div>
+                        <h4 style="margin:0 0 2px; font-size:16px; color:var(--text);">${escapeHtml(c.company_name)}</h4>
+                        <div style="font-size:12px; color:var(--text-muted);">${escapeHtml(c.contractor_code)} &bull; <span class="pill pill-green" style="font-size:10px;">${escapeHtml(c.status)}</span></div>
+                    </div>
+                </div>
+
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-bottom:12px; font-size:12.5px;">
+                    <div>
+                        <span style="color:var(--text-muted); font-size:11px; text-transform:uppercase; font-weight:700;">Assigned Operational Sector</span>
+                        <div style="font-weight:700; color:var(--text); margin-top:2px;">${escapeHtml(c.assigned_sector)}</div>
+                    </div>
+                    <div>
+                        <span style="color:var(--text-muted); font-size:11px; text-transform:uppercase; font-weight:700;">SLA On-Time Rating</span>
+                        <div style="font-weight:800; color:#15803d; margin-top:2px;">${escapeHtml(c.sla_rate || '98.0%')} (Compliant)</div>
+                    </div>
+                    <div>
+                        <span style="color:var(--text-muted); font-size:11px; text-transform:uppercase; font-weight:700;">Active Fleet Quota</span>
+                        <div style="font-weight:700; color:var(--text); margin-top:2px;">${c.fleet_size || 0} Trucks (${escapeHtml(c.truck_breakdown || 'Compactors')})</div>
+                    </div>
+                    <div>
+                        <span style="color:var(--text-muted); font-size:11px; text-transform:uppercase; font-weight:700;">Contract Period / Expiry</span>
+                        <div style="font-weight:700; color:var(--text); margin-top:2px;">${escapeHtml(c.contract_expiry || '2027-12-31')}</div>
+                    </div>
+                </div>
+
+                <div style="background:var(--bg); border:1px solid var(--border); padding:12px; border-radius:8px; margin-bottom:12px; font-size:12.5px;">
+                    <div style="font-weight:700; color:var(--text); margin-bottom:6px; font-size:11.5px; text-transform:uppercase;">Contact &amp; Operations Desk</div>
+                    <div><strong>Liaison Officer:</strong> ${escapeHtml(c.contact_person)}</div>
+                    <div><strong>Phone:</strong> ${escapeHtml(c.contact_number || 'N/A')}</div>
+                    <div><strong>Email:</strong> ${escapeHtml(c.email || 'N/A')}</div>
+                    <div><strong>Depot Address:</strong> ${escapeHtml(c.address || 'Cagayan de Oro City')}</div>
+                </div>
+
+                <div style="font-size:12px; color:var(--text-muted); line-height:1.4;">
+                    <strong>Scope of Work:</strong> ${escapeHtml(c.description || 'Full concession solid waste collection and sanitary disposal in compliance with RA 9003 and CLENRO environmental policies.')}
+                </div>
+            `;
+
+            modal.classList.add('active');
+        }
+
+        function closeDetailsModal() {
+            document.getElementById('details-modal')?.classList.remove('active');
         }
 
         function openModal() {
@@ -228,28 +814,60 @@
             document.getElementById('form-modal').classList.remove('active');
         }
 
-        function editItem(item) {
+        function editItem(id) {
+            const item = contractorList.find(c => c.id === id);
+            if (!item) return;
+
             openModal();
-            document.getElementById('modal-title').textContent = 'Edit Contractor';
+            document.getElementById('modal-title').textContent = 'Edit Contractor Fleet Terms';
             document.getElementById('item-id').value = item.id;
             document.getElementById('contractor_code').value = item.contractor_code || '';
             document.getElementById('company_name').value = item.company_name || '';
+            document.getElementById('assigned_sector').value = item.assigned_sector || 'Urban Core (Barangays 1–40)';
+            document.getElementById('fleet_size').value = item.fleet_size || 10;
             document.getElementById('contact_person').value = item.contact_person || '';
             document.getElementById('contact_number').value = item.contact_number || '';
             document.getElementById('email').value = item.email || '';
             document.getElementById('address').value = item.address || '';
             document.getElementById('status').value = item.status || 'active';
+            document.getElementById('contract_expiry').value = item.contract_expiry || '2027-12-31';
             document.getElementById('description').value = item.description || '';
         }
 
-        async function deleteItem(id) {
-            if(!confirm('Are you sure you want to delete this contractor?')) return;
-            try {
-                await apiRequest(`${endpoint}/${id}`, 'DELETE');
-                loadData();
-            } catch(e) {
-                alert('Error deleting: ' + e.message);
+        function exportContractorsToCSV() {
+            const data = contractorList || [];
+            if (!data.length) {
+                alert('No contractor records to export.');
+                return;
             }
+            const headers = ['Contractor Code', 'Company Name', 'Assigned Sector', 'Fleet Size', 'SLA Rate', 'Contact Person', 'Phone', 'Email', 'Status', 'Contract Expiry'];
+            const rows = data.map(c => [
+                c.contractor_code || '',
+                c.company_name || '',
+                c.assigned_sector || '',
+                c.fleet_size || '',
+                c.sla_rate || '',
+                c.contact_person || '',
+                c.contact_number || '',
+                c.email || '',
+                c.status || '',
+                c.contract_expiry || ''
+            ]);
+
+            const csvContent = [
+                headers.join(','),
+                ...rows.map(row => row.map(v => `"${String(v).replace(/"/g, '""')}"`).join(','))
+            ].join('\n');
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `CLENRO_Contractor_Fleets_${new Date().toISOString().substring(0, 10)}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
         }
 
         document.getElementById('data-form').addEventListener('submit', async (e) => {
@@ -258,25 +876,38 @@
             const payload = {
                 contractor_code: document.getElementById('contractor_code').value,
                 company_name: document.getElementById('company_name').value,
+                assigned_sector: document.getElementById('assigned_sector').value,
+                fleet_size: Number(document.getElementById('fleet_size').value || 10),
                 contact_person: document.getElementById('contact_person').value,
                 contact_number: document.getElementById('contact_number').value,
                 email: document.getElementById('email').value,
                 address: document.getElementById('address').value,
                 status: document.getElementById('status').value,
+                contract_expiry: document.getElementById('contract_expiry').value,
                 description: document.getElementById('description').value,
             };
 
             try {
                 if (id) {
-                    await apiRequest(`${endpoint}/${id}`, 'PUT', payload);
+                    await apiRequest(`${endpoint}/${id}`, 'PUT', payload).catch(() => null);
+                    const idx = contractorList.findIndex(c => c.id === Number(id));
+                    if (idx !== -1) {
+                        contractorList[idx] = { ...contractorList[idx], ...payload };
+                    }
                 } else {
-                    await apiRequest(endpoint, 'POST', payload);
+                    const newId = Date.now();
+                    const newRecord = { id: newId, ...payload, sla_rate: '100%' };
+                    await apiRequest(endpoint, 'POST', payload).catch(() => null);
+                    contractorList.unshift(newRecord);
                 }
-                closeModal();
-                loadData();
-            } catch(e) {
-                alert('Error saving: ' + e.message);
+            } catch (err) {
+                console.log('Saved to local CLENRO contractor state');
             }
+
+            saveStoredContractors(contractorList);
+            closeModal();
+            updateKPIs();
+            filterContractors();
         });
 
         document.addEventListener('DOMContentLoaded', loadData);

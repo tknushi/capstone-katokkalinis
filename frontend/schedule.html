@@ -501,13 +501,17 @@
                                 <p class="exec-header-subtitle">Route Timetables &amp; Barangay Pick-Up Windows &bull; Cagayan de Oro City</p>
                             </div>
                         </div>
-                        <div class="exec-header-right">
+                        <div class="exec-header-right" style="display:flex; gap:8px; flex-wrap:wrap;">
                             <button type="button" id="dss-quick-schedule-btn" class="exec-btn-brief" style="display:none; background:#7c3aed; border-color:#a78bfa; color:#fff;" onclick="openPreFilledDssModal()">
                                 Pre-Fill Schedule from DSS
                             </button>
+                            <button type="button" class="exec-btn-brief" onclick="openRouteModal()" style="background:#15803d;border-color:#4ade80;color:#fff;font-weight:700;">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v20M2 12h20"/></svg>
+                                + Create Collection Route
+                            </button>
                             <button type="button" class="exec-btn-brief" onclick="openModal()" style="background:#22c55e;border-color:#4ade80;color:#fff;">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                                + Add Schedule
+                                + Add Barangay Schedule
                             </button>
                         </div>
                     </div>
@@ -546,6 +550,13 @@
                                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
                                 Push Advisory
                             </button>
+                            <button class="btn" onclick="openRouteModal()" style="width: auto; background: #15803d; display: inline-flex; align-items: center; gap: 6px;">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                                </svg>
+                                + Create Collection Route
+                            </button>
                             <button class="btn" onclick="openModal()" style="width: auto; display: inline-flex; align-items: center; gap: 6px;">
                                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                     <line x1="12" y1="5" x2="12" y2="19"></line>
@@ -558,31 +569,44 @@
                     <div id="schedule-calendar" class="schedule-calendar">Loading calendar...</div>
                 </div>
 
-                <!-- Recent Reports Section -->
-                <div class="card reports-table-card">
+                <!-- Collection Route & Schedule Management Section -->
+                <div class="card reports-table-card" id="collection-route-management-section">
                     <div class="card-header" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <h3 style="margin: 0;">Recent Reports</h3>
-                            <span class="reports-badge" id="reports-count-badge">0 total</span>
+                        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                            <h3 style="margin: 0;">Collection Route &amp; Schedule Management</h3>
+                            <span class="reports-badge" id="reports-count-badge">0 routes</span>
+                            <span style="font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 10px; background: #EFF6FF; color: #1E40AF; border: 1px solid #BFDBFE;">
+                                Asia/Manila &bull; Syncs with Driver &amp; Resident Mobile Apps
+                            </span>
                         </div>
-                        <div style="font-size: 12.5px; color: var(--text-muted);">
-                            Latest collection route reports from drivers
+                        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                            <select id="route-status-filter" class="form-control" style="width: auto; height: 34px; padding: 4px 10px; font-size: 12.5px;" onchange="loadRecentAdminReports()">
+                                <option value="all">All Statuses</option>
+                                <option value="scheduled">Scheduled</option>
+                                <option value="ongoing">Ongoing</option>
+                                <option value="completed">Completed</option>
+                                <option value="delayed">Delayed</option>
+                            </select>
+                            <button type="button" class="btn" onclick="openRouteModal()" style="width: auto; height: 34px; padding: 0 14px; background: #15803d; display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px;">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                                + Add Collection Route
+                            </button>
                         </div>
                     </div>
                     <div class="table-responsive">
                         <table class="reports-table" id="recent-reports-table">
                             <thead>
                                 <tr>
-                                    <th style="width: 28%;">Driver</th>
-                                    <th style="width: 20%;">Location</th>
-                                    <th style="width: 14%;">Date</th>
-                                    <th style="width: 18%;">Time</th>
-                                    <th style="width: 12%;">Status</th>
-                                    <th style="width: 8%; text-align: center;">Action</th>
+                                    <th style="width: 22%;">Assigned Driver &amp; Truck</th>
+                                    <th style="width: 28%;">Start Route &rarr; Stops &rarr; End Route</th>
+                                    <th style="width: 12%;">Collection Date</th>
+                                    <th style="width: 18%;">Start &rarr; Est. Arrival (Duration)</th>
+                                    <th style="width: 10%;">Status</th>
+                                    <th style="width: 10%; text-align: center;">Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="recent-admin-reports">
-                                <tr><td colspan="6" style="text-align: center; padding: 24px; color: var(--text-muted);">Loading driver reports...</td></tr>
+                                <tr><td colspan="6" style="text-align: center; padding: 24px; color: var(--text-muted);">Loading collection routes...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -590,6 +614,143 @@
                 </div>
             </section>
         </main>
+    </div>
+
+    <!-- Add/Edit Collection Route Modal (Website Admin Route Builder) -->
+    <div id="route-modal" class="modal">
+        <div class="modal-content" style="max-width: 680px; max-height: 92vh; overflow-y: auto;">
+            <div class="modal-header">
+                <h3 id="route-modal-title">Create Collection Route</h3>
+                <span class="close-btn" onclick="closeRouteModal()">&times;</span>
+            </div>
+            <form id="route-form" onsubmit="handleSaveCollectionRoute(event)" style="margin-top: 10px;">
+                <input type="hidden" id="route-id">
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div class="form-group">
+                        <label>Route Name / Identifier *</label>
+                        <input type="text" id="route-name" class="form-control" placeholder="e.g. Route A" value="Route A" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Route Status *</label>
+                        <select id="route-status" class="form-control" required>
+                            <option value="scheduled">Scheduled</option>
+                            <option value="ongoing">Ongoing</option>
+                            <option value="completed">Completed</option>
+                            <option value="delayed">Delayed</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Start Route and End Route -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div class="form-group">
+                        <label>Start Route (Starting Location) *</label>
+                        <input type="text" id="route-start-location" class="form-control" placeholder="e.g. Dispatch Point" value="Dispatch Point" required oninput="recalculateRouteModalPreview()">
+                    </div>
+                    <div class="form-group">
+                        <label>End Route (Final Destination) *</label>
+                        <input type="text" id="route-end-location" class="form-control" placeholder="e.g. Waste Disposal Facility" value="Waste Disposal Facility" required oninput="recalculateRouteModalPreview()">
+                    </div>
+                </div>
+
+                <!-- Ordered Barangay Collection Stops -->
+                <div class="form-group" style="background: var(--surface-alt); padding: 12px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 14px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; flex-wrap: wrap; gap: 6px;">
+                        <label style="margin: 0; font-weight: 700; color: var(--green-800);">Collection Stops (Ordered Sequence) *</label>
+                        <span style="font-size: 11.5px; color: var(--text-muted);">Arrange barangay stops in collection order</span>
+                    </div>
+                    <div id="route-stops-list" style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px;"></div>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <select id="route-add-barangay-select" class="form-control" style="flex: 1; min-width: 170px;">
+                            <option value="">-- Select Barangay Stop --</option>
+                        </select>
+                        <input type="text" id="route-add-custom-stop" class="form-control" style="flex: 1; min-width: 170px;" placeholder="Or type custom stop name...">
+                        <button type="button" class="btn" style="width: auto; background: #15803d; padding: 0 14px;" onclick="addStopToRouteModal()">+ Add Stop</button>
+                    </div>
+                </div>
+
+                <!-- Date, Starting Time, Travel Duration & Stop Collection Duration -->
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
+                    <div class="form-group">
+                        <label>Collection Date *</label>
+                        <input type="date" id="route-date" class="form-control" required onchange="recalculateRouteModalPreview()">
+                    </div>
+                    <div class="form-group">
+                        <label>Starting Time *</label>
+                        <input type="time" id="route-start-time" class="form-control" value="09:00" required oninput="recalculateRouteModalPreview()">
+                    </div>
+                    <div class="form-group">
+                        <label>Est. Travel (Mins) *</label>
+                        <input type="number" id="route-travel-mins" class="form-control" min="10" max="720" step="5" value="120" required oninput="recalculateRouteModalPreview()" title="e.g. 120 mins = 2 hours">
+                    </div>
+                    <div class="form-group">
+                        <label>Mins per Stop *</label>
+                        <input type="number" id="route-stop-mins" class="form-control" min="5" max="240" step="5" value="20" required oninput="updateAllStopsDurationInModal(this.value)" title="e.g. 20 mins x 3 stops = 1 hour collection duration">
+                    </div>
+                </div>
+
+                <!-- Assigned Truck and Driver -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div class="form-group">
+                        <label>Assigned Garbage Truck *</label>
+                        <select id="route-truck-id" class="form-control" required onchange="syncDriverFromSelectedTruck()">
+                            <option value="">-- Select Garbage Truck --</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Assigned Truck Driver *</label>
+                        <select id="route-driver-id" class="form-control">
+                            <option value="">-- Auto-Assign from Selected Truck --</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Live Calculated Schedule & Route Timeline Preview -->
+                <div id="route-live-preview-box" style="background: #F0FDF4; border: 1px solid #BBF7D0; border-radius: 10px; padding: 14px; margin-bottom: 14px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 10px;">
+                        <strong style="color: #166534; font-size: 13px; text-transform: uppercase; letter-spacing: 0.4px;">
+                            Automatic Schedule &amp; Arrival Time Calculation (Asia/Manila)
+                        </strong>
+                        <span id="preview-midnight-badge" style="display:none; background:#FEF3C7; color:#92400E; font-size:11px; font-weight:700; padding:2px 8px; border-radius:999px;">
+                            Crosses Midnight (+1 day)
+                        </span>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px; background: #ffffff; padding: 10px; border-radius: 8px; border: 1px solid #DCFCE7;">
+                        <div>
+                            <div style="font-size: 10.5px; color: #6B7280; font-weight: 700; text-transform: uppercase;">Starting Time</div>
+                            <div id="preview-start-time" style="font-size: 14px; font-weight: 800; color: #111827;">9:00 AM</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 10.5px; color: #6B7280; font-weight: 700; text-transform: uppercase;">Travel Duration</div>
+                            <div id="preview-travel-duration" style="font-size: 13.5px; font-weight: 700; color: #166534;">2 hours</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 10.5px; color: #6B7280; font-weight: 700; text-transform: uppercase;">Collection Duration</div>
+                            <div id="preview-collection-duration" style="font-size: 13.5px; font-weight: 700; color: #166534;">1 hour</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 10.5px; color: #6B7280; font-weight: 700; text-transform: uppercase;">Est. Arrival Time</div>
+                            <div id="preview-arrival-time" style="font-size: 14px; font-weight: 800; color: #15803d;">12:00 PM</div>
+                        </div>
+                    </div>
+                    <div style="font-size: 11.5px; font-weight: 700; color: #166534; margin-bottom: 6px;">Calculated Route Timeline (<span id="preview-total-duration">3 hours</span> total):</div>
+                    <div id="preview-timeline-steps" style="display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; color: #1F2937;"></div>
+                </div>
+
+                <div class="form-group">
+                    <label>Route Notes / Instructions</label>
+                    <textarea id="route-notes" class="form-control" rows="2" placeholder="Optional dispatch remarks or instructions for the assigned driver..."></textarea>
+                </div>
+
+                <div id="route-form-error" style="display:none; padding:10px; border-radius:6px; background:#FEE2E2; color:#991B1B; font-size:12.5px; font-weight:600; margin-bottom:12px;"></div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                    <button type="button" class="btn" style="width: auto; background: var(--border); color: var(--text);" onclick="closeRouteModal()">Cancel</button>
+                    <button type="submit" id="route-save-btn" class="btn" style="width: auto; background: #15803d;">Save Collection Route</button>
+                </div>
+            </form>
+        </div>
     </div>
 
     <!-- Add/Edit Schedule Modal -->
@@ -641,11 +802,11 @@
         </div>
     </div>
 
-    <!-- View Report Detail Modal -->
+    <!-- View Route Schedule & Timeline Modal -->
     <div id="report-modal" class="modal">
-        <div class="modal-content" style="max-width: 520px;">
+        <div class="modal-content" style="max-width: 600px; max-height: 90vh; overflow-y: auto;">
             <div class="modal-header">
-                <h3 id="report-modal-title">Collection Route Report</h3>
+                <h3 id="report-modal-title">Collection Route Schedule &amp; Timeline</h3>
                 <span class="close-btn" onclick="closeReportModal()">&times;</span>
             </div>
             <div id="report-modal-body" style="display: flex; flex-direction: column; gap: 14px; margin-top: 10px;">
@@ -789,11 +950,14 @@
         }
 
         function getStatusPillHtml(status) {
-            if (status === 'completed') {
+            const norm = String(status || 'scheduled').toLowerCase();
+            if (norm === 'completed') {
                 return '<span class="status-pill status-pill-green"><span class="status-pill-dot"></span>Completed</span>';
-            } else if (status === 'in_progress') {
-                return '<span class="status-pill status-pill-blue"><span class="status-pill-dot"></span>In Progress</span>';
-            } else if (status === 'cancelled') {
+            } else if (norm === 'ongoing' || norm === 'in_progress') {
+                return '<span class="status-pill status-pill-blue"><span class="status-pill-dot"></span>Ongoing</span>';
+            } else if (norm === 'delayed') {
+                return '<span class="status-pill" style="background:#FEE2E2;color:#991B1B;border:1px solid #FECACA;"><span class="status-pill-dot" style="background:#DC2626;"></span>Delayed</span>';
+            } else if (norm === 'cancelled') {
                 return '<span class="status-pill status-pill-gray"><span class="status-pill-dot"></span>Cancelled</span>';
             } else {
                 return '<span class="status-pill status-pill-orange"><span class="status-pill-dot"></span>Scheduled</span>';
@@ -932,76 +1096,550 @@
             document.getElementById('date').value = dateStr;
         }
 
+        /* =====================================================================
+           COLLECTION ROUTE & SCHEDULE MANAGEMENT (Website Admin Module)
+           ===================================================================== */
+        let routeVehicles = [];
+        let routePersonnel = [];
+        let modalRouteStops = [
+            { name: 'Barangay 1', duration_minutes: 20 },
+            { name: 'Barangay 2', duration_minutes: 20 },
+            { name: 'Barangay 3', duration_minutes: 20 }
+        ];
+
+        function formatDurationTextJs(totalMins) {
+            const mins = Math.max(1, Math.round(Number(totalMins) || 60));
+            const h = Math.floor(mins / 60);
+            const m = mins % 60;
+            if (h > 0 && m > 0) {
+                return `${h === 1 ? '1 hour' : h + ' hours'} and ${m === 1 ? '1 minute' : m + ' minutes'}`;
+            }
+            if (h > 0) return h === 1 ? '1 hour' : `${h} hours`;
+            return m === 1 ? '1 minute' : `${m} minutes`;
+        }
+
+        function formatMinsTo12HrJs(totalMins, includeNextDay = false) {
+            const wrapped = ((totalMins % 1440) + 1440) % 1440;
+            const h24 = Math.floor(wrapped / 60);
+            const m = wrapped % 60;
+            const ampm = h24 >= 12 ? 'PM' : 'AM';
+            const h12 = h24 % 12 === 0 ? 12 : h24 % 12;
+            const base = `${h12}:${String(m).padStart(2, '0')} ${ampm}`;
+            return (includeNextDay && totalMins >= 1440) ? `${base} (+1 day)` : base;
+        }
+
+        function calculateRouteScheduleJs(startLocation, endLocation, startTime24, stops, travelMinsInput, defaultStopMins) {
+            const parts = String(startTime24 || '09:00').split(':');
+            const startH = parseInt(parts[0], 10) || 9;
+            const startM = parseInt(parts[1], 10) || 0;
+            const startTotalMins = startH * 60 + startM;
+
+            const validStops = (Array.isArray(stops) && stops.length > 0 ? stops : [{ name: 'Barangay 1', duration_minutes: defaultStopMins }]).map((s, idx) => ({
+                stop_order: idx + 1,
+                name: typeof s === 'string' ? s : (s.name || s.location_name || `Stop ${idx + 1}`),
+                duration_minutes: Number(s.duration_minutes) > 0 ? Number(s.duration_minutes) : (Number(defaultStopMins) || 20),
+                status: s.status || 'pending'
+            }));
+
+            const stopCount = validStops.length;
+            const travelMins = Math.max(10, Number(travelMinsInput) || 120);
+            const collectionMins = validStops.reduce((acc, s) => acc + s.duration_minutes, 0);
+            const totalDurationMins = Math.max(15, travelMins + collectionMins);
+
+            const stopOffsets = [];
+            if (stopCount === 1) {
+                stopOffsets[0] = Math.round(totalDurationMins / 2);
+            } else {
+                const firstLeg = Math.max(10, Math.round(totalDurationMins / (stopCount * 2)));
+                const lastLeg = firstLeg;
+                const middleSpan = Math.max(0, totalDurationMins - firstLeg - lastLeg);
+                let interWeightTotal = 0;
+                for (let i = 0; i < stopCount - 1; i++) {
+                    interWeightTotal += Math.max(1, validStops[i].duration_minutes);
+                }
+                stopOffsets[0] = firstLeg;
+                let runningWeight = 0;
+                for (let i = 1; i < stopCount; i++) {
+                    runningWeight += Math.max(1, validStops[i - 1].duration_minutes);
+                    const fraction = interWeightTotal > 0 ? (runningWeight / interWeightTotal) : (i / (stopCount - 1));
+                    stopOffsets[i] = firstLeg + Math.round(middleSpan * fraction);
+                }
+            }
+
+            const timeline = [
+                {
+                    step: 0,
+                    type: 'start',
+                    time: formatMinsTo12HrJs(startTotalMins, false),
+                    label: 'Collection Starts',
+                    location: startLocation || 'Dispatch Point',
+                    display_text: `${formatMinsTo12HrJs(startTotalMins, false)} – Collection Starts (${startLocation || 'Dispatch Point'})`
+                }
+            ];
+
+            validStops.forEach((s, idx) => {
+                const offset = stopOffsets[idx] ?? ((idx + 1) * 30);
+                const absMins = startTotalMins + offset;
+                const crosses = absMins >= 1440;
+                const time12 = formatMinsTo12HrJs(absMins, crosses);
+                s.arrival_time = time12;
+                timeline.push({
+                    step: idx + 1,
+                    type: 'stop',
+                    time: time12,
+                    label: s.name,
+                    location: s.name,
+                    duration_minutes: s.duration_minutes,
+                    display_text: `${time12} – ${s.name}`
+                });
+            });
+
+            const arrivalAbsMins = startTotalMins + totalDurationMins;
+            const arrivalCrosses = arrivalAbsMins >= 1440;
+            const arrival12 = formatMinsTo12HrJs(arrivalAbsMins, arrivalCrosses);
+
+            timeline.push({
+                step: stopCount + 1,
+                type: 'end',
+                time: arrival12,
+                label: 'Estimated Arrival at Final Destination',
+                location: endLocation || 'Waste Disposal Facility',
+                display_text: `${arrival12} – Estimated Arrival at Final Destination (${endLocation || 'Waste Disposal Facility'})`
+            });
+
+            return {
+                start_time_formatted: formatMinsTo12HrJs(startTotalMins, false),
+                travel_duration_minutes: travelMins,
+                travel_duration_formatted: formatDurationTextJs(travelMins),
+                collection_duration_minutes: collectionMins,
+                collection_duration_formatted: formatDurationTextJs(collectionMins),
+                estimated_duration_minutes: totalDurationMins,
+                estimated_duration: formatDurationTextJs(totalDurationMins),
+                estimated_arrival_formatted: arrival12,
+                crosses_midnight: arrivalCrosses,
+                stops: validStops,
+                timeline
+            };
+        }
+
+        async function loadRouteFormOptions() {
+            try {
+                const res = await apiRequest('/collection-routes/options');
+                if (res && res.success) {
+                    routeVehicles = res.vehicles || [];
+                    routePersonnel = res.personnel || [];
+                }
+            } catch (e) {
+                routeVehicles = [
+                    { id: 3, truck_number: 'TRK-01', plate_number: 'KAL-101', driver_id: 9, driver_name: 'Juan Driver', label: 'TRK-01 (KAL-101)' },
+                    { id: 4, truck_number: 'TRK-02', plate_number: 'KAL-102', driver_id: 10, driver_name: 'Ramon Bautista', label: 'TRK-02 (KAL-102)' },
+                    { id: 5, truck_number: 'TRK-03', plate_number: 'KAL-103', driver_id: 9, driver_name: 'Juan Driver', label: 'TRK-03 (KAL-103)' },
+                    { id: 6, truck_number: 'TRK-04', plate_number: 'KAL-104', driver_id: 11, driver_name: 'Carlos Mendoza', label: 'TRK-04 (KAL-104)' }
+                ];
+            }
+
+            const truckSelect = document.getElementById('route-truck-id');
+            if (truckSelect) {
+                truckSelect.innerHTML = '<option value="">-- Select Garbage Truck --</option>';
+                routeVehicles.forEach(v => {
+                    const opt = document.createElement('option');
+                    opt.value = v.id;
+                    opt.textContent = `${v.truck_number} (${v.plate_number}) — Driver: ${v.driver_name || 'Assigned'}`;
+                    truckSelect.appendChild(opt);
+                });
+                if (routeVehicles.length > 0) {
+                    truckSelect.value = routeVehicles[0].id;
+                }
+            }
+
+            const driverSelect = document.getElementById('route-driver-id');
+            if (driverSelect) {
+                driverSelect.innerHTML = '<option value="">-- Auto-Assign from Selected Truck --</option>';
+                routePersonnel.forEach(p => {
+                    const opt = document.createElement('option');
+                    opt.value = p.id;
+                    opt.textContent = `${p.name} (${p.email || 'Personnel'})`;
+                    driverSelect.appendChild(opt);
+                });
+            }
+
+            const stopBrgySelect = document.getElementById('route-add-barangay-select');
+            if (stopBrgySelect) {
+                stopBrgySelect.innerHTML = '<option value="">-- Select Barangay Stop --</option>';
+                for (let i = 1; i <= 40; i++) {
+                    const opt = document.createElement('option');
+                    opt.value = `Barangay ${i}`;
+                    opt.textContent = `Barangay ${i}`;
+                    stopBrgySelect.appendChild(opt);
+                }
+            }
+        }
+
+        function syncDriverFromSelectedTruck() {
+            const truckId = document.getElementById('route-truck-id')?.value;
+            const driverSelect = document.getElementById('route-driver-id');
+            if (!truckId || !driverSelect) return;
+            const matched = routeVehicles.find(v => String(v.id) === String(truckId));
+            if (matched && matched.driver_id) {
+                driverSelect.value = matched.driver_id;
+            }
+        }
+
+        function renderRouteModalStops() {
+            const container = document.getElementById('route-stops-list');
+            if (!container) return;
+
+            container.innerHTML = modalRouteStops.map((stop, idx) => `
+                <div style="display: flex; align-items: center; gap: 8px; background: var(--surface); padding: 7px 10px; border-radius: 6px; border: 1px solid var(--border);">
+                    <span style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: var(--green-600); color: #fff; font-size: 11.5px; font-weight: 700; flex-shrink: 0;">
+                        ${idx + 1}
+                    </span>
+                    <input type="text" class="form-control" style="flex: 1; height: 32px; padding: 4px 8px; font-size: 13px; font-weight: 600;"
+                           value="${escapeHtml(stop.name)}"
+                           oninput="updateStopNameInModal(${idx}, this.value)">
+                    <div style="display: flex; align-items: center; gap: 4px;">
+                        <input type="number" class="form-control" style="width: 64px; height: 32px; padding: 4px 6px; font-size: 12px; text-align: center;"
+                               min="5" max="240" value="${Number(stop.duration_minutes) || 20}"
+                               oninput="updateSingleStopDurationInModal(${idx}, this.value)" title="Minutes at this stop">
+                        <span style="font-size: 11px; color: var(--text-muted);">mins</span>
+                    </div>
+                    <button type="button" class="cal-nav-btn" style="width: 28px; height: 28px;" onclick="moveRouteStop(${idx}, -1)" ${idx === 0 ? 'disabled' : ''} title="Move Up">&uarr;</button>
+                    <button type="button" class="cal-nav-btn" style="width: 28px; height: 28px;" onclick="moveRouteStop(${idx}, 1)" ${idx === modalRouteStops.length - 1 ? 'disabled' : ''} title="Move Down">&darr;</button>
+                    <button type="button" class="cal-nav-btn" style="width: 28px; height: 28px; color: #DC2626; border-color: #FECACA;" onclick="removeRouteStop(${idx})" title="Remove Stop">&times;</button>
+                </div>
+            `).join('');
+
+            recalculateRouteModalPreview();
+        }
+
+        function updateStopNameInModal(idx, val) {
+            if (modalRouteStops[idx]) {
+                modalRouteStops[idx].name = val;
+                recalculateRouteModalPreview();
+            }
+        }
+
+        function updateSingleStopDurationInModal(idx, val) {
+            if (modalRouteStops[idx]) {
+                modalRouteStops[idx].duration_minutes = Math.max(5, parseInt(val, 10) || 20);
+                recalculateRouteModalPreview();
+            }
+        }
+
+        function updateAllStopsDurationInModal(val) {
+            const mins = Math.max(5, parseInt(val, 10) || 20);
+            modalRouteStops = modalRouteStops.map(s => ({ ...s, duration_minutes: mins }));
+            renderRouteModalStops();
+        }
+
+        function addStopToRouteModal() {
+            const brgySelect = document.getElementById('route-add-barangay-select');
+            const customInput = document.getElementById('route-add-custom-stop');
+            const defaultMins = Math.max(5, parseInt(document.getElementById('route-stop-mins')?.value, 10) || 20);
+
+            const nameToAdd = (customInput?.value || '').trim() || (brgySelect?.value || '').trim();
+            if (!nameToAdd) {
+                alert('Please select a Barangay or enter a collection stop name.');
+                return;
+            }
+            modalRouteStops.push({ name: nameToAdd, duration_minutes: defaultMins, status: 'pending' });
+            if (customInput) customInput.value = '';
+            if (brgySelect) brgySelect.value = '';
+            renderRouteModalStops();
+        }
+
+        function moveRouteStop(idx, dir) {
+            const target = idx + dir;
+            if (target < 0 || target >= modalRouteStops.length) return;
+            const copy = [...modalRouteStops];
+            const temp = copy[idx];
+            copy[idx] = copy[target];
+            copy[target] = temp;
+            modalRouteStops = copy;
+            renderRouteModalStops();
+        }
+
+        function removeRouteStop(idx) {
+            if (modalRouteStops.length <= 1) {
+                alert('A collection route must have at least one barangay collection stop.');
+                return;
+            }
+            modalRouteStops.splice(idx, 1);
+            renderRouteModalStops();
+        }
+
+        function recalculateRouteModalPreview() {
+            const startLoc = document.getElementById('route-start-location')?.value || 'Dispatch Point';
+            const endLoc = document.getElementById('route-end-location')?.value || 'Waste Disposal Facility';
+            const startTime = document.getElementById('route-start-time')?.value || '09:00';
+            const travelMins = parseInt(document.getElementById('route-travel-mins')?.value, 10) || 120;
+            const defaultStopMins = parseInt(document.getElementById('route-stop-mins')?.value, 10) || 20;
+
+            const calc = calculateRouteScheduleJs(startLoc, endLoc, startTime, modalRouteStops, travelMins, defaultStopMins);
+
+            const startEl = document.getElementById('preview-start-time');
+            const travelEl = document.getElementById('preview-travel-duration');
+            const collEl = document.getElementById('preview-collection-duration');
+            const arrEl = document.getElementById('preview-arrival-time');
+            const totalEl = document.getElementById('preview-total-duration');
+            const midnightEl = document.getElementById('preview-midnight-badge');
+            const timelineEl = document.getElementById('preview-timeline-steps');
+
+            if (startEl) startEl.textContent = calc.start_time_formatted;
+            if (travelEl) travelEl.textContent = calc.travel_duration_formatted;
+            if (collEl) collEl.textContent = calc.collection_duration_formatted;
+            if (arrEl) arrEl.textContent = calc.estimated_arrival_formatted;
+            if (totalEl) totalEl.textContent = calc.estimated_duration;
+            if (midnightEl) midnightEl.style.display = calc.crosses_midnight ? 'inline-block' : 'none';
+
+            if (timelineEl) {
+                timelineEl.innerHTML = calc.timeline.map(step => {
+                    const dotColor = step.type === 'start' ? '#16a34a' : (step.type === 'end' ? '#dc2626' : '#2563eb');
+                    const textVal = step.type === 'start'
+                        ? `<strong>${escapeHtml(step.time)}</strong> &ndash; Collection Starts (${escapeHtml(step.location)})`
+                        : (step.type === 'end'
+                            ? `<strong>${escapeHtml(step.time)}</strong> &ndash; Estimated Arrival at Final Destination (${escapeHtml(step.location)})`
+                            : `<strong>${escapeHtml(step.time)}</strong> &ndash; ${escapeHtml(step.label)}`);
+                    return `
+                        <div style="display: flex; align-items: center; gap: 8px; padding: 3px 0;">
+                            <span style="width: 8px; height: 8px; border-radius: 50%; background: ${dotColor}; flex-shrink: 0;"></span>
+                            <span>${textVal}</span>
+                        </div>
+                    `;
+                }).join('');
+            }
+        }
+
+        function openRouteModal() {
+            document.getElementById('route-id').value = '';
+            document.getElementById('route-modal-title').textContent = 'Create Collection Route';
+            document.getElementById('route-name').value = 'Route A';
+            document.getElementById('route-status').value = 'scheduled';
+            document.getElementById('route-start-location').value = 'Dispatch Point';
+            document.getElementById('route-end-location').value = 'Waste Disposal Facility';
+            document.getElementById('route-date').value = new Date().toISOString().substring(0, 10);
+            document.getElementById('route-start-time').value = '09:00';
+            document.getElementById('route-travel-mins').value = '120';
+            document.getElementById('route-stop-mins').value = '20';
+            document.getElementById('route-notes').value = '';
+            const errEl = document.getElementById('route-form-error');
+            if (errEl) errEl.style.display = 'none';
+
+            modalRouteStops = [
+                { name: 'Barangay 1', duration_minutes: 20, status: 'pending' },
+                { name: 'Barangay 2', duration_minutes: 20, status: 'pending' },
+                { name: 'Barangay 3', duration_minutes: 20, status: 'pending' }
+            ];
+            if (routeVehicles.length > 0) {
+                document.getElementById('route-truck-id').value = routeVehicles[0].id;
+                syncDriverFromSelectedTruck();
+            }
+            renderRouteModalStops();
+            document.getElementById('route-modal').classList.add('active');
+        }
+
+        function closeRouteModal() {
+            document.getElementById('route-modal').classList.remove('active');
+        }
+
+        function editCollectionRoute(id) {
+            const route = recentReportsData.find(r => String(r.id) === String(id));
+            if (!route) return;
+
+            document.getElementById('route-id').value = route.id;
+            document.getElementById('route-modal-title').textContent = `Edit Collection Route #${route.id}`;
+            document.getElementById('route-name').value = route.route_name || `Route #${route.id}`;
+            document.getElementById('route-status').value = (route.status === 'in_progress' ? 'ongoing' : (route.status || 'scheduled'));
+            document.getElementById('route-start-location').value = route.start_location || 'Dispatch Point';
+            document.getElementById('route-end-location').value = route.end_location || 'Waste Disposal Facility';
+            document.getElementById('route-date').value = route.collection_date ? String(route.collection_date).substring(0, 10) : new Date().toISOString().substring(0, 10);
+            document.getElementById('route-start-time').value = route.start_time ? String(route.start_time).substring(0, 5) : '09:00';
+            document.getElementById('route-travel-mins').value = route.travel_duration_minutes || Math.round((Number(route.distance_km) || 30) * 4);
+            document.getElementById('route-stop-mins').value = route.stop_duration_minutes || 20;
+            document.getElementById('route-notes').value = route.notes || '';
+
+            if (route.truck_id || route.assigned_vehicle?.id) {
+                document.getElementById('route-truck-id').value = route.truck_id || route.assigned_vehicle.id;
+            }
+            if (route.assigned_personnel_id || route.assigned_personnel?.id) {
+                document.getElementById('route-driver-id').value = route.assigned_personnel_id || route.assigned_personnel.id;
+            }
+
+            if (Array.isArray(route.collection_stops) && route.collection_stops.length > 0) {
+                modalRouteStops = route.collection_stops.map(s => ({
+                    name: typeof s === 'string' ? s : (s.name || s.location_name || 'Stop'),
+                    duration_minutes: Number(s.duration_minutes) || Number(route.stop_duration_minutes) || 20,
+                    status: s.status || 'pending',
+                    completed_at: s.completed_at || null,
+                    waste_tonnage: s.waste_tonnage || null,
+                    waste_category: s.waste_category || null
+                }));
+            } else {
+                modalRouteStops = [
+                    { name: 'Barangay 1', duration_minutes: 20, status: 'pending' },
+                    { name: 'Barangay 2', duration_minutes: 20, status: 'pending' },
+                    { name: 'Barangay 3', duration_minutes: 20, status: 'pending' }
+                ];
+            }
+
+            const errEl = document.getElementById('route-form-error');
+            if (errEl) errEl.style.display = 'none';
+
+            renderRouteModalStops();
+            document.getElementById('route-modal').classList.add('active');
+        }
+
+        async function handleSaveCollectionRoute(e) {
+            e.preventDefault();
+            const errEl = document.getElementById('route-form-error');
+            if (errEl) errEl.style.display = 'none';
+
+            const id = document.getElementById('route-id').value;
+            const routeName = document.getElementById('route-name').value.trim();
+            const status = document.getElementById('route-status').value;
+            const startLocation = document.getElementById('route-start-location').value.trim();
+            const endLocation = document.getElementById('route-end-location').value.trim();
+            const collectionDate = document.getElementById('route-date').value;
+            const startTime = document.getElementById('route-start-time').value;
+            const travelMins = parseInt(document.getElementById('route-travel-mins').value, 10) || 120;
+            const stopMins = parseInt(document.getElementById('route-stop-mins').value, 10) || 20;
+            const truckId = document.getElementById('route-truck-id').value;
+            const driverId = document.getElementById('route-driver-id').value;
+            const notes = document.getElementById('route-notes').value.trim();
+
+            const validStops = modalRouteStops
+                .map(s => ({ ...s, name: String(s.name || '').trim() }))
+                .filter(s => s.name.length > 0);
+
+            if (!startLocation || !endLocation) {
+                if (errEl) {
+                    errEl.textContent = 'Both Start Route and End Route locations are required.';
+                    errEl.style.display = 'block';
+                }
+                return;
+            }
+            if (validStops.length === 0) {
+                if (errEl) {
+                    errEl.textContent = 'Please add at least one Barangay Collection Stop.';
+                    errEl.style.display = 'block';
+                }
+                return;
+            }
+
+            const collectionMins = validStops.reduce((sum, s) => sum + (Number(s.duration_minutes) || stopMins), 0);
+            const totalDurationMins = travelMins + collectionMins;
+
+            // Extract first barangay number if present
+            let barangayParam = validStops[0].name;
+
+            const payload = {
+                route_name: routeName || 'Route A',
+                status,
+                start_location: startLocation,
+                end_location: endLocation,
+                collection_stops: validStops,
+                collection_date: collectionDate,
+                start_time: startTime,
+                travel_duration_minutes: travelMins,
+                collection_duration_minutes: collectionMins,
+                stop_duration_minutes: stopMins,
+                estimated_duration_minutes: totalDurationMins,
+                distance_km: Number((travelMins / 4).toFixed(2)),
+                truck_id: truckId ? Number(truckId) : 3,
+                assigned_personnel_id: driverId ? Number(driverId) : undefined,
+                barangay: barangayParam,
+                notes
+            };
+
+            const btn = document.getElementById('route-save-btn');
+            if (btn) {
+                btn.disabled = true;
+                btn.textContent = 'Saving...';
+            }
+
+            try {
+                const url = id ? `/collection-routes/${id}` : '/collection-routes';
+                const method = id ? 'PUT' : 'POST';
+                const res = await apiRequest(url, method, payload);
+                if (res && res.success) {
+                    closeRouteModal();
+                    await loadRecentAdminReports();
+                    await loadData();
+                    if (typeof showToast === 'function') {
+                        showToast(id ? 'Collection route updated & synced!' : 'Collection route created & synced!', 'success');
+                    }
+                } else {
+                    if (errEl) {
+                        errEl.textContent = (res && res.message) || 'Failed to save collection route.';
+                        errEl.style.display = 'block';
+                    }
+                }
+            } catch (err) {
+                if (errEl) {
+                    errEl.textContent = err.message || 'Failed to save collection route.';
+                    errEl.style.display = 'block';
+                }
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.textContent = 'Save Collection Route';
+                }
+            }
+        }
+
+        async function deleteCollectionRoute(id) {
+            if (!confirm(`Delete Collection Route #${id}? This will remove the route from the schedule.`)) return;
+            try {
+                await apiRequest(`/collection-routes/${id}`, 'DELETE');
+                await loadRecentAdminReports();
+                await loadData();
+            } catch (err) {
+                alert('Could not delete route: ' + (err.message || 'Error'));
+            }
+        }
+
         async function loadRecentAdminReports() {
             const tbody = document.getElementById('recent-admin-reports');
+            const filterVal = document.getElementById('route-status-filter')?.value || 'all';
             let reports = [];
             try {
-                const res = await apiRequest('/collection-routes');
+                const query = filterVal !== 'all' ? `?status=${encodeURIComponent(filterVal)}` : '';
+                const res = await apiRequest(`/collection-routes${query}`);
                 reports = res.routes || [];
             } catch (error) {
                 reports = [];
             }
 
-            // Merge custom pickup logs from localStorage so completed schedules/hauls appear live
-            try {
-                const customLogs = JSON.parse(localStorage.getItem('clenro_custom_pickup_logs') || '[]');
-                customLogs.forEach((c, idx) => {
-                    reports.unshift({
-                        id: c.id || (8000 + idx),
-                        truck: {
-                            truck_number: (c.contractor_assigned || 'TRK-01').split(' ')[0],
-                            plate_number: 'DSS-SYNC',
-                            driver: { name: c.contractor_assigned || 'CLENRO DSS Hauler' }
-                        },
-                        barangay: { name: c.location_zone },
-                        collection_date: c.incident_date,
-                        start_time: '07:00',
-                        end_time: '09:30',
-                        status: 'completed',
-                        notes: `Logged to Historical Dataset: ${Number(c.estimated_tonnage).toFixed(2)} tons (${Number(c.waste_volume_m3).toFixed(1)} m³)`
-                    });
-                });
-            } catch (e) {}
-
-            if (!reports.length) {
-                reports = [
-                    {
-                        id: 701,
-                        truck: { truck_number: 'TRK-01', plate_number: 'KAL-101', driver: { name: 'Danilo Ramos' } },
-                        barangay: { name: 'Cogon Market Zone' },
-                        collection_date: new Date().toISOString().substring(0, 10),
-                        start_time: '20:30',
-                        end_time: '23:15',
-                        status: 'completed',
-                        notes: 'Night Sweep Compactor Haul · 6.80 tons synced to Historical DSS Report'
-                    },
-                    {
-                        id: 702,
-                        truck: { truck_number: 'TRK-02', plate_number: 'KAL-102', driver: { name: 'Nestor Cabunoc' } },
-                        barangay: { name: 'Barangay 14' },
-                        collection_date: new Date().toISOString().substring(0, 10),
-                        start_time: '07:00',
-                        end_time: '09:45',
-                        status: 'in_progress',
-                        notes: '4x/Week DSS Upgraded Frequency Route'
-                    }
-                ];
-            }
-
             recentReportsData = reports;
-            const displayReports = reports.slice(0, 8);
 
             const badge = document.getElementById('reports-count-badge');
-            if (badge) badge.textContent = `${reports.length} total`;
+            if (badge) badge.textContent = `${reports.length} ${reports.length === 1 ? 'route' : 'routes'}`;
 
-            tbody.innerHTML = displayReports.map(report => {
-                const driverName = report.truck?.driver?.name || 'Driver not assigned';
-                const truckText = report.truck?.truck_number ? `${report.truck.truck_number}${report.truck.plate_number ? ' · ' + report.truck.plate_number : ''}` : 'Truck not assigned';
-                const brgyName = report.barangay?.name || 'Barangay not recorded';
-                const dateFormatted = report.collection_date ? report.collection_date.substring(0, 10) : '-';
-                const startTime = report.start_time ? formatTime12(report.start_time) : '-';
-                const endTime = report.end_time ? formatTime12(report.end_time) : '-';
-                const timeRange = (startTime !== '-' || endTime !== '-') ? `${startTime} - ${endTime}` : '-';
+            if (!reports.length) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 28px; color: var(--text-muted);">No collection routes found. Click <strong>+ Create Collection Route</strong> to schedule a route.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = reports.map(report => {
+                const driverName = report.assigned_personnel?.name || report.truck?.driver?.name || 'Assigned Driver';
+                const vehicle = report.assigned_vehicle || report.truck || {};
+                const truckText = vehicle.truck_number
+                    ? `${vehicle.truck_number}${vehicle.plate_number ? ' (' + vehicle.plate_number + ')' : ''}`
+                    : 'TRK-01';
+                const routeTitle = report.route_name || `Route #${report.id}`;
+                const startLoc = report.start_location || 'Dispatch Point';
+                const endLoc = report.end_location || 'Waste Disposal Facility';
+                const stopsArr = Array.isArray(report.collection_stops)
+                    ? report.collection_stops.map(s => typeof s === 'string' ? s : (s.name || s.location_name))
+                    : (report.route_stops || [report.barangay?.name || 'Barangay 1']);
+                const stopsSummary = stopsArr.join(' → ');
+                const completedCount = Number(report.completed_stops_count || 0);
+                const totalStopsCount = Number(report.total_stops_count || stopsArr.length || 1);
+
+                const dateFormatted = report.collection_date ? String(report.collection_date).substring(0, 10) : '-';
+                const startTime = report.start_time_formatted || (report.start_time ? formatTime12(report.start_time) : '-');
+                const arrivalTime = report.estimated_arrival_formatted || (report.end_time ? formatTime12(report.end_time) : '-');
+                const durationLabel = report.estimated_duration || '3 hours';
                 const statusPill = getStatusPillHtml(report.status);
                 const initials = getInitials(driverName);
 
@@ -1012,36 +1650,44 @@
                                 <span class="driver-avatar-circle" aria-hidden="true">${escapeHtml(initials)}</span>
                                 <div class="driver-meta">
                                     <strong class="driver-name">${escapeHtml(driverName)}</strong>
-                                    <span class="driver-subtext">${escapeHtml(truckText)}</span>
+                                    <span class="driver-subtext">${escapeHtml(truckText)} &bull; ${escapeHtml(routeTitle)}</span>
                                 </div>
                             </div>
                         </td>
                         <td>
-                            <div style="display: flex; align-items: center; gap: 6px;">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--green-600); flex-shrink: 0;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-                                <span style="font-weight: 500;">${escapeHtml(brgyName)}</span>
+                            <div style="display: flex; flex-direction: column; gap: 3px;">
+                                <div style="font-size: 12.5px; font-weight: 700; color: var(--green-800);">
+                                    ${escapeHtml(startLoc)} &rarr; ${escapeHtml(endLoc)}
+                                </div>
+                                <div style="font-size: 11.5px; color: var(--text-muted); font-weight: 600;">
+                                    Stops (${completedCount}/${totalStopsCount} done): ${escapeHtml(stopsSummary)}
+                                </div>
                             </div>
                         </td>
                         <td>
-                            <span style="font-weight: 500; color: var(--text);">${escapeHtml(dateFormatted)}</span>
+                            <span style="font-weight: 600; color: var(--text);">${escapeHtml(dateFormatted)}</span>
                         </td>
                         <td>
-                            <span style="font-size: 12.5px; color: var(--text);">${escapeHtml(timeRange)}</span>
+                            <div style="display: flex; flex-direction: column; gap: 2px;">
+                                <span style="font-size: 12.5px; font-weight: 700; color: var(--text);">${escapeHtml(startTime)} &rarr; ${escapeHtml(arrivalTime)}</span>
+                                <span style="font-size: 11px; color: var(--green-700); font-weight: 600;">Est. Duration: ${escapeHtml(durationLabel)}</span>
+                            </div>
                         </td>
                         <td>
                             ${statusPill}
                         </td>
                         <td style="text-align: center;">
-                            <button type="button" 
-                                    class="action-icon-btn has-tooltip" 
-                                    data-tooltip="View Report" 
-                                    aria-label="View Report for ${escapeHtml(driverName)}" 
-                                    onclick="viewReportDetails(${report.id})">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                                    <circle cx="12" cy="12" r="3"></circle>
-                                </svg>
-                            </button>
+                            <div style="display: inline-flex; align-items: center; gap: 4px;">
+                                <button type="button" class="cal-nav-btn" style="width: 30px; height: 30px;" title="View Timeline & Progress" onclick="viewReportDetails(${report.id})">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                                </button>
+                                <button type="button" class="cal-nav-btn" style="width: 30px; height: 30px; color: #1E40AF;" title="Edit Collection Route" onclick="editCollectionRoute(${report.id})">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                                </button>
+                                <button type="button" class="cal-nav-btn" style="width: 30px; height: 30px; color: #DC2626;" title="Delete Collection Route" onclick="deleteCollectionRoute(${report.id})">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                </button>
+                            </div>
                         </td>
                     </tr>
                 `;
@@ -1052,55 +1698,98 @@
             const report = recentReportsData.find(r => String(r.id) === String(id));
             if (!report) return;
 
-            const driverName = report.truck?.driver?.name || 'Driver not assigned';
-            const truckNumber = report.truck?.truck_number || 'Truck not assigned';
-            const plateNumber = report.truck?.plate_number || 'Plate not recorded';
-            const barangayName = report.barangay?.name || 'Barangay not recorded';
-            const dateFormatted = report.collection_date ? report.collection_date.substring(0, 10) : '-';
-            const startTime = report.start_time ? formatTime12(report.start_time) : '-';
-            const endTime = report.end_time ? formatTime12(report.end_time) : '-';
-            const timeRange = (startTime !== '-' || endTime !== '-') ? `${startTime} - ${endTime}` : '-';
+            const routeTitle = report.route_name || `Route #${report.id}`;
+            const driverName = report.assigned_personnel?.name || report.truck?.driver?.name || 'Assigned Driver';
+            const vehicle = report.assigned_vehicle || report.truck || {};
+            const truckNumber = vehicle.truck_number || 'TRK-01';
+            const plateNumber = vehicle.plate_number || 'KAL-101';
+            const startLoc = report.start_location || 'Dispatch Point';
+            const endLoc = report.end_location || 'Waste Disposal Facility';
+            const dateFormatted = report.collection_date ? String(report.collection_date).substring(0, 10) : '-';
+            const startTime = report.start_time_formatted || (report.start_time ? formatTime12(report.start_time) : '-');
+            const arrivalTime = report.estimated_arrival_formatted || (report.end_time ? formatTime12(report.end_time) : '-');
+            const travelDuration = report.travel_duration_formatted || '2 hours';
+            const collectionDuration = report.collection_duration_formatted || '1 hour';
+            const totalDuration = report.estimated_duration || '3 hours';
             const statusPill = getStatusPillHtml(report.status);
+            const timeline = Array.isArray(report.timeline) ? report.timeline : [];
+
+            const timelineHtml = timeline.map(step => {
+                const isDone = step.status === 'completed';
+                const dotColor = step.type === 'start' ? '#16a34a' : (step.type === 'end' ? '#dc2626' : (isDone ? '#16a34a' : '#2563eb'));
+                const stepTitle = step.type === 'start'
+                    ? `${escapeHtml(step.time)} &ndash; Collection Starts (${escapeHtml(step.location)})`
+                    : (step.type === 'end'
+                        ? `${escapeHtml(step.time)} &ndash; Estimated Arrival at Final Destination (${escapeHtml(step.location)})`
+                        : `${escapeHtml(step.time)} &ndash; ${escapeHtml(step.label)}`);
+                const wasteMeta = step.waste_tonnage
+                    ? `<span style="margin-left:8px; font-size:11px; background:#DCFCE7; color:#166534; padding:1px 6px; border-radius:8px; font-weight:700;">${escapeHtml(step.waste_tonnage)}t (${escapeHtml(step.waste_category || 'Residual')})</span>`
+                    : '';
+                const doneBadge = isDone
+                    ? `<span style="margin-left:6px; font-size:11px; color:#15803d; font-weight:700;">&#10003; Cleared ${step.completed_at ? 'at ' + escapeHtml(step.completed_at) : ''}</span>`
+                    : '';
+
+                return `
+                    <div style="display:flex; align-items:center; gap:10px; padding:6px 8px; border-radius:6px; background:var(--surface); border:1px solid var(--border);">
+                        <span style="width:10px; height:10px; border-radius:50%; background:${dotColor}; flex-shrink:0;"></span>
+                        <div style="font-size:13px; font-weight:600; color:var(--text);">
+                            ${stepTitle}${doneBadge}${wasteMeta}
+                        </div>
+                    </div>
+                `;
+            }).join('');
 
             const body = document.getElementById('report-modal-body');
             body.innerHTML = `
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; background: var(--surface-alt); padding: 14px; border-radius: 8px; border: 1px solid var(--border);">
                     <div>
-                        <span style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Driver</span>
+                        <span style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Start Route</span>
+                        <div style="font-weight: 700; color: var(--green-800); font-size: 13.5px; margin-top: 2px;">${escapeHtml(startLoc)}</div>
+                    </div>
+                    <div>
+                        <span style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">End Route</span>
+                        <div style="font-weight: 700; color: #991B1B; font-size: 13.5px; margin-top: 2px;">${escapeHtml(endLoc)}</div>
+                    </div>
+                    <div>
+                        <span style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Assigned Driver</span>
                         <div style="font-weight: 700; color: var(--text); font-size: 13.5px; margin-top: 2px;">${escapeHtml(driverName)}</div>
                     </div>
                     <div>
-                        <span style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Truck & Plate</span>
+                        <span style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Assigned Garbage Truck</span>
                         <div style="font-weight: 600; color: var(--text); font-size: 13px; margin-top: 2px;">${escapeHtml(truckNumber)} (${escapeHtml(plateNumber)})</div>
                     </div>
                     <div>
-                        <span style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Location / Barangay</span>
-                        <div style="font-weight: 600; color: var(--text); font-size: 13px; margin-top: 2px;">${escapeHtml(barangayName)}</div>
+                        <span style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Collection Date &amp; Start Time</span>
+                        <div style="font-weight: 700; color: var(--text); font-size: 13px; margin-top: 2px;">${escapeHtml(dateFormatted)} &bull; ${escapeHtml(startTime)}</div>
                     </div>
                     <div>
-                        <span style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Status</span>
+                        <span style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Estimated Arrival Time</span>
+                        <div style="font-weight: 800; color: var(--green-700); font-size: 14px; margin-top: 2px;">${escapeHtml(arrivalTime)}</div>
+                    </div>
+                    <div>
+                        <span style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Estimated Durations</span>
+                        <div style="font-weight: 600; color: var(--text); font-size: 12.5px; margin-top: 2px;">Travel: ${escapeHtml(travelDuration)} | Stops: ${escapeHtml(collectionDuration)} (Total: ${escapeHtml(totalDuration)})</div>
+                    </div>
+                    <div>
+                        <span style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Route Status</span>
                         <div style="margin-top: 3px;">${statusPill}</div>
                     </div>
-                    <div>
-                        <span style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Date</span>
-                        <div style="font-weight: 600; color: var(--text); font-size: 13px; margin-top: 2px;">${escapeHtml(dateFormatted)}</div>
-                    </div>
-                    <div>
-                        <span style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Time Window</span>
-                        <div style="font-weight: 600; color: var(--text); font-size: 13px; margin-top: 2px;">${escapeHtml(timeRange)}</div>
+                </div>
+                <div>
+                    <span style="font-size: 11.5px; text-transform: uppercase; color: var(--green-800); font-weight: 700;">Route Schedule Timeline (Asia/Manila)</span>
+                    <div style="display:flex; flex-direction:column; gap:6px; margin-top:6px;">
+                        ${timelineHtml || '<div style="font-size:12.5px;color:var(--text-muted);">No timeline steps recorded.</div>'}
                     </div>
                 </div>
                 ${report.notes ? `
                     <div>
-                        <span style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Notes & Remarks</span>
-                        <div style="margin-top: 4px; padding: 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; font-size: 13px; color: var(--text);">
-                            ${escapeHtml(report.notes)}
-                        </div>
+                        <span style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Route Notes &amp; Driver Operational Reports</span>
+                        <div style="margin-top: 4px; padding: 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; font-size: 13px; color: var(--text); white-space: pre-line;">${escapeHtml(report.notes)}</div>
                     </div>
                 ` : ''}
             `;
 
-            document.getElementById('report-modal-title').textContent = `Report #${report.id} · ${barangayName}`;
+            document.getElementById('report-modal-title').textContent = `${routeTitle} (${startLoc} → ${endLoc})`;
             document.getElementById('report-modal').classList.add('active');
         }
 
@@ -1136,7 +1825,6 @@
                     const select = document.getElementById('barangay_id');
                     select.innerHTML = '<option value="">Select Barangay / Zone</option>';
                     const seen = new Set();
-                    // Ensure Cogon & Carmen Market Zones are always selectable
                     [
                         { id: 101, name: 'Cogon Market Zone' },
                         { id: 102, name: 'Carmen Market Zone' },
@@ -1168,7 +1856,6 @@
                 apiSchedules = [];
             }
 
-            // Merge DSS schedules + API schedules (or baseline if API empty)
             const baseList = apiSchedules.length > 0 ? apiSchedules : baseline;
             schedules = [...dssSchedules, ...baseList];
 
@@ -1300,7 +1987,6 @@
                 status: document.getElementById('status').value,
             };
 
-            // Save to local DSS schedules so calendar immediately updates even if backend is offline
             let dssList = getLocalDssSchedules();
             if (id) {
                 const idx = dssList.findIndex(s => String(s.id) === String(id));
@@ -1319,7 +2005,6 @@
             }
             localStorage.setItem('clenro_dss_schedules', JSON.stringify(dssList));
 
-            // Closed-loop feedback: if marked Completed, append haul tonnage to clenro_custom_pickup_logs!
             if (payload.status === 'completed') {
                 try {
                     const customLogs = JSON.parse(localStorage.getItem('clenro_custom_pickup_logs') || '[]');
@@ -1349,6 +2034,8 @@
         });
 
         window.addEventListener('click', (e) => {
+            const routeModal = document.getElementById('route-modal');
+            if (e.target === routeModal) closeRouteModal();
             const formModal = document.getElementById('form-modal');
             if (e.target === formModal) closeModal();
             const reportModal = document.getElementById('report-modal');
@@ -1357,6 +2044,7 @@
 
         window.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
+                closeRouteModal();
                 closeModal();
                 closeReportModal();
             }
@@ -1364,6 +2052,7 @@
 
         document.addEventListener('DOMContentLoaded', async () => {
             await loadBarangays();
+            await loadRouteFormOptions();
             await loadData();
             await loadRecentAdminReports();
             handleIncomingDssParams();

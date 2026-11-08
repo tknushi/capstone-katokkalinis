@@ -17,6 +17,7 @@ import {
   View,
 } from "react-native";
 import InitialsAvatar from "../components/InitialsAvatar";
+import ResidentHotbar from "../components/ResidentHotbar";
 import VendorHotbar from "../components/VendorHotbar";
 import { apiRequest, resolveMediaUrl } from "../services/api";
 import { logoutUser } from "../services/auth";
@@ -43,7 +44,7 @@ export default function Profile() {
   // Vendor specific fields (dynamically loaded from backend)
   const [vendorId, setVendorId] = useState("VEN-2026012345");
   const [stallNumber, setStallNumber] = useState("Stall #14, Section B");
-  const [marketLocation, setMarketLocation] = useState("Divisoria Public Market");
+  const [marketLocation, setMarketLocation] = useState("Cogon Public Market");
   const [businessType, setBusinessType] = useState("Fresh Produce & Food Stall");
   const [sanitationScore, setSanitationScore] = useState("0.0");
   const [complianceScore, setComplianceScore] = useState("0%");
@@ -143,7 +144,9 @@ export default function Profile() {
           if (res.user.vendor) {
             const v = res.user.vendor;
             if (v.stall_number) setStallNumber(v.stall_number);
-            if (v.market) setMarketLocation(v.market);
+            if (v.market) {
+              setMarketLocation(/divi/i.test(v.market) ? "Cogon Public Market" : v.market);
+            }
             if (v.business_name) setBusinessType(v.business_name);
             if (v.vendor_code) setVendorId(`VEN-${v.vendor_code}`);
 
@@ -971,51 +974,7 @@ export default function Profile() {
       {role === "vendor" ? (
         <VendorHotbar activeTab="profile" />
       ) : (
-        <View style={styles.bottomNav}>
-          <TouchableOpacity
-            style={styles.navItem}
-            activeOpacity={0.8}
-            onPress={() => router.replace("/dashboard")}
-          >
-            <MaterialCommunityIcons name="home-outline" size={24} color="#7A8D78" />
-            <Text style={styles.navItemText}>Home</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.navItem}
-            activeOpacity={0.8}
-            onPress={() => router.push("/report")}
-          >
-            <MaterialCommunityIcons
-              name="file-document-outline"
-              size={24}
-              color="#7A8D78"
-            />
-            <Text style={styles.navItemText}>Reports</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.navItem}
-            activeOpacity={0.8}
-            onPress={() => router.push("/schedule")}
-          >
-            <MaterialCommunityIcons
-              name="calendar-month-outline"
-              size={24}
-              color="#7A8D78"
-            />
-            <Text style={styles.navItemText}>Schedule</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.navItem}
-            activeOpacity={0.8}
-            onPress={() => {}}
-          >
-            <MaterialCommunityIcons name="account" size={24} color="#2E7D32" />
-            <Text style={[styles.navItemText, styles.navItemTextActive]}>Profile</Text>
-          </TouchableOpacity>
-        </View>
+        <ResidentHotbar activeTab="profile" />
       )}
     </View>
   );

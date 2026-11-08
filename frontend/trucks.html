@@ -1019,9 +1019,9 @@
                         </div>
 
                         <div class="exec-header-right">
-                            <a href="analytics.html#live-fleet-map-section" class="exec-btn-brief" style="background:#15803d; border-color:#86efac; color:#fff; text-decoration:none; display:inline-flex; align-items:center; gap:6px;">
+                            <a href="schedule.html#collection-route-management-section" class="exec-btn-brief" style="background:#15803d; border-color:#86efac; color:#fff; text-decoration:none; display:inline-flex; align-items:center; gap:6px;">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon><line x1="8" y1="2" x2="8" y2="18"></line><line x1="16" y1="6" x2="16" y2="22"></line></svg>
-                                Live Route Map ↗
+                                Manage Collection Routes ↗
                             </a>
                             <button type="button" class="exec-btn-brief" onclick="openLogWeightModal()">
                                 + Log Disposal Weight
@@ -1033,7 +1033,7 @@
                         </div>
                     </div>
 
-                    <!-- LIVE TRUCK ROUTE & GPS MONITORING MAP (Monitor Truck — First in User View) -->
+                    <!-- SCHEDULED COLLECTION CORRIDORS & DRIVER-SUBMITTED PROGRESS MAP -->
                     <div class="exec-fleet-map-card" id="live-fleet-map-section">
                         <div class="exec-map-header">
                             <div class="exec-map-title-wrap">
@@ -1047,13 +1047,13 @@
                                 </div>
                                 <div class="exec-map-title">
                                     <h3>
-                                        Live Fleet Route &amp; GPS Telemetry
+                                        Scheduled Collection Corridors &amp; Driver Progress
                                         <span class="exec-map-live-pill" id="map-live-status-pill">
                                             <span class="pulse-dot"></span>
-                                            <span id="map-live-indicator-text">LIVE STREAMING</span>
+                                            <span id="map-live-indicator-text">DRIVER-REPORTED STATUS</span>
                                         </span>
                                     </h3>
-                                    <p>Real-time vehicle tracking synced with driver mobile apps &bull; CDO Urban Core (Poblacion 1&ndash;40)</p>
+                                    <p>Scheduled collection routes and driver-submitted stop updates &bull; CDO Urban Core (Poblacion 1&ndash;40)</p>
                                 </div>
                             </div>
 
@@ -1078,9 +1078,9 @@
                                     API Key
                                 </button>
 
-                                <button type="button" class="exec-map-btn" onclick="focusActiveTruck()" title="Pan to currently active collecting truck">
+                                <button type="button" class="exec-map-btn" onclick="focusActiveTruck()" title="Pan to assigned route sector">
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"></circle><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon></svg>
-                                    Locate Truck
+                                    View Sector
                                 </button>
 
                                 <button type="button" class="exec-map-btn" id="btn-toggle-corridors" onclick="toggleRouteCorridors()" title="Toggle route boundary lines">
@@ -1088,9 +1088,9 @@
                                     Corridors
                                 </button>
 
-                                <button type="button" class="exec-map-btn primary" onclick="refreshLiveMapData(true)" title="Force sync latest GPS telemetry">
+                                <button type="button" class="exec-map-btn primary" onclick="refreshLiveMapData(true)" title="Sync driver-submitted route status">
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
-                                    Sync GPS
+                                    Sync Route Status
                                 </button>
                             </div>
                         </div>

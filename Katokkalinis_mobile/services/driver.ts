@@ -320,4 +320,91 @@ export async function getTruckLiveTracking(): Promise<{
   }
 }
 
+export interface DriverRouteProgressPayload {
+  action:
+    | "start_route"
+    | "complete_stop"
+    | "record_waste"
+    | "report_issue"
+    | "delay_route"
+    | "complete_route"
+    | "update_status";
+  status?: "scheduled" | "ongoing" | "completed" | "delayed";
+  stop_order?: number;
+  stop_name?: string;
+  completed?: boolean;
+  waste_tonnage?: number;
+  waste_category?: string;
+  unit?: string;
+  issue_type?: string;
+  issue_description?: string;
+  mark_delayed?: boolean;
+  driver_id?: number;
+}
+
+/**
+ * Fetch website-created collection routes assigned to the authenticated driver
+ */
+export async function getDriverAssignedRoutes(params?: {
+  driverId?: number;
+  truckId?: number;
+  plateNumber?: string;
+}): Promise<any[]> {
+  const qsParts: string[] = [];
+  if (params?.driverId) qsParts.push(`driver_id=${encodeURIComponent(String(params.driverId))}`);
+  if (params?.truckId) qsParts.push(`truck_id=${encodeURIComponent(String(params.truckId))}`);
+  if (params?.plateNumber) qsParts.push(`plate_number=${encodeURIComponent(params.plateNumber)}`);
+  const qs = qsParts.length > 0 ? `?${qsParts.join("&")}` : "";
+
+  try {
+    const res = await apiRequest(`/collection-routes${qs}`);
+    if (res?.routes && Array.isArray(res.routes)) {
+      if (res.routes.length > 0 || !qs) return res.routes;
+    }
+  } catch {}
+
+  try {
+    const pubRes = await apiRequest(`/public/collection-routes${qs}`);
+    if (pubRes?.routes && Array.isArray(pubRes.routes) && pubRes.routes.length > 0) {
+      return pubRes.routes;
+    }
+    // If no routes matched strict driver_id filter (e.g. demo login), fetch all website-scheduled routes
+    if (qs) {
+      const allRes = await apiRequest("/public/collection-routes");
+      if (allRes?.routes && Array.isArray(allRes.routes)) {
+        return allRes.routes;
+      }
+    }
+  } catch {}
+
+  return [];
+}
+
+/**
+ * Update driver collection route progress, stop completion, waste tonnage/category, or operational issues
+ */
+export async function updateDriverRouteProgress(
+  routeId: number,
+  payload: DriverRouteProgressPayload
+): Promise<{ success: boolean; route?: any; message?: string }> {
+  try {
+    const res = await apiRequest(`/collection-routes/${routeId}/progress`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+    if (res?.success) return res;
+  } catch {}
+
+  try {
+    const pubRes = await apiRequest(`/public/collection-routes/${routeId}/progress`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+    return pubRes;
+  } catch (err: any) {
+    return { success: false, message: err?.message || "Failed to update route progress." };
+  }
+}
+
+
 

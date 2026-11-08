@@ -181,6 +181,14 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::get('/vendors', [VendorController::class, 'index']);
 Route::get('/vendors/{id}', [VendorController::class, 'show']);
 
+// Resident Public Vendor Information & QR Scanner Lookup (shared vendors/inspections/violations DB, read-only & sanitized)
+Route::get('/resident/vendors', [VendorController::class, 'residentIndex']);
+Route::post('/resident/vendors/scan-qr', [VendorController::class, 'residentScanQr']);
+Route::get('/resident/vendors/{idOrCode}', [VendorController::class, 'residentShow']);
+Route::get('/public/resident/vendors', [VendorController::class, 'residentIndex']);
+Route::post('/public/resident/vendors/scan-qr', [VendorController::class, 'residentScanQr']);
+Route::get('/public/resident/vendors/{idOrCode}', [VendorController::class, 'residentShow']);
+
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/vendors', [VendorController::class, 'store']);
     Route::put('/vendors/{id}', [VendorController::class, 'update']);
@@ -342,13 +350,23 @@ Route::middleware('auth:sanctum')->group(function () {
 |--------------------------------------------------------------------------
 */
 
-Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/collection-routes', [CollectionRouteController::class, 'index']);
-    Route::post('/collection-routes', [CollectionRouteController::class, 'store']);
-    Route::get('/collection-routes/{id}', [CollectionRouteController::class, 'show']);
-    Route::put('/collection-routes/{id}', [CollectionRouteController::class, 'update']);
-    Route::delete('/collection-routes/{id}', [CollectionRouteController::class, 'destroy']);
-});
+Route::get('/collection-routes/options', [CollectionRouteController::class, 'options']);
+Route::get('/public/collection-routes/options', [CollectionRouteController::class, 'options']);
+Route::get('/collection-routes', [CollectionRouteController::class, 'index']);
+Route::get('/collection-routes/{id}', [CollectionRouteController::class, 'show']);
+Route::post('/collection-routes', [CollectionRouteController::class, 'store']);
+Route::put('/collection-routes/{id}', [CollectionRouteController::class, 'update']);
+Route::post('/collection-routes/{id}/progress', [CollectionRouteController::class, 'progress']);
+Route::patch('/collection-routes/{id}/progress', [CollectionRouteController::class, 'progress']);
+Route::delete('/collection-routes/{id}', [CollectionRouteController::class, 'destroy']);
+
+Route::get('/public/collection-routes', [CollectionRouteController::class, 'index']);
+Route::get('/public/collection-routes/{id}', [CollectionRouteController::class, 'show']);
+Route::post('/public/collection-routes', [CollectionRouteController::class, 'store']);
+Route::put('/public/collection-routes/{id}', [CollectionRouteController::class, 'update']);
+Route::post('/public/collection-routes/{id}/progress', [CollectionRouteController::class, 'progress']);
+Route::patch('/public/collection-routes/{id}/progress', [CollectionRouteController::class, 'progress']);
+Route::delete('/public/collection-routes/{id}', [CollectionRouteController::class, 'destroy']);
 
 
 /*
